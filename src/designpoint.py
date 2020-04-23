@@ -11,7 +11,7 @@ class Designpoint:
 
         :param comp_list: list of Component objects
         :param app_list: list of Application objects
-        :param app_map: dictionary mapping {Component : Appliction}
+        :param app_map: dictionary mapping {Component : [Appliction]}
         """
         self.components = comp_list
         self.applications = app_list
@@ -21,16 +21,22 @@ class Designpoint:
         """Return the components of a designpoint as numpy array."""
         capacities = []
         temperatures = []
-        power_uses = []
 
         for c in self.components:
             capacities.append(c.capacity)
             temperatures.append(c.base_temp)
-            power_uses.append(c.power_used)
 
         return \
-            np.asarray(capacities),     \
-            np.asarray(temperatures),   \
-            np.asarray(power_uses),     \
-            np.asarray([(self.components.index(k), self.applications.index(self.application_map[k])) for k in self.application_map],
+            np.asarray(capacities),                 \
+            np.asarray(temperatures),               \
+            self.calc_power_usage_per_component(),  \
+            np.asarray([(self.components.index(comp), app.power_req) for comp, app in self.application_map],
                        dtype=[('comp', 'i4'), ('app', 'i4')])  # dtypes are numpy indices
+
+    def calc_power_usage_per_component(self):
+        foo = np.zeros(len(self.components))
+
+        for a, b in self.application_map:
+            foo[self.components.index(a)] += b.power_req
+
+        return foo

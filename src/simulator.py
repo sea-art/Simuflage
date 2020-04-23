@@ -60,6 +60,15 @@ class Simulator:
 
         self.power_uses = foo
 
+    def print_current_status(self):
+        print("i:", self.iterations, "-", np.nonzero(self.failed_components)[0].size, "core(s) have failed")
+
+        with np.errstate(divide='ignore', invalid='ignore'):
+            grid = self.power_uses / self.capacities
+        print(grid)
+
+        print("Application mapping:\n", np.sort(self.app_mapping), "\n")
+
     def handle_failures(self):
         all_failed_components = self.agings >= 1.0  # Check which components have failed
 
@@ -69,7 +78,6 @@ class Simulator:
             self.power_uses[all_failed_components] = 0
 
             failed_indices = np.nonzero(all_failed_components)
-            # print("i:", self.iterations, "-", "cores", failed_indices[0], "have failed")
 
             to_map = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices[0])]  # All applications that have to be remapped
             self.app_mapping = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices[0], invert=True)]  # Removes all applications that are mapped towards failed components
@@ -84,8 +92,6 @@ class Simulator:
                         self.adjust_power_uses()
                         break
 
-            with np.errstate(divide='ignore', invalid='ignore'):
-                grid = self.power_uses / self.capacities
-            # print(grid)
+            self.print_current_status()
 
         return self.app_mapping.size == self.nr_applications  # checks if all applications are mapped

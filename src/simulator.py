@@ -46,7 +46,6 @@ class Simulator:
         self.temperatures += np.random.uniform(-fluctuate, fluctuate, self.temperatures.size)
 
     def run(self, iteration_amount):
-        print(self.app_mapping)
         for _ in range(iteration_amount):
             if not self.iterate():
                 print("failed - TTF:", self.iterations)
@@ -70,21 +69,23 @@ class Simulator:
             self.power_uses[all_failed_components] = 0
 
             failed_indices = np.nonzero(all_failed_components)
-            print("i:", self.iterations, "-", "cores", failed_indices[0], "have failed")
+            # print("i:", self.iterations, "-", "cores", failed_indices[0], "have failed")
 
             to_map = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices[0])]  # All applications that have to be remapped
             self.app_mapping = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices[0], invert=True)]  # Removes all applications that are mapped towards failed components
 
             for app in to_map['app']:
-                for i in range(self.nr_components):  # Loop over all components
-                    if not self.failed_components[i]:  # If the component has not failed
-                        power_available = self.capacities - self.power_uses  # Power that the components have available
+                for i in np.random.permutation(np.arange(self.nr_components)[np.invert(self.failed_components)]):  # Loop over all non-failed components
+                    power_available = self.capacities - self.power_uses  # Power that the components have available
 
-                        if app < power_available[i]:
-                            self.app_mapping = np.append(self.app_mapping, np.array([(i, app)],
-                                                                                    dtype=self.app_mapping.dtype))
-                            self.adjust_power_uses()
-                            break
+                    if app < power_available[i]:
+                        self.app_mapping = np.append(self.app_mapping, np.array([(i, app)],
+                                                                                dtype=self.app_mapping.dtype))
+                        self.adjust_power_uses()
+                        break
 
-            print(self.app_mapping)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                grid = self.power_uses / self.capacities
+            # print(grid)
+
         return self.app_mapping.size == self.nr_applications  # checks if all applications are mapped

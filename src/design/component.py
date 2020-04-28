@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Component:
     """ Represents a CPU within the design space exploration."""
 

@@ -34,14 +34,18 @@ class Simulator:
         f.close()
 
     def print_current_status(self):
-        print("i:", self.iterations, "-", np.nonzero(self.failed_components)[0].size, "core(s) have failed")
+        # print("i:", self.iterations, "-", np.count_nonzero(self.components.alive_components), "core(s) have failed")
+        # print("iteration: ", self.iterations)
+        print((self.components.power_uses / self.components.capacities) * 100)
 
-        with np.errstate(divide='ignore', invalid='ignore'):
-            grid = self.power_uses / self.capacities
+        # print(self.components.alive_components)
 
-        print("grid:\n", grid)
-        print("Thermals:\n", self.thermals)
-        print("Application mapping:\n", np.sort(self.app_mapping), "\n")
+        # with np.errstate(divide='ignore', invalid='ignore'):
+        #     grid = self.components.power_uses / self.components.capacities
+        #
+        # print("grid:\n", grid)
+        # print("Thermals:\n", self.thermals.temps)
+        # print("Application mapping:\n", np.sort(self.components.app_mapping), "\n")
 
     def iterate(self):
         """ Run one iteration within the simulator.

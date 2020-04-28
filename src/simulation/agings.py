@@ -14,6 +14,9 @@ class Agings:
 
         :return: None
         """
+
+        assert np.all((self.lambdas * thermals / 100)[alive_components] >= 0), "Negative aging rate"
+
         self.cur_agings[alive_components] += (self.lambdas * thermals / 100)[alive_components]
 
     def iterate(self, alive_components, thermals):

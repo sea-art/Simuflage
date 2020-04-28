@@ -6,7 +6,7 @@ class Thermals:
     def __init__(self, init_thermals):
         self.isolated_thermals = init_thermals
         self.neighbour_thermals = np.zeros(init_thermals.shape)
-        self.thermals = np.copy(init_thermals)
+        self.temps = np.copy(init_thermals)
 
     def adjusted_thermals(self, m, fluctuate):
         """ Adjusts the thermals based on uniform fluctuation and neighbour thermal influences.
@@ -19,7 +19,7 @@ class Thermals:
                                                                     self.isolated_thermals.shape)[m['y'], m['x']]
         neighbour_thermals = self.neighbour_thermal_influences()
 
-        self.thermals[m['y'], m['x']] = neighbour_thermals[m['y'], m['x']]
+        self.temps[m['y'], m['x']] = neighbour_thermals[m['y'], m['x']]
 
     def neighbour_thermal_influences(self, kernel=None):
         """ Adjusts the thermals based on the neighbouring components thermals
@@ -43,4 +43,4 @@ class Thermals:
         """
         self.adjusted_thermals(comp_loc_map, fluctuate)
 
-        return self.thermals
+        return self.temps

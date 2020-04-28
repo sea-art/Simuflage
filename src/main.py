@@ -20,23 +20,21 @@ def random_experiment():
 
 
 def manual_experiment():
-    c1 = Component(100, (0, 1))
-    c2 = Component(100, (1, 0))
+    c1 = Component(100, (2, 3))
+    c2 = Component(100, (3, 4))
 
     a1 = Application(50)
-    a2 = Application(50)
+    a2 = Application(60)
 
     components = [c1, c2]
     applications = [a1, a2]
-    app_map = [(c1, a2), (c2, a2)]
+    app_map = [(c1, a1), (c2, a2)]
 
     dp = Designpoint(components, applications, app_map)
 
     sim = simulator.Simulator(dp)
 
-    # print()
-
-    # sim.run(until_failure=True, debug=True)
+    sim.run(until_failure=True, debug=False)
 
 
 if __name__ == "__main__":

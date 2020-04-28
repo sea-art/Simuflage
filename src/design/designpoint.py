@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# TODO: mapping.py file?
 class Designpoint:
     """Designpoint object representing a system to evaluate."""
 
@@ -21,8 +21,9 @@ class Designpoint:
 
         :return: max dimensions (y, x) NOTE: unexpected order
         """
-        return np.max(self.comp_loc_map['y']) + 1, \
-               np.max(self.comp_loc_map['x']) + 1
+        return \
+            np.max(self.comp_loc_map['y']) + 1, \
+            np.max(self.comp_loc_map['x']) + 1
 
     def get_empty_grid(self):
         return np.zeros(self.get_grid_dimensions())
@@ -34,7 +35,7 @@ class Designpoint:
         grid = self.get_empty_grid()
 
         for i, x, y in self.comp_loc_map:
-            grid[x, y] = self.applications[i].power_req / self.components[i].capacity * self.components[i].max_temp
+            grid[y, x] = self.applications[i].power_req / self.components[i].capacity * self.components[i].max_temp
 
         return grid
 

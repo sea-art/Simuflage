@@ -2,9 +2,8 @@ import numpy as np
 import os
 import sys
 
-from designpoint import Designpoint
-from thermals import Thermals
-from agings import Agings
+from simulation.thermals import Thermals
+from simulation.agings import Agings
 
 
 class Simulator:
@@ -32,13 +31,17 @@ class Simulator:
         self.iterations = 0
 
     def adjust_power_uses(self):
-        """Updates the power_uses for components based on the application mapping (self.app_mapping)."""
-        foo = np.zeros(self.nr_components)
+        """ Updates the power_uses for components based on the application mapping (self.app_mapping).
 
-        for a, b in self.app_mapping:
-            foo[a] += b
+        TODO: clone of designpoint.calc_power_usage_per_component
+        :return:
+        """
+        grid = self.get_empty_grid()
 
-        self.power_uses = foo
+        for comp, app in self.application_map:
+            grid[comp.loc[1], comp.loc[0]] += app.power_req
+
+        self.power_uses = grid
 
     def clear_failed_components(self, new_failed_components):
         """ Cleanup and alter variables of new components that have failed.

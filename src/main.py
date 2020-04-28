@@ -1,7 +1,7 @@
-from application import Application
-from designpoint import Designpoint
-from component import Component
-import simulator
+from design.application import Application
+from design.designpoint import Designpoint
+from design.component import Component
+from simulation import simulator
 import numpy as np
 
 

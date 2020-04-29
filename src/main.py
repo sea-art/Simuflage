@@ -30,28 +30,46 @@ def random_experiment():
 
     components = []
 
-    for x in np.random.randint(100, 150, n):
+    for x in np.random.randint(80, 120, n):
         loc = random.choice(choices)
         components.append(Component(x, loc))
         choices.remove(loc)
 
-    applications = [Application(x) for x in np.random.randint(1, 100, n)]
+    applications = [Application(x) for x in np.random.randint(30, 50, n)]
     app_map = [(components[x], applications[x]) for x in range(n)]
 
     dp = Designpoint(components, applications, app_map)
     sim = simulator.Simulator(dp)
 
-    sim.run(until_failure=True, debug=True)
+    sim.run(until_failure=True, debug=False)
 
 
-def manual_experiment():
-    """ Manual experiment for the simulator.
-    Components are manually made. This function is mainly used for test/debugging purposes.
+def monte_carlo(iterations=100):
+    """ Run a Monte Carlo simulation to receive a MTTF of a design point.
 
+    :param iterations: integer - number of iterations
     :return: None
     """
-    c1 = Component(100, (1, 1))
-    c2 = Component(100, (0, 1))
+    TTFs = []
+
+    dp = manual_designpoint()
+
+    for i in range(iterations):
+        sim = manual_experiment(dp)
+        TTFs.append(sim.iterations)
+
+    print("MTTF:", sum(TTFs) / len(TTFs))
+
+
+def manual_designpoint():
+    """ Manually create a design point.
+
+    Function mainly used for testing purposes
+
+    :return: designpoint object.
+    """
+    c1 = Component(201, (0, 1))
+    c2 = Component(201, (1, 0))
 
     a1 = Application(50)
     a2 = Application(50)
@@ -62,9 +80,25 @@ def manual_experiment():
 
     dp = Designpoint(components, applications, app_map)
 
-    sim = simulator.Simulator(dp)
+    return dp
 
-    sim.run(until_failure=True, debug=True)
+
+def manual_experiment(dp=None, debug=False):
+    """ Manual experiment for the simulator.
+    Components are manually made. This function is mainly used for test/debugging purposes.
+
+    :return: None
+    """
+    if not dp:
+        dp = manual_designpoint()
+
+    sim = simulator.Simulator(dp)
+    sim.run(until_failure=True, debug=False)
+
+    if debug:
+        print("TTF", sim.iterations)
+
+    return sim
 
 
 if __name__ == "__main__":

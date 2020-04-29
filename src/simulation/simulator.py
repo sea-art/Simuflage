@@ -56,12 +56,13 @@ class Simulator:
 
         :return: boolean indicating if a core has failed this iteration.
         """
+        self.iterations += 1
+
         self.thermals.iterate(self.components.comp_loc_map)
         self.agings.iterate(self.components.alive_components, self.thermals.temps)
-        keep_iterating = self.components.iterate(self.agings.cur_agings)
+        keep_iterating = self.components.iterate(self.agings.cur_agings, self.iterations)
 
         # self.log_iteration("a.txt")
-        self.iterations += 1
 
         return keep_iterating
 
@@ -80,5 +81,4 @@ class Simulator:
                 self.print_current_status()
 
             if not self.iterate():
-                print("failed - TTF:", self.iterations)
                 return self.iterations

@@ -1,4 +1,6 @@
 import numpy as np
+from design.mapping import comp_to_loc_mapping, application_mapping
+
 
 # TODO: mapping.py file?
 class Designpoint:
@@ -14,7 +16,7 @@ class Designpoint:
         self.components = comp_list
         self.applications = app_list
         self.application_map = app_map
-        self.comp_loc_map = self.comp_to_loc_mapping()
+        self.comp_loc_map = comp_to_loc_mapping(self.components)
 
     def get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.
@@ -69,8 +71,7 @@ class Designpoint:
             self.create_thermal_grid(),              \
             self.calc_power_usage_per_component(),   \
             self.comp_loc_map,                       \
-            np.asarray([(self.components.index(comp), app.power_req) for comp, app in self.application_map],
-                       dtype=[('comp', 'i4'), ('app', 'i4')])  # dtypes are numpy indices
+            application_mapping(self.components, self.application_map)
 
     def calc_power_usage_per_component(self):
         """ Calculate the power usage per compenent based on the mapped applications to the corresponding components.
@@ -84,12 +85,3 @@ class Designpoint:
 
         return grid
 
-    def comp_to_loc_mapping(self):
-        """ Compute a component to location mapping as a structured numpy array as
-        [(comp_index, x_coord, y_coord)]
-
-        :return: structured numpy array [(index, x, y)]
-        """
-        return np.asarray([(i, self.components[i].loc[0], self.components[i].loc[1])
-                           for i in range(len(self.components))],
-                          dtype=[('index', 'i4'), ('x', 'i4'), ('y', 'i4')])

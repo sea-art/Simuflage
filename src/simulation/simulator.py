@@ -34,6 +34,10 @@ class Simulator:
         f.close()
 
     def print_current_status(self):
+        """ Print the current system values based on each simulation iteration.
+
+        :return: None
+        """
         # print("i:", self.iterations, "-", np.count_nonzero(self.components.alive_components), "core(s) have failed")
         # print("iteration: ", self.iterations)
         print((self.components.power_uses / self.components.capacities) * 100)
@@ -48,7 +52,7 @@ class Simulator:
         # print("Application mapping:\n", np.sort(self.components.app_mapping), "\n")
 
     def iterate(self):
-        """ Run one iteration within the simulator.
+        """ Run one iteration of the simulator.
 
         :return: boolean indicating if a core has failed this iteration.
         """

@@ -3,6 +3,13 @@ import numpy as np
 
 class Components:
     def __init__(self, capacities, power_uses, comp_loc_map, app_mapping):
+        """ Initializes the components for the simulator.
+
+        :param capacities: 2D float numpy array with capacities on component positions
+        :param power_uses: 2D float numpy array with power usage on component positions
+        :param comp_loc_map: Structured array mapping components to locations
+        :param app_mapping: Structured array mapping components to applications
+        """
         self.capacities = capacities
         self.power_uses = power_uses
         self.alive_components = capacities > 0
@@ -18,6 +25,11 @@ class Components:
         self.adjust_power_uses()
 
     def iterate(self, cur_agings):
+        """ Run one iteration regarding the component process of the simulation
+
+        :param cur_agings: 2D numpy float array containing the current agings for components
+        :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
+        """
         handled_failure = self.handle_failures(cur_agings)
 
         if not handled_failure:
@@ -41,6 +53,12 @@ class Components:
         return loc[2], loc[1]
 
     def grid_position_to_index(self, x, y):
+        """ Returns the position of a component based on a given x, y coordinate.
+
+        :param x: integer of x position
+        :param y: integer of y position
+        :return: integer of index of component
+        """
         pos = np.logical_and(self.comp_loc_map['x'] == x, self.comp_loc_map['y'] == y)
 
         assert self.comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
@@ -50,8 +68,7 @@ class Components:
     def adjust_power_uses(self):
         """ Updates the power_uses for components based on the application mapping (self.app_mapping).
 
-        TODO: very similar to designpoint.calc_power_usage_per_component
-        :return:
+        :return: None
         """
         grid = np.zeros(self.capacities.shape)
 
@@ -60,13 +77,14 @@ class Components:
 
         self.power_uses = grid
 
-    def cleanup_comp_loc_map(self, failed_components):
+    def get_failed_indices(self, failed_components):
+        """ Receive the failed indices of components.
+
+        :param failed_components: 2D boolean array of all components that have failed.
+        :return: numpy integer array containing all indices of failed components.
+        """
         failed_locations = np.asarray(np.nonzero(failed_components)).T
         failed_indices = np.array([self.grid_position_to_index(loc[1], loc[0]) for loc in failed_locations])
-
-        # Remove failed components from comp_loc_map
-        # if failed_indices.size > 0:
-        #     self.comp_loc_map = np.delete(self.comp_loc_map, failed_indices)
 
         return failed_indices
 
@@ -80,6 +98,13 @@ class Components:
         self.capacities[failed_components] = 0
 
     def remap_application(self, app):
+        """ Remaps a given application to any of the still working components with enough slack.
+
+        Also adjusts the power usage after application remapping.
+
+        :param app: integer representing the power required for an application that has to be remapped.
+        :return: None
+        """
         components_slack = self.capacities - self.power_uses
 
         # Loop randomly over all non-failed components
@@ -93,6 +118,11 @@ class Components:
                 break
 
     def cleanup_app_mapping(self, failed_indices):
+        """ Removes all applications that are mapped to failed components and remaps them.
+
+        :param failed_indices: 2D numpy boolean array indicating which components have failed.
+        :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
+        """
         # Removes all applications that are mapped towards failed components
         to_map = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices)]
 
@@ -117,7 +147,7 @@ class Components:
         if np.any(failed_components[self.alive_components]):
             print("Handling failure!")
             self.cleanup_failed_components(failed_components)
-            failed_indices = self.cleanup_comp_loc_map(failed_components)
+            failed_indices = self.get_failed_indices(failed_components)
 
             return self.cleanup_app_mapping(failed_indices)
 

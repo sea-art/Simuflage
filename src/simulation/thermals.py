@@ -4,6 +4,10 @@ from scipy import signal
 
 class Thermals:
     def __init__(self, init_thermals):
+        """ Initializes a Thermals object based on the current initial thermals.
+
+        :param init_thermals: 2D numpy float array containing the local temperatures.
+        """
         self.isolated_thermals = init_thermals
         self.neighbour_thermals = np.zeros(init_thermals.shape)
         self.temps = np.copy(init_thermals)

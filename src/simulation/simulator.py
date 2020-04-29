@@ -30,7 +30,7 @@ class Simulator:
         """
         root_dir = os.path.dirname(os.path.abspath(__file__))
         f = open(root_dir + "/../../out/" + filename_out, "a+")
-        f.write("%d %d %f\n" % (self.iterations, np.sum(self.capacities), np.average(self.isolated_thermals)))
+        f.write("%d %s %f\n" % (self.iterations, np.sum(self.components.capacities), np.average(self.thermals.temps)))
         f.close()
 
     def print_current_status(self):

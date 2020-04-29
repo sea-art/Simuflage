@@ -145,9 +145,13 @@ class Components:
 
         # Check if failed components are already adjusted (i.e. any remapping required?)
         if np.any(failed_components[self.alive_components]):
-            print("Handling failure!")
             self.cleanup_failed_components(failed_components)
             failed_indices = self.get_failed_indices(failed_components)
+
+            with np.errstate(divide='ignore', invalid='ignore'):
+                print("Core(s)", failed_indices, "have failed!")
+                print("Mapping:", self.comp_loc_map)
+                print((self.power_uses / self.capacities) * 100, "\n")
 
             return self.cleanup_app_mapping(failed_indices)
 

@@ -7,6 +7,6 @@
 </p>  
 
 
-#DSE Simulator
+# DSE Simulator
 This repository contains a simple simulator that can be used to receive time to failures of a 
 given design point

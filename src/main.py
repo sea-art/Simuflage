@@ -7,7 +7,12 @@ import math
 import random
 
 
-def all_possible_mappings(n):
+def all_possible_pos_mappings(n):
+    """ Cartesian product of all possible position values.
+
+    :param n: amount of components
+    :return: (N x 2) integer array containing all possible positions.
+    """
     grid_size = int(math.ceil(math.sqrt(n)))
     x = np.arange(grid_size)
 
@@ -15,8 +20,13 @@ def all_possible_mappings(n):
 
 
 def random_experiment():
+    """ Random experiment for the simulator.
+    n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
+
+    :return: None
+    """
     n = 9
-    choices = list(map(tuple, all_possible_mappings(n)))
+    choices = list(map(tuple, all_possible_pos_mappings(n)))
 
     components = []
 
@@ -29,13 +39,17 @@ def random_experiment():
     app_map = [(components[x], applications[x]) for x in range(n)]
 
     dp = Designpoint(components, applications, app_map)
-
     sim = simulator.Simulator(dp)
 
     sim.run(until_failure=True, debug=True)
 
 
 def manual_experiment():
+    """ Manual experiment for the simulator.
+    Components are manually made. This function is mainly used for test/debugging purposes.
+
+    :return: None
+    """
     c1 = Component(100, (1, 1))
     c2 = Component(100, (0, 1))
 

@@ -15,10 +15,10 @@ given design point.
 This repository complements a thesis project of the MSc Software Engineering thesis at the University of Amsterdam. 
 This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
-## dependencies
+## Dependencies
 ```
-- numpy
-- scipy.signal
+numpy
+scipy.signal
 ```
 
 ## Running

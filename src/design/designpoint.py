@@ -2,7 +2,6 @@ import numpy as np
 from design.mapping import comp_to_loc_mapping, application_mapping
 
 
-# TODO: mapping.py file?
 class Designpoint:
     """Designpoint object representing a system to evaluate."""
 
@@ -28,11 +27,20 @@ class Designpoint:
             np.max(self.comp_loc_map['x']) + 1
 
     def get_empty_grid(self):
+        """ Creates a 2D numpy array (grid) of zero's based on the position of components.
+
+        :return: 2D numpy array
+        """
         return np.zeros(self.get_grid_dimensions())
 
-    def create_thermal_grid(self, capacities=None):
-        if not capacities:
-            capacities = [c.capacity for c in self.components]
+    def create_thermal_grid(self):
+        """ Creates a thermal grid of all the components.
+
+        The temperatures of each component will be placed on the
+        corresponding position. All other positions temperature are 0.
+
+        :return: 2D numpy array of local temperatures
+        """
 
         grid = self.get_empty_grid()
 
@@ -42,6 +50,13 @@ class Designpoint:
         return grid
 
     def create_capacity_grid(self):
+        """ Creates a capacity grid of all the components.
+
+        The capacity of each component will be placed on the
+        corresponding position. All other position (i.e. spots where the components are not placed) are 0.
+
+        :return: 2D numpy array of power capacities
+        """
         grid = self.get_empty_grid()
 
         for i in range(len(self.components)):
@@ -59,10 +74,11 @@ class Designpoint:
         With this data, components (and their corresponding values) are all based on index.
 
         :return: (
-                    numpy int array - capacities
-                    numpy float array - temperatures
-                    numpy integer array -  used power per component by mapped applications
-                    numpy structured array - [(component_index, app_power_req]
+                    numpy 2D float array - capacities
+                    numpy 2D float array - temperatures
+                    numpy 2D float array -  used power per component by mapped applications
+                    numpy 2D structured array [(component_index, app_power_req] - application mapping
+                    numpy 2D structured array [(component_index, x, y)] - component to pos mapping
                 )
         """
 

@@ -12,7 +12,7 @@ This repository contains a simple simulator that can be used to receive time to 
 given design point.
 
 ## About
-This repository complements a thesis project of the MSc Software Engineering thesis at the University of Amsterdam. 
+This repository complements a thesis project of the MSc Software Engineering master at the University of Amsterdam. 
 This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
 ## Running
@@ -25,16 +25,16 @@ python3 main.py
 ## Project structure
 ```
 src
- +-- design
- |   +-- application.py
- |   +-- component.py
- |   +-- designpoint.py
- |   +-- mapping.py
- +-- simulation
- |   +-- agings.py
- |   +-- components.py
- |   +-- simulator.py
- |   +-- thermals.py
++-- design
+|   +-- application.py
+|   +-- component.py
+|   +-- designpoint.py
+|   +-- mapping.py
++-- simulation
+|   +-- agings.py
+|   +-- components.py
+|   +-- simulator.py
+|   +-- thermals.py
 ```
 All the code about *design points* are positioned in the ```src/design/``` folder.<br>
  
@@ -67,7 +67,7 @@ a2 = Application(40)
 ```
 Which will create two applications, one requires 50 computing power and the other 40.
 
-Similar to the components, all applications have to be bundled together as well:
+Similar to the components, all applications have to be bundled together as a list:
 ```python
 applications = [a1, a2]
 ```

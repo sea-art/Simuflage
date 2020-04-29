@@ -56,9 +56,6 @@ class Simulator:
 
         :return: boolean indicating if a core has failed this iteration.
         """
-
-        keep_iterating = True
-
         self.thermals.iterate(self.components.comp_loc_map)
         self.agings.iterate(self.components.alive_components, self.thermals.temps)
         keep_iterating = self.components.iterate(self.agings.cur_agings)
@@ -75,7 +72,6 @@ class Simulator:
         :param until_failure: boolean to infinitely simulate until failure
         :return: amount of iterations when the system has failed
         """
-
         if until_failure:
             iteration_amount = sys.maxsize
 

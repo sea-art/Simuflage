@@ -15,6 +15,12 @@ given design point.
 This repository complements a thesis project of the MSc Software Engineering thesis at the University of Amsterdam. 
 This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
+## dependencies
+```
+- numpy
+- scipy.signal
+```
+
 ## Running
 ```bash
 git clone git@github.com:sea-art/DSE_simulator.git

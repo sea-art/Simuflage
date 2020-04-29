@@ -1,7 +1,7 @@
 <p align="center">
     <img width="500" src="https://i.imgur.com/MF0plyC.png"/>
 </p>  
-
+<br/>
 <p align="center">
     <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
 </p>  
@@ -19,6 +19,23 @@ git clone git@github.com:sea-art/DSE_simulator.git
 cd DSE_simulator
 python3 main.py
 ```
+
+## Project structure
+```
+src
+ +-- design
+ |   +-- application.py
+ |   +-- component.py
+ |   +-- designpoint.py
+ |   +-- mapping.py
+ +-- simulation
+ |   +-- agings.py
+ |   +-- components.py
+ |   +-- simulator.py
+ |   +-- thermals.py
+```
+All the code about design points are positioned in the ```src/design/``` folder. 
+All the code regarding the simulation are placed in the ```src/simulation/``` folder.
 
 ## Example
 
@@ -54,7 +71,9 @@ Applications have to be mapped to components, and can be done as follows:
 ```python
 app_map = [(c1, a1), (c2, a2)]
 ```
-Which maps the application of 50 to component 1, and the appliaction of 40 to component 2.
+Which maps the application of 50 to component 1, and the application of 40 to component 2.
+
+**NOTE: An application can only be mapped to a single component, but components can run multiple applications**
 
 ### Creating the designpoint
 In order to create a design point the component, the applications and the mapping of 

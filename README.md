@@ -12,6 +12,8 @@ This repository contains a simple simulator that can be used to receive time to 
 given design point.
 
 ## About
+This repository complements a thesis project of the MSc Software Engineering thesis at the University of Amsterdam. 
+This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
 ## Running
 ```bash
@@ -34,8 +36,12 @@ src
  |   +-- simulator.py
  |   +-- thermals.py
 ```
-All the code about design points are positioned in the ```src/design/``` folder. 
-All the code regarding the simulation are placed in the ```src/simulation/``` folder.
+All the code about *design points* are positioned in the ```src/design/``` folder.<br>
+ 
+All the code regarding the *simulation* are placed in the ```src/simulation/``` folder.<br>
+The ```simulator.py``` can be seen as the *main* function for the simulator. All other files 
+(i.e. ```agings.py```, ```components.py``` and ```thermals.py```) provide an ```iterate()``` function
+based on some parameters, which the simulator will call each simulation iteration.
 
 ## Example
 
@@ -92,9 +98,8 @@ sim.run(until_failure=True, debug=False)
 When running the simulator it is either possible to run a fixed amount of iterations, 
 or to keep running the simulator until a failure has occurred.
 
-## Contributing
-
-## Code structure
+## Contact
+Don't hesitate to contact me regarding any questions about the code or project!<br>
 
 ## Contributors
 Siard Keulen

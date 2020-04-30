@@ -42,6 +42,7 @@ def random_experiment():
     sim = simulator.Simulator(dp)
 
     sim.run(until_failure=True, debug=False)
+    print("TTF", sim.iterations)
 
 
 def monte_carlo(iterations=100):
@@ -68,8 +69,8 @@ def manual_designpoint():
 
     :return: designpoint object.
     """
-    c1 = Component(201, (0, 1))
-    c2 = Component(201, (1, 0))
+    c1 = Component(200, (0, 1))
+    c2 = Component(220, (1, 0))
 
     a1 = Application(50)
     a2 = Application(50)

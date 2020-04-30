@@ -145,13 +145,6 @@ class Components:
             self.cleanup_failed_components(failed_components)
             failed_indices = self.get_failed_indices(failed_components)
 
-            with np.errstate(divide='ignore', invalid='ignore'):
-                print("Iteration:", iteration)
-                print("Core(s)", failed_indices, "failed!")
-                print("Mapping comp to loc:", self.comp_loc_map)
-                print("Mapping comp to app:", self.app_mapping)
-                print((self.power_uses / self.capacities) * 100, "\n")
-
             return self.cleanup_app_mapping(failed_indices)
 
         return True

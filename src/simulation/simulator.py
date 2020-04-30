@@ -38,18 +38,7 @@ class Simulator:
 
         :return: None
         """
-        # print("i:", self.iterations, "-", np.count_nonzero(self.components.alive_components), "core(s) have failed")
-        # print("iteration: ", self.iterations)
         print((self.components.power_uses / self.components.capacities) * 100)
-
-        # print(self.components.alive_components)
-
-        # with np.errstate(divide='ignore', invalid='ignore'):
-        #     grid = self.components.power_uses / self.components.capacities
-        #
-        # print("grid:\n", grid)
-        # print("Thermals:\n", self.thermals.temps)
-        # print("Application mapping:\n", np.sort(self.components.app_mapping), "\n")
 
     def iterate(self):
         """ Run one iteration of the simulator.
@@ -58,9 +47,11 @@ class Simulator:
         """
         self.iterations += 1
 
-        self.thermals.iterate(self.components.comp_loc_map)
-        self.agings.iterate(self.components.alive_components, self.thermals.temps)
-        keep_iterating = self.components.iterate(self.agings.cur_agings, self.iterations)
+        keep_iterating = True
+
+        keep_iterating &= self.thermals.iterate(self.components.comp_loc_map)
+        keep_iterating &= self.agings.iterate(self.components.alive_components, self.thermals.temps)
+        keep_iterating &= self.components.iterate(self.agings.cur_agings, self.iterations)
 
         # self.log_iteration("a.txt")
 

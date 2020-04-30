@@ -1,19 +1,24 @@
 <p align="center">
-    <img width="500" src="https://i.imgur.com/HPWb5UX.png"/>
-</p>  
+    <a href="https://www.uva.nl/en">
+        <img width="500" src="https://i.imgur.com/HPWb5UX.png"/>
+    </a>
+</p> 
+
 <br/>
 <p align="center">
-    <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
+    <a href="http://admorph.eu/">
+        <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
+    </a>
 </p>  
 
 
 ## Summary
-This repository contains a simple simulator that can be used to receive time to failures of a 
-given design point.
+This repository contains a simulator that can be used to receive time to failures (TTF) of a 
+given system design point.
 
 ## About
-This repository complements a thesis project of the MSc Software Engineering master at the University of Amsterdam. 
-This project falls into the scope of [ADMORPH](http://admorph.eu/).
+This repository complements a thesis project of the [MSc Software Engineering](http://www.software-engineering-amsterdam.nl) 
+master at the University of Amsterdam. This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
 ## Running
 ```bash

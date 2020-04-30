@@ -24,23 +24,20 @@ class Components:
 
         self.adjust_power_uses()
 
-    def iterate(self, cur_agings):
+    def iterate(self, cur_agings, iteration):
         """ Run one iteration regarding the component process of the simulation
 
         :param cur_agings: 2D numpy float array containing the current agings for components
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
-        handled_failure = self.handle_failures(cur_agings)
-
-        if not handled_failure:
-            print("Could not handle component failure!")
+        handled_failure = self.handle_failures(cur_agings, iteration)
 
         return handled_failure
 
     def index_to_grid_position(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.
 
-        :param index:
+        :param index: integer containing the component index
         :return:
         """
         pos = self.comp_loc_map['index'] == index
@@ -134,7 +131,7 @@ class Components:
 
         return self.app_mapping.size == self.nr_applications
 
-    def handle_failures(self, cur_agings):
+    def handle_failures(self, cur_agings, iteration):
         """Look at the aging values to determine if a component has failed.
         If a component has failed, the applications that were mapped to that component will randomly be remapped
         to components with a sufficient amount of slack.
@@ -147,11 +144,6 @@ class Components:
         if np.any(failed_components[self.alive_components]):
             self.cleanup_failed_components(failed_components)
             failed_indices = self.get_failed_indices(failed_components)
-
-            with np.errstate(divide='ignore', invalid='ignore'):
-                print("Core(s)", failed_indices, "have failed!")
-                print("Mapping:", self.comp_loc_map)
-                print((self.power_uses / self.capacities) * 100, "\n")
 
             return self.cleanup_app_mapping(failed_indices)
 

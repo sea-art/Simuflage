@@ -21,4 +21,5 @@ When adding elements to the simulator, it has to extend the abstract class ```si
 
 ## Integrator
 The integrator, located at ```src/simulation/integrator.py``` is the file to edit the simulator functionality
-upon altering or changing simulator elements.
+upon altering or changing simulator elements. Most of the times, these files should be integrated with each other (e.g.
+functionality for the aging of components requires the thermals of the same timestep)

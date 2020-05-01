@@ -1,10 +1,5 @@
-import numpy as np
-import os
 import sys
 
-from simulation.elements.thermals import Thermals
-from simulation.elements.agings import Agings
-from simulation.elements.components import Components
 from simulation.integrator import Integrator
 
 
@@ -16,12 +11,7 @@ class Simulator:
         """
         dp_data = design_point.to_numpy()
 
-        # Simulation variables
-        self._components = Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4])
-        self._thermals = Thermals(dp_data[1])
-        self._agings = Agings(self._components.alive_components)
-        self._integrator = Integrator(self._components, self._thermals, self._agings)
-
+        self._integrator = Integrator(design_point)
         self._timesteps = 0
 
     @property
@@ -39,24 +29,14 @@ class Simulator:
         :param filename_out: file to write to (/out/<filename_out>)
         :return: None
         """
-        root_dir = os.path.dirname(os.path.abspath(__file__))
-        f = open(root_dir + "/../../out/" + filename_out, "a+")
-        f.write("%d %s %f\n" % (self._timesteps, np.sum(self._components.capacities), np.average(self._thermals.temps)))
-        f.close()
+        self._integrator.log_timestep(self._timesteps)
 
     def print_current_status(self):
         """ Print the current system values based on each simulation iteration.
 
         :return: None
         """
-        print((self._components.power_uses / self._components.capacities) * 100)
-
-    def handle_failure_occurrence(self):
-        """ This function should be called when a component has failed.
-
-        :return:
-        """
-        pass
+        self._integrator.print_status(self._timesteps)
 
     def step(self):
         """ Run one iteration of the simulator.
@@ -66,7 +46,6 @@ class Simulator:
         system_ok = self._integrator.step()
 
         self._timesteps += 1
-        # self.log_iteration("a.txt")
 
         return system_ok
 

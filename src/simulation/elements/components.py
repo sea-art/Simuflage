@@ -1,5 +1,5 @@
 import numpy as np
-from simulation.elements.simulator_element import SimulatorElement
+from simulation.elements.element import SimulatorElement
 
 
 class Components(SimulatorElement):
@@ -40,6 +40,14 @@ class Components(SimulatorElement):
         :return: Structured array mapping components to locations
         """
         return self._comp_loc_map
+
+    @property
+    def capacities(self):
+        """ Getter function for the comp_loc_map instance variable.
+
+        :return: 2D float numpy array with capacities on component positions
+        """
+        return self._capacities
 
     def step(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation

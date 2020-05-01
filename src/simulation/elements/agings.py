@@ -1,5 +1,5 @@
 import numpy as np
-from simulation.elements.simulator_element import SimulatorElement
+from simulation.elements.element import SimulatorElement
 
 
 class Agings(SimulatorElement):

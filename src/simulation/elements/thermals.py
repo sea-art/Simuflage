@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 
-from simulation.elements.simulator_element import SimulatorElement
+from simulation.elements.element import SimulatorElement
 
 
 class Thermals(SimulatorElement):

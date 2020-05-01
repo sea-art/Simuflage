@@ -112,5 +112,5 @@ or to keep running the simulator until a failure has occurred.
 ## Contact
 Don't hesitate to contact me regarding any questions about the code or project!<br>
 
-## Contributors
-Siard Keulen
+## Contributing
+For information about contributing to this project, see [CONTRIBUTING](CONTRIBUTING.md)

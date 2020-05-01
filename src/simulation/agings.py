@@ -32,6 +32,6 @@ class Agings:
 
         :param alive_components: 2D numpy boolean array indicating the position of alive components.
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
-        :return: None
+        :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
-        require_remap = self.update_agings(alive_components, thermals)
+        return self.update_agings(alive_components, thermals)

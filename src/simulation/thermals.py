@@ -43,6 +43,6 @@ class Thermals:
 
         :param comp_loc_map: (np structured array) mapping of component index to x, y location
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
-        :return: (2D np float array) - adjusted thermals after iteration
+        :return: None
         """
         self.adjusted_thermals(comp_loc_map, fluctuate)

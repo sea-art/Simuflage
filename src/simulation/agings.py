@@ -27,8 +27,8 @@ class Agings:
 
         return np.any((self.cur_agings >= 1.0)[alive_components])
 
-    def iterate(self, alive_components, thermals):
-        """ Run one iteration regarding the aging process of the simulation
+    def step(self, alive_components, thermals):
+        """ Increment a timestep regarding the aging process of the simulation
 
         :param alive_components: 2D numpy boolean array indicating the position of alive components.
         :param thermals: 2D numpy float array with the current local thermals at this iteration.

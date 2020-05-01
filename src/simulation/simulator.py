@@ -47,16 +47,16 @@ class Simulator:
         """
         pass
 
-    def iterate(self):
+    def step(self):
         """ Run one iteration of the simulator.
 
         :return: boolean indicating if a core has failed this iteration.
         """
         self.iterations += 1
 
-        self.thermals.iterate(self.components.comp_loc_map)
-        remap_required = self.agings.iterate(self.components.alive_components, self.thermals.temps)
-        system_ok = self.components.iterate(self.agings.cur_agings)
+        self.thermals.step(self.components.comp_loc_map)
+        remap_required = self.agings.step(self.components.alive_components, self.thermals.temps)
+        system_ok = self.components.step(self.agings.cur_agings)
 
         # self.log_iteration("a.txt")
 
@@ -76,5 +76,5 @@ class Simulator:
             if debug:
                 self.print_current_status()
 
-            if not self.iterate():
+            if not self.step():
                 return self.iterations

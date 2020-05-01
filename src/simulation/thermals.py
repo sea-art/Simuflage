@@ -38,7 +38,7 @@ class Thermals:
 
         return signal.convolve2d(self.isolated_thermals, kernel, "same")
 
-    def iterate(self, comp_loc_map, fluctuate=0.01):
+    def step(self, comp_loc_map, fluctuate=0.01):
         """ Iterate the thermal influences
 
         :param comp_loc_map: (np structured array) mapping of component index to x, y location

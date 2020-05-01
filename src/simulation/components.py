@@ -24,7 +24,7 @@ class Components:
 
         self.adjust_power_uses()
 
-    def iterate(self, cur_agings):
+    def step(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation
 
         :param cur_agings: 2D numpy float array containing the current agings for components

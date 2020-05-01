@@ -16,11 +16,10 @@ class Simulator:
 
     @property
     def timesteps(self):
-        def cur_agings(self):
-            """ Getter function for the cur_agings instance variable.
+        """ Getter function for the cur_agings instance variable.
 
-            :return: 2D float numpy array with the current agings based on component positions.
-            """
+        :return: 2D float numpy array with the current agings based on component positions.
+        """
         return self._timesteps
 
     def log_iteration(self, filename_out):
@@ -41,7 +40,7 @@ class Simulator:
     def step(self):
         """ Run one iteration of the simulator.
 
-        :return: boolean indicating if a core has failed this iteration.
+        :return: Boolean indicating if a core has failed this iteration.
         """
         system_ok = self._integrator.step()
 

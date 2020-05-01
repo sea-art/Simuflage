@@ -24,17 +24,17 @@ class Components:
 
         self.adjust_power_uses()
 
-    def iterate(self, cur_agings, iteration):
+    def iterate(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation
 
         :param cur_agings: 2D numpy float array containing the current agings for components
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
-        handled_failure = self.handle_failures(cur_agings, iteration)
+        handled_failure = self.handle_failures(cur_agings)
 
         return handled_failure
 
-    def index_to_grid_position(self, index):
+    def index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.
 
         :param index: integer containing the component index
@@ -49,7 +49,7 @@ class Components:
 
         return loc[2], loc[1]
 
-    def grid_position_to_index(self, x, y):
+    def pos_to_index(self, x, y):
         """ Returns the position of a component based on a given x, y coordinate.
 
         :param x: integer of x position
@@ -70,7 +70,7 @@ class Components:
         grid = np.zeros(self.capacities.shape)
 
         for comp, app in self.app_mapping:
-            grid[self.index_to_grid_position(comp)] += app
+            grid[self.index_to_pos(comp)] += app
 
         self.power_uses = grid
 
@@ -81,7 +81,7 @@ class Components:
         :return: numpy integer array containing all indices of failed components.
         """
         failed_locations = np.asarray(np.nonzero(failed_components)).T
-        failed_indices = np.array([self.grid_position_to_index(loc[1], loc[0]) for loc in failed_locations])
+        failed_indices = np.array([self.pos_to_index(loc[1], loc[0]) for loc in failed_locations])
 
         return failed_indices
 
@@ -131,7 +131,7 @@ class Components:
 
         return self.app_mapping.size == self.nr_applications
 
-    def handle_failures(self, cur_agings, iteration):
+    def handle_failures(self, cur_agings):
         """Look at the aging values to determine if a component has failed.
         If a component has failed, the applications that were mapped to that component will randomly be remapped
         to components with a sufficient amount of slack.

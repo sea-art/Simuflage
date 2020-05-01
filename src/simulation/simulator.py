@@ -40,6 +40,13 @@ class Simulator:
         """
         print((self.components.power_uses / self.components.capacities) * 100)
 
+    def handle_failure_occurrance(self):
+        """ This function should be called when a component has failed.
+
+        :return:
+        """
+        pass
+
     def iterate(self):
         """ Run one iteration of the simulator.
 
@@ -47,15 +54,13 @@ class Simulator:
         """
         self.iterations += 1
 
-        keep_iterating = True
-
-        keep_iterating &= self.thermals.iterate(self.components.comp_loc_map)
-        keep_iterating &= self.agings.iterate(self.components.alive_components, self.thermals.temps)
-        keep_iterating &= self.components.iterate(self.agings.cur_agings, self.iterations)
+        self.thermals.iterate(self.components.comp_loc_map)
+        self.agings.iterate(self.components.alive_components, self.thermals.temps)
+        self.components.iterate(self.agings.cur_agings)
 
         # self.log_iteration("a.txt")
 
-        return keep_iterating
+        return False
 
     def run(self, iteration_amount=5000, until_failure=False, debug=False):
         """ Runs the simulation an iteration_amount of time or until a failure occurs.

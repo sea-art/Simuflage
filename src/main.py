@@ -42,13 +42,13 @@ def random_experiment():
     sim = simulator.Simulator(dp)
 
     sim.run(until_failure=True, debug=False)
-    print("TTF", sim.iterations)
+    print("TTF", sim.timesteps)
 
 
 def monte_carlo(iterations=100):
     """ Run a Monte Carlo simulation to receive a MTTF of a design point.
 
-    :param iterations: integer - number of iterations
+    :param timesteps: integer - number of timesteps
     :return: None
     """
     TTFs = []
@@ -57,7 +57,7 @@ def monte_carlo(iterations=100):
 
     for i in range(iterations):
         sim = manual_experiment(dp)
-        TTFs.append(sim.iterations)
+        TTFs.append(sim.timesteps)
 
     print("MTTF:", sum(TTFs) / len(TTFs))
 
@@ -97,7 +97,7 @@ def manual_experiment(dp=None, debug=False):
     sim.run(until_failure=True, debug=False)
 
     if debug:
-        print("TTF", sim.iterations)
+        print("TTF", sim.timesteps)
 
     return sim
 

@@ -10,19 +10,35 @@ class Components:
         :param comp_loc_map: Structured array mapping components to locations
         :param app_mapping: Structured array mapping components to applications
         """
-        self.capacities = capacities
-        self.power_uses = power_uses
-        self.alive_components = capacities > 0
+        self._capacities = capacities
+        self._power_uses = power_uses
+        self._alive_components = capacities > 0
 
         # Mappings
-        self.comp_loc_map = comp_loc_map
-        self.app_mapping = app_mapping
+        self._comp_loc_map = comp_loc_map
+        self._app_mapping = app_mapping
 
         # Miscellaneous variables
-        self.nr_applications = np.count_nonzero(self.app_mapping)
-        self.nr_components = np.count_nonzero(self.capacities)
+        self._nr_applications = np.count_nonzero(self._app_mapping)
+        self._nr_components = np.count_nonzero(self._capacities)
 
         self.adjust_power_uses()
+
+    @property
+    def alive_components(self):
+        """ Getter function for the alive_components instance variable.
+
+        :return: 2D boolean array indicating working components at corresponding location.
+        """
+        return self. _alive_components
+
+    @property
+    def comp_loc_map(self):
+        """ Getter function for the comp_loc_map instance variable.
+
+        :return: Structured array mapping components to locations
+        """
+        return self._comp_loc_map
 
     def step(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation
@@ -41,10 +57,10 @@ class Components:
         """ Yield tuple (y, x) of the position of the index of a component.
 
         :param index: integer containing the component index
-        :return:
+        :return: tuple (y, x)
         """
-        pos = self.comp_loc_map['index'] == index
-        loc = self.comp_loc_map[pos]
+        pos = self._comp_loc_map['index'] == index
+        loc = self._comp_loc_map[pos]
 
         assert loc.size == 1, "A component has multiple locations"
 
@@ -59,23 +75,23 @@ class Components:
         :param y: integer of y position
         :return: integer of index of component
         """
-        pos = np.logical_and(self.comp_loc_map['x'] == x, self.comp_loc_map['y'] == y)
+        pos = np.logical_and(self._comp_loc_map['x'] == x, self._comp_loc_map['y'] == y)
 
-        assert self.comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
+        assert self._comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
 
-        return self.comp_loc_map[pos]['index'][0]
+        return self._comp_loc_map[pos]['index'][0]
 
     def adjust_power_uses(self):
         """ Updates the power_uses for components based on the application mapping (self.app_mapping).
 
         :return: None
         """
-        grid = np.zeros(self.capacities.shape)
+        grid = np.zeros(self._capacities.shape)
 
-        for comp, app in self.app_mapping:
+        for comp, app in self._app_mapping:
             grid[self.index_to_pos(comp)] += app
 
-        self.power_uses = grid
+        self._power_uses = grid
 
     def get_failed_indices(self, failed_components):
         """ Receive the failed indices of components.
@@ -94,8 +110,8 @@ class Components:
         :param failed_components: Numpy boolean array indicating which components have failed.
         :return: Numpy array of indices of failed components
         """
-        self.alive_components[failed_components] = False
-        self.capacities[failed_components] = 0
+        self._alive_components[failed_components] = False
+        self._capacities[failed_components] = 0
 
     def adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.
@@ -104,15 +120,15 @@ class Components:
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
-        to_map = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices)]
+        to_map = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices)]
 
-        self.app_mapping = self.app_mapping[np.isin(self.app_mapping['comp'], failed_indices, invert=True)]
+        self._app_mapping = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices, invert=True)]
         self.adjust_power_uses()
 
         for app in to_map['app']:
             self.remap_application(app)
 
-        return self.app_mapping.size == self.nr_applications
+        return self._app_mapping.size == self._nr_applications
 
     def remap_application(self, app):
         """ Remaps a given application to any of the still working components with enough slack.
@@ -122,15 +138,15 @@ class Components:
         :param app: integer representing the power required for an application that has to be remapped.
         :return: None
         """
-        components_slack = self.capacities - self.power_uses
+        components_slack = self._capacities - self._power_uses
 
         # Loop randomly over all non-failed components
-        for i in np.random.permutation(self.comp_loc_map['index']):
-            x, y = self.comp_loc_map[self.comp_loc_map['index'] == i][['x', 'y']][0]
+        for i in np.random.permutation(self._comp_loc_map['index']):
+            x, y = self._comp_loc_map[self._comp_loc_map['index'] == i][['x', 'y']][0]
 
             if app <= components_slack[y, x]:
-                self.app_mapping = np.append(self.app_mapping, np.array([(i, app)],
-                                                                        dtype=self.app_mapping.dtype))
+                self._app_mapping = np.append(self._app_mapping, np.array([(i, app)],
+                                                                        dtype=self._app_mapping.dtype))
                 self.adjust_power_uses()  # TODO: can be speed up
                 break
 

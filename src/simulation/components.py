@@ -1,7 +1,8 @@
 import numpy as np
+from simulation.simulator_element import SimulatorElement
 
 
-class Components:
+class Components(SimulatorElement):
     def __init__(self, capacities, power_uses, comp_loc_map, app_mapping):
         """ Initializes the components for the simulator.
 

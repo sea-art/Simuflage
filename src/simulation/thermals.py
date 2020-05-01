@@ -1,8 +1,10 @@
 import numpy as np
 from scipy import signal
 
+from simulation.simulator_element import SimulatorElement
 
-class Thermals:
+
+class Thermals(SimulatorElement):
     def __init__(self, init_thermals):
         """ Initializes a Thermals object based on the current initial thermals.
 

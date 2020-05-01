@@ -1,7 +1,8 @@
 import numpy as np
+from simulation.simulator_element import SimulatorElement
 
 
-class Agings:
+class Agings(SimulatorElement):
     """ Contains all logical operators based on the aging of components."""
     def __init__(self, alive_components):
         """ Initializes an aging grid (which computes the aging rate for each of the components) based on the Weibull

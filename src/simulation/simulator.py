@@ -2,9 +2,10 @@ import numpy as np
 import os
 import sys
 
-from simulation.thermals import Thermals
-from simulation.agings import Agings
-from simulation.components import Components
+from simulation.elements.thermals import Thermals
+from simulation.elements.agings import Agings
+from simulation.elements.components import Components
+from simulation.integrator import Integrator
 
 
 class Simulator:
@@ -19,6 +20,7 @@ class Simulator:
         self._components = Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4])
         self._thermals = Thermals(dp_data[1])
         self._agings = Agings(self._components.alive_components)
+        self._integrator = Integrator(self._components, self._thermals, self._agings)
 
         self._timesteps = 0
 
@@ -61,12 +63,9 @@ class Simulator:
 
         :return: boolean indicating if a core has failed this iteration.
         """
+        system_ok = self._integrator.step()
+
         self._timesteps += 1
-
-        self._thermals.step(self._components.comp_loc_map)
-        remap_required = self._agings.step(self._components.alive_components, self._thermals.temps)
-        system_ok = self._components.step(self._agings.cur_agings)
-
         # self.log_iteration("a.txt")
 
         return system_ok

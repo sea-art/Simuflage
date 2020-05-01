@@ -15,7 +15,7 @@ class Thermals:
     def adjusted_thermals(self, m, fluctuate):
         """ Adjusts the thermals based on uniform fluctuation and neighbour thermal influences.
 
-        :param m: mapping of component to location
+        :param m: mapping of component index to xy-location (i, x , y)
         :param fluctuate: float representing the max uniformly fluctuation of temperature each iteration.
         :return: NOne
         """
@@ -43,8 +43,6 @@ class Thermals:
 
         :param comp_loc_map: (np structured array) mapping of component index to x, y location
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
-        :return: (2D np float array) - adjusted thermals after iteration
+        :return: None
         """
         self.adjusted_thermals(comp_loc_map, fluctuate)
-
-        return self.temps

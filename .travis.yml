@@ -7,8 +7,11 @@ install:
   - pip install codecov
 script: bash -c 'make test'
 after_success:
-  - codecov
+  - bash <(curl -s https://codecov.io/bash)
 branches:
   only:
     - master
     - travis_setup
+env:
+  global:
+    - CODECOV_TOKEN="22f55b2c-7d73-4540-915a-7e6b61567e46"

@@ -10,4 +10,8 @@ class Application:
 
     @property
     def power_req(self):
+        """ Getter function for the power_req instance variable.
+
+        :return: integer indicating the power requirement for running this application.
+        """
         return self._power_req

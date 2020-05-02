@@ -15,12 +15,24 @@ class Component:
 
     @property
     def max_temp(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer indicating the max temperature for this component.
+        """
         return self._max_temp
 
     @property
     def capacity(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer indicating the power capacity for this component.
+        """
         return self._capacity
 
     @property
     def loc(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer tuple (x, y) indicating the position of this component.
+        """
         return self._loc

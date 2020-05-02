@@ -11,6 +11,8 @@
     </a>
 </p>  
 
+[![Build Status](https://travis-ci.com/sea-art/DSE_simulator.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
+[![Coverage Status](https://codecov.io/gh/sea-art/DSE_simulator/branch/master/graphs/badge.svg)](https://codecov.io/gh/sea-art/DSE_simulator)
 
 ## Summary
 This repository contains a simulator that can be used to receive time to failures (TTF) of a 

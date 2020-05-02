@@ -11,11 +11,12 @@
     </a>
 </p>  
 
-[![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
+[![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/Simuflage)
 [![codecov](https://codecov.io/gh/sea-art/Simuflage/branch/master/graph/badge.svg?token=DJOIKL65KT)](https://codecov.io/gh/sea-art/Simuflage)
 [![Repo Size](https://github-size-badge.herokuapp.com/sea-art/Simuflage.svg)](https://github.com/sea-art/Simuflage)
 [![Python 3+7 ready](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/)
-[![Licence](https://img.shields.io/badge/license-GPL--v3.0-blue.svg)](LICENSE)
+[![Licence](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 ## Summary
 Simuflage is a high-level embedded system designer and simulator that can be utilized to evaluate design points regarding
 the aspects of power output, thermals, power-efficiency and time to failure (TTF).

@@ -1,67 +1,52 @@
 <p align="center">
     <a href="https://www.uva.nl/en">
-        <img width="500" src="https://i.imgur.com/HPWb5UX.png"/>
+        <img width="600" src="https://i.imgur.com/HPWb5UX.png"/>
     </a>
 </p> 
 
 <br/>
 <p align="center">
     <a href="http://admorph.eu/">
-        <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
+        <img width="500" src="https://i.imgur.com/LJgU1Pf.png"/>
     </a>
 </p>  
 
 [![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
 [![codecov](https://codecov.io/gh/sea-art/DSE_simulator/branch/master/graph/badge.svg?token=DJOIKL65KT)](https://codecov.io/gh/sea-art/DSE_simulator)
+![Repo Size](https://github-size-badge.herokuapp.com/sea-art/Simuflage.svg)
+![Python 3+7 ready](https://img.shields.io/badge/python-3.6%2B-blue.svg)
+![Licence](https://img.shields.io/badge/license-GPL--v3.0-blue.svg)
 ## Summary
-This repository contains the possibility of constructing an embedded system design point to be evaluated by a simulator 
-that can be used to receive THE power output, thermals, power-efficiency and time to failures (TTF) of the given design point.
+Simuflage is a high-level embedded system designer and simulator that can be utilized to evaluate design points regarding
+the aspects of power output, thermals, power-efficiency and time to failure (TTF).
 
-## About
-This repository complements a thesis project of the [MSc Software Engineering](http://www.software-engineering-amsterdam.nl) 
-master at the University of Amsterdam. This project falls into the scope of [ADMORPH](http://admorph.eu/).
-
-### Goals
+#### Goals
 - High-level embedded system designer
 - Fast embedded system simulator
 - Support for adaptivity policies and heterogeneous systems
 - Easy utilization by design space exploration strategies
 - Flexible, adaptable and maintainable
 
-## Running
+## About
+This repository complements a thesis project of the [MSc Software Engineering](http://www.software-engineering-amsterdam.nl) 
+master at the University of Amsterdam. This project falls into the scope of [ADMORPH](http://admorph.eu/), an international 
+project funded by the [EU Horizon 2020](https://ec.europa.eu/programmes/horizon2020/en) programme to make various types of complex systems more resistant to defects and more secure.
+
+
+
+## Running the simulator
 ```bash
-git clone git@github.com:sea-art/DSE_simulator.git
-cd DSE_simulator
+git clone git@github.com:sea-art/Simuflage.git
+cd Simuflage
 make setup
-python3 main.py
+make run
 ```
 
 ## Libraries used
 - [Numpy](https://numpy.org/) - efficient multi-dimensional container of generic data 
 - [Scipy](https://scipy.org/) - library used for scientific and technical computing
 
-## Project structure
-```
-src
-+-- design
-|   +-- application.py
-|   +-- component.py
-|   +-- designpoint.py
-|   +-- mapping.py
-+-- simulation
-|   +-- agings.py
-|   +-- components.py
-|   +-- simulator.py
-|   +-- thermals.py
-```
-All the code about *design points* are positioned in the ```src/design/``` folder.<br>
- 
-All the code regarding the *simulation* are placed in the ```src/simulation/``` folder.<br>
-The ```simulator.py``` can be seen as the *main* function for the simulator. All other files 
-(i.e. ```agings.py```, ```components.py``` and ```thermals.py```) provide an ```iterate()``` function
-based on some parameters, which the simulator will call each simulation iteration.
-
-## Example
+## Quickstart
 
 ### Creation of components
 Manual creation of components can be done as follows
@@ -111,13 +96,53 @@ Once a design point is created, the simulator can be used in order to calculate 
 of that design point. All that the simulator requires is a designpoint, which can be initialized as:
 ```python
 sim = simulator.Simulator(dp)
-sim.run(until_failure=True, debug=False)
+sim.run(until_failure=True)
 ```
 When running the simulator it is either possible to run a fixed amount of iterations, 
 or to keep running the simulator until a failure has occurred.
 
-## Contact
-Don't hesitate to contact me regarding any questions about the code or project!<br>
+## Code structure
+```
+├───src
+│   ├───design
+│   └───simulation
+│       └───elements
+└───tests
+    ├───design
+    └───simulation
+```
+All the code about *design points* are positioned in the ```src/design/``` folder.<br>
+ 
+All the code regarding the *simulation* are placed in the ```src/simulation/``` folder.<br>
+The ```simulator.py``` can be seen as the *main* function for the simulator. All other files 
+(i.e. ```agings.py```, ```components.py``` and ```thermals.py```) provide an ```iterate()``` function
+based on some parameters, which the simulator will call each simulation iteration.
+
+This section explains the structure of this project in more detail aiming to provide information
+about how to contribute/alter the simulator.
+
+
+### Definitions
+- **Simulation elements** - all the files located at ```src/simulation/elements/``` that desribe the
+simulators behaviour. When changing the behavior of the simulator, files in these folders should be added or changed. The ```integrator```
+file is used to make sure the elements integrate and work with each other.
+- **Integrator** - since the aim of this simulator is to be modular and easily be changable, the simulator behavior
+is expected to change frequently. The integrator file (located at ```src/simulation/integrator.py```) is used to specify
+how the simulator should behave each timestep based on the ```simulator elements```.
+
+### Simulation
+#### Adding simulation functionality
+All elements of the simulator are currently:
+- ```agings.py```
+- ```components.py```
+- ```thermals.py```
+
+When adding elements to the simulator, it has to extend the abstract class ```simulator_element.py```.
+
+### Integrator
+The integrator, located at ```src/simulation/integrator.py``` is the file to edit the simulator functionality
+upon altering or changing simulator elements. Most of the times, these files should be integrated with each other (e.g.
+functionality for the aging of components requires the thermals of the same timestep)
 
 ## Contributing
 For information about contributing to this project, see [CONTRIBUTING](CONTRIBUTING.md)

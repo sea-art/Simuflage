@@ -5,7 +5,6 @@ setup-travis:
 	virtualenv -p python3 venv
 
 	bash -c 'source ./venv/bin/activate && pip install -r requirements.txt && deactivate'
-
 	@echo "DONE!"
 
 test:

@@ -1,0 +1,14 @@
+language: python
+python:
+  - "3.6"
+sudo: enabled
+install:
+  - make setup-travis
+  - pip install codecov
+script: bash -c 'source /venv/bin/activate" && make test && deactivate'
+after_success:
+  - codecov
+branches:
+  only:
+    - master
+    - travis_setup

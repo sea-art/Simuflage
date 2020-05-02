@@ -9,6 +9,35 @@ class Component:
                          Each component in a designpoint should have a unique location
         :param max_temp: temperature of cpu upon 100% utilization
         """
-        self.max_temp = max_temp
-        self.capacity = power_capacity
-        self.loc = location
+        assert power_capacity >= 0, "Power_capacity has to be a non-negative integer"
+        assert location[0] >= 0, "Location indices have to be positive"
+        assert location[1] >= 0, "Location indices have to be positive"
+        assert max_temp > 0, "Max_temp has to be greater than 0"
+
+        self._max_temp = max_temp
+        self._capacity = power_capacity
+        self._loc = location
+
+    @property
+    def max_temp(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer indicating the max temperature for this component.
+        """
+        return self._max_temp
+
+    @property
+    def capacity(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer indicating the power capacity for this component.
+        """
+        return self._capacity
+
+    @property
+    def loc(self):
+        """ Getter function for the max_temp instance variable.
+
+        :return: integer tuple (x, y) indicating the position of this component.
+        """
+        return self._loc

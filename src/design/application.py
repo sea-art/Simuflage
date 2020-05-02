@@ -6,6 +6,8 @@ class Application:
 
         :param power: The amount of power required to run this application by a component.
         """
+        assert power >= 0, "Power requirement for applications has to be positive"
+
         self._power_req = power
 
     @property

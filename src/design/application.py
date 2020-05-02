@@ -6,4 +6,8 @@ class Application:
 
         :param power: The amount of power required to run this application by a component.
         """
-        self.power_req = power
+        self._power_req = power
+
+    @property
+    def power_req(self):
+        return self._power_req

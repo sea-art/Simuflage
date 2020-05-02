@@ -9,6 +9,18 @@ class Component:
                          Each component in a designpoint should have a unique location
         :param max_temp: temperature of cpu upon 100% utilization
         """
-        self.max_temp = max_temp
-        self.capacity = power_capacity
-        self.loc = location
+        self._max_temp = max_temp
+        self._capacity = power_capacity
+        self._loc = location
+
+    @property
+    def max_temp(self):
+        return self._max_temp
+
+    @property
+    def capacity(self):
+        return self._capacity
+
+    @property
+    def loc(self):
+        return self._loc

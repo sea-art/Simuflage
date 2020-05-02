@@ -11,28 +11,34 @@
     </a>
 </p>  
 
-[![Build Status](https://travis-ci.com/sea-art/DSE_simulator.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
+[![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
 [![codecov](https://codecov.io/gh/sea-art/DSE_simulator/branch/master/graph/badge.svg?token=DJOIKL65KT)](https://codecov.io/gh/sea-art/DSE_simulator)
 ## Summary
-This repository contains a simulator that can be used to receive time to failures (TTF) of a 
-given system design point.
+This repository contains the possibility of constructing an embedded system design point to be evaluated by a simulator 
+that can be used to receive THE power output, thermals, power-efficiency and time to failures (TTF) of the given design point.
 
 ## About
 This repository complements a thesis project of the [MSc Software Engineering](http://www.software-engineering-amsterdam.nl) 
 master at the University of Amsterdam. This project falls into the scope of [ADMORPH](http://admorph.eu/).
 
-## Dependencies
-```
-numpy
-scipy.signal
-```
+### Goals
+- High-level embedded system designer
+- Fast embedded system simulator
+- Support for adaptivity policies and heterogeneous systems
+- Easy utilization by design space exploration strategies
+- Flexible, adaptable and maintainable
 
 ## Running
 ```bash
 git clone git@github.com:sea-art/DSE_simulator.git
 cd DSE_simulator
+make setup
 python3 main.py
 ```
+
+## Libraries used
+- [Numpy](https://numpy.org/) - efficient multi-dimensional container of generic data 
+- [Scipy](https://scipy.org/) - library used for scientific and technical computing
 
 ## Project structure
 ```

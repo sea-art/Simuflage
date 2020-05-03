@@ -1,13 +1,7 @@
-<p align="center">
-    <a href="https://www.uva.nl/en">
-        <img width="500" src="https://i.imgur.com/HPWb5UX.png"/>
-    </a>
-</p> 
 
-<br/>
 <p align="center">
     <a href="http://admorph.eu/">
-        <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
+        <img width="500" src="https://i.imgur.com/LJgU1Pf.png"/>
     </a>
 </p>  
 

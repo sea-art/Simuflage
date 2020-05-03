@@ -7,10 +7,7 @@ install:
   - pip install codecov
 script: bash -c 'make test'
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - codecov
 branches:
   only:
     - master
-env:
-  global:
-    - CODECOV_TOKEN="22f55b2c-7d73-4540-915a-7e6b61567e46"

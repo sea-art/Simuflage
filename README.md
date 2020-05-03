@@ -1,21 +1,16 @@
-<p align="center">
-    <a href="https://www.uva.nl/en">
-        <img width="500" src="https://i.imgur.com/HPWb5UX.png"/>
-    </a>
-</p> 
 
-<br/>
 <p align="center">
     <a href="http://admorph.eu/">
-        <img width="400" src="https://i.imgur.com/LJgU1Pf.png"/>
+        <img width="500" src="https://i.imgur.com/LJgU1Pf.png"/>
     </a>
 </p>  
 
-[![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/DSE_simulator)
-[![codecov](https://codecov.io/gh/sea-art/DSE_simulator/branch/master/graph/badge.svg?token=DJOIKL65KT)](https://codecov.io/gh/sea-art/DSE_simulator)
-![Repo Size](https://github-size-badge.herokuapp.com/sea-art/Simuflage.svg)
-![Python 3+7 ready](https://img.shields.io/badge/python-3.6%2B-blue.svg)
-![Licence](https://img.shields.io/badge/license-GPL--v3.0-blue.svg)
+[![Build Status](https://travis-ci.com/sea-art/Simuflage.svg?token=N3rb3wFxBrspLC9Ysuz7&branch=master)](https://travis-ci.com/github/sea-art/Simuflage)
+[![codecov](https://codecov.io/gh/sea-art/Simuflage/branch/master/graph/badge.svg?token=DJOIKL65KT)](https://codecov.io/gh/sea-art/Simuflage)
+[![Repo Size](https://github-size-badge.herokuapp.com/sea-art/Simuflage.svg)](https://github.com/sea-art/Simuflage)
+[![Python 3+7 ready](https://img.shields.io/badge/python-3.6%2B-blue.svg)](https://www.python.org/)
+[![Licence](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 ## Summary
 Simuflage is a high-level embedded system designer and simulator that can be utilized to evaluate design points regarding
 the aspects of power output, thermals, power-efficiency and time to failure (TTF).

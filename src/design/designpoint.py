@@ -5,7 +5,7 @@ from design.mapping import comp_to_loc_mapping, application_mapping
 class Designpoint:
     """Designpoint object representing a system to evaluate."""
 
-    def __init__(self, comp_list, app_list, app_map):
+    def __init__(self, comp_list, app_list, app_map, policy="random"):
         """ Initialize a Design point.
 
         :param comp_list: list of Component objects
@@ -16,6 +16,7 @@ class Designpoint:
         self._applications = app_list
         self._application_map = app_map
         self._comp_loc_map = comp_to_loc_mapping(self._components)
+        self.policy = policy
 
     def get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.
@@ -90,7 +91,7 @@ class Designpoint:
             application_mapping(self._components, self._application_map)
 
     def calc_power_usage_per_component(self):
-        """ Calculate the power usage per compenent based on the mapped applications to the corresponding components.
+        """ Calculate the power usage per component based on the mapped applications to the corresponding components.
 
         :return: numpy integer array indicating the mapped application power per component.
         """

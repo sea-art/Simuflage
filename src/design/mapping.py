@@ -2,6 +2,11 @@ import numpy as np
 
 
 def verify_unique_locations(components):
+    """ Verifies that all locations are unique.
+
+    :param components: list of Component objects.
+    :return: Boolean indicating that all locations of the provided components are unique.
+    """
     observed_locs = [c.loc for c in components]
 
     return len(observed_locs) == len(set(observed_locs))

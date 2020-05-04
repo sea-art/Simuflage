@@ -23,7 +23,7 @@ class AbsIntegrator(ABC):
 
 class Integrator(AbsIntegrator):
     """ This class should be edited when adding new elements or changing simulation functionality."""
-    def __init__(self, design_point):
+    def __init__(self, design_point, policy):
         """ Integrator is used to change/add functionality to the simulator.
 
         All elements of the simulator are required to work together, this class achieves this collaboration between
@@ -34,7 +34,7 @@ class Integrator(AbsIntegrator):
         dp_data = design_point.to_numpy()
 
         # Simulation variables
-        self._components = Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4])
+        self._components = Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4], policy)
         self._thermals = Thermals(dp_data[1])
         self._agings = Agings(self._components.alive_components)
 

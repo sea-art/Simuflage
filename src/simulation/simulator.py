@@ -10,8 +10,9 @@ class Simulator:
         :param design_point: Designpoint object representing a system to evaluate.
         """
         dp_data = design_point.to_numpy()
+        policy = design_point.policy
 
-        self._integrator = Integrator(design_point)
+        self._integrator = Integrator(design_point, policy)
         self._timesteps = 0
 
     @property

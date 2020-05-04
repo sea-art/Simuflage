@@ -13,6 +13,8 @@ class Agings(SimulatorElement):
         omegas = np.zeros(alive_components.shape)
         omegas[alive_components] = 100 * np.random.weibull(5, np.sum(alive_components))  # repr. iterations on 100% usage when cpu will fail
 
+
+
         self._lambdas = np.divide(1, omegas, out=np.zeros_like(omegas), where=omegas != 0)
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
 

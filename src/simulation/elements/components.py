@@ -1,9 +1,11 @@
 import numpy as np
+import warnings
+
 from simulation.elements.element import SimulatorElement
 
 
 class Components(SimulatorElement):
-    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping):
+    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy):
         """ Initializes the components for the simulator.
 
         :param capacities: 2D float numpy array with capacities on component positions
@@ -24,6 +26,7 @@ class Components(SimulatorElement):
         self._nr_components = np.count_nonzero(self._capacities)
 
         self.adjust_power_uses()
+        self.policy = policy
 
     @property
     def alive_components(self):
@@ -143,7 +146,7 @@ class Components(SimulatorElement):
         self.adjust_power_uses()
 
         for app in to_map['app']:
-            self.remap_application(app)
+            self.remap_application(app, self.policy)
 
         return self._app_mapping.size == self._nr_applications
 
@@ -168,6 +171,7 @@ class Components(SimulatorElement):
         :return:
         """
         if policy not in ['random', 'most', 'least']:
+            warnings.warn("Policy: " + str(policy) + " is not known. Using random policy instead.")
             policy = 'random'
 
         if policy == 'random':

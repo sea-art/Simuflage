@@ -139,23 +139,62 @@ class Components(SimulatorElement):
 
         return self._app_mapping.size == self._nr_applications
 
-    def remap_application(self, app):
+    def sort_map_slack_based(self, slack, reverse=False):
+        """ Sorts the com_loc_map based on the amount of slack (highest to lowest)
+
+        :param slack:
+        :return:
+        """
+        lst = []
+
+        for i, x, y in self._comp_loc_map:
+            lst.append((i, slack[y, x]))
+
+        return np.array([i[0] for i in sorted(lst, key=lambda z: z[1], reverse=reverse)])
+
+    def get_mapping_order(self, slack, policy):
+        """ Based on a given policy, return the corresponding map order.
+
+        :param slack: 2d numpy float array containing the slack per local component
+        :param policy: string - choice of ['random', 'most', 'least] (See self.remap_application())
+        :return:
+        """
+        print("random", np.random.permutation(self._comp_loc_map['index']))
+        print("most", self.sort_map_slack_based(slack, reverse=True))
+        print("least", self.sort_map_slack_based(slack, reverse=False))
+
+        if policy not in ['random', 'most', 'least']:
+            policy = 'random'
+
+        if policy == 'random':
+            return np.random.permutation(self._comp_loc_map['index'])
+        elif policy == 'most':
+            return self.sort_map_slack_based(slack, reverse=True)
+        else:  # policy == 'least'
+            return self.sort_map_slack_based(slack, reverse=False)
+
+    def remap_application(self, app, policy='random'):
         """ Remaps a given application to any of the still working components with enough slack.
 
         Also adjusts the power usage after application remapping.
 
         :param app: integer representing the power required for an application that has to be remapped.
+        :param policy - choice of
+            'random' - randomly-mapped   --> will map applications randomly to components
+            'most'   - most-slack-first  --> will try to map applications to components with most slack first
+            'least'  - least-slack-first --> will try to map applications to components with least slack first
         :return: None
         """
         components_slack = self._capacities - self._power_uses
+        map_order = self.get_mapping_order(components_slack, policy)
 
         # Loop randomly over all non-failed components
-        for i in np.random.permutation(self._comp_loc_map['index']):
+        for i in map_order:
             x, y = self._comp_loc_map[self._comp_loc_map['index'] == i][['x', 'y']][0]
 
             if app <= components_slack[y, x]:
                 self._app_mapping = np.append(self._app_mapping, np.array([(i, app)],
-                                                                        dtype=self._app_mapping.dtype))
+                                                                          dtype=self._app_mapping.dtype))
                 self.adjust_power_uses()  # TODO: can be speed up
                 break
 

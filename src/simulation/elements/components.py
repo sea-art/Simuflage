@@ -49,6 +49,14 @@ class Components(SimulatorElement):
         """
         return self._capacities
 
+    @property
+    def app_mapping(self):
+        """ Getter function for the app_mapping instance variable.
+
+        :return: structured array [('comp'), ('app')]
+        """
+        return self._app_mapping
+
     def step(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation
 
@@ -159,10 +167,6 @@ class Components(SimulatorElement):
         :param policy: string - choice of ['random', 'most', 'least] (See self.remap_application())
         :return:
         """
-        print("random", np.random.permutation(self._comp_loc_map['index']))
-        print("most", self.sort_map_slack_based(slack, reverse=True))
-        print("least", self.sort_map_slack_based(slack, reverse=False))
-
         if policy not in ['random', 'most', 'least']:
             policy = 'random'
 
@@ -210,3 +214,5 @@ class Components(SimulatorElement):
         failed_indices = self.get_failed_indices(failed_components)
 
         return self.adjust_app_mapping(failed_indices)
+
+

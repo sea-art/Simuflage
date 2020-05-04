@@ -186,10 +186,8 @@ class Components(SimulatorElement):
         :return: None
         """
         components_slack = self._capacities - self._power_uses
-
         map_order = self.get_mapping_order(components_slack, policy)
 
-        print(map_order)
         # Loop randomly over all non-failed components
         for i in map_order:
             x, y = self._comp_loc_map[self._comp_loc_map['index'] == i][['x', 'y']][0]

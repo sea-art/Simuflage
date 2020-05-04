@@ -49,6 +49,14 @@ class Components(SimulatorElement):
         """
         return self._capacities
 
+    @property
+    def app_mapping(self):
+        """ Getter function for the app_mapping instance variable.
+
+        :return: structured array [('comp'), ('app')]
+        """
+        return self._app_mapping
+
     def step(self, cur_agings):
         """ Run one iteration regarding the component process of the simulation
 
@@ -206,3 +214,5 @@ class Components(SimulatorElement):
         failed_indices = self.get_failed_indices(failed_components)
 
         return self.adjust_app_mapping(failed_indices)
+
+

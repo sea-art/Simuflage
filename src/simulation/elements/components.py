@@ -159,10 +159,6 @@ class Components(SimulatorElement):
         :param policy: string - choice of ['random', 'most', 'least] (See self.remap_application())
         :return:
         """
-        print("random", np.random.permutation(self._comp_loc_map['index']))
-        print("most", self.sort_map_slack_based(slack, reverse=True))
-        print("least", self.sort_map_slack_based(slack, reverse=False))
-
         if policy not in ['random', 'most', 'least']:
             policy = 'random'
 

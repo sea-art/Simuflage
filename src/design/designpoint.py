@@ -10,7 +10,7 @@ class Designpoint:
 
         :param comp_list: list of Component objects
         :param app_list: list of Application objects
-        :param app_map: dictionary mapping {Component : [Appliction]}
+        :param app_map: List of tuples [(Component obj, Appliction obj)}
         """
         self._components = comp_list
         self._applications = app_list

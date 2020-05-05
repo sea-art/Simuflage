@@ -1,6 +1,8 @@
+import copy
 from abc import ABC, abstractmethod
 import os
 import numpy as np
+import json
 
 from simulation.elements.thermals import Thermals
 from simulation.elements.agings import Agings
@@ -39,9 +41,19 @@ class Integrator(AbsIntegrator):
         self._agings = Agings(self._components.alive_components)
         self._timesteps = 0
 
+        self._reset_params = [copy.deepcopy(self._components),
+                              copy.deepcopy(self._thermals),
+                              copy.deepcopy(self._components.alive_components)]
+
     @property
     def timesteps(self):
         return self._timesteps
+
+    def reset(self):
+        self._components = copy.deepcopy(self._reset_params[0])
+        self._thermals = copy.deepcopy(self._reset_params[1])
+        self._agings = Agings(self._reset_params[2])
+        self._timesteps = 0
 
     def step(self):
         """ Evaluate the simulator by one timestep.
@@ -67,9 +79,9 @@ class Integrator(AbsIntegrator):
                                                  self._thermals.temps,
                                                  self._timesteps)
 
-        self._thermals.do_n_steps(self._components.comp_loc_map)
+        self._thermals.do_n_steps(n, self._components.comp_loc_map)
         self._agings.do_n_steps(n, self._components.alive_components, self._thermals.temps)
-        system_ok = self._components.step(self._agings.cur_agings)
+        system_ok = self._components.do_n_steps(n, self._agings.cur_agings)
 
         self._timesteps += n
 

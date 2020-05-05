@@ -1,5 +1,6 @@
 import numpy as np
 from simulation.elements.element import SimulatorElement
+import json
 
 
 class Agings(SimulatorElement):
@@ -15,6 +16,12 @@ class Agings(SimulatorElement):
 
         self._lambdas = np.divide(1, self._omegas, out=np.zeros_like(self._omegas), where=self._omegas != 0)
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
+
+    def __str__(self):
+        return str(self._cur_agings)
+
+    def __repr__(self):
+        return self.__str__()
 
     @property
     def cur_agings(self):
@@ -37,7 +44,6 @@ class Agings(SimulatorElement):
         return np.any((self._cur_agings >= 1.0)[alive_components])
 
     def steps_till_next_failure(self, alive_components, thermals, steps_taken):
-        # TODO: minus timesteps already done * lambdas
         timesteps = np.ceil(np.ceil(self._omegas[alive_components]) / (thermals[alive_components] / 100)) - (steps_taken - 1)
 
         return int(np.ceil(np.amin(timesteps)))

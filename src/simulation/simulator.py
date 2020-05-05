@@ -1,3 +1,4 @@
+import copy
 import sys
 
 from simulation.integrator import Integrator
@@ -55,6 +56,10 @@ class Simulator:
 
         return system_ok
 
+    def reset(self):
+        self._integrator.reset()
+        self._timesteps = 0
+
     def run(self, iteration_amount=5000, until_failure=False, debug=False):
         """ Runs the simulation an iteration_amount of time or until a failure occurs.
 
@@ -75,4 +80,9 @@ class Simulator:
     def run_optimized(self):
         while True:
             if not self.do_n_steps():
-                return self._timesteps
+                break
+
+        ts = self._timesteps
+        self.reset()
+
+        return ts

@@ -94,7 +94,7 @@ def manual_experiment(dp=None, debug=False):
         dp = manual_designpoint()
 
     sim = simulator.Simulator(dp)
-    sim.run(until_failure=True, debug=False)
+    sim.run_optimized()
 
     if debug:
         print("TTF", sim.timesteps)
@@ -103,4 +103,4 @@ def manual_experiment(dp=None, debug=False):
 
 
 if __name__ == "__main__":
-    random_experiment()
+    manual_experiment(debug=True)

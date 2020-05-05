@@ -1,9 +1,11 @@
 import numpy as np
+import warnings
+
 from simulation.elements.element import SimulatorElement
 
 
 class Components(SimulatorElement):
-    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping):
+    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy='random'):
         """ Initializes the components for the simulator.
 
         :param capacities: 2D float numpy array with capacities on component positions
@@ -24,6 +26,7 @@ class Components(SimulatorElement):
         self._nr_components = np.count_nonzero(self._capacities)
 
         self.adjust_power_uses()
+        self.policy = policy
 
     @property
     def alive_components(self):
@@ -50,25 +53,20 @@ class Components(SimulatorElement):
         return self._capacities
 
     @property
+    def power_uses(self):
+        """ Getter function for the power_uses instance variable.
+
+        :return: 2D float numpy array with power usage on component positions
+        """
+        return self._power_uses
+
+    @property
     def app_mapping(self):
         """ Getter function for the app_mapping instance variable.
 
         :return: structured array [('comp'), ('app')]
         """
         return self._app_mapping
-
-    def step(self, cur_agings):
-        """ Run one iteration regarding the component process of the simulation
-
-        :param cur_agings: 2D numpy float array containing the current agings for components
-        :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
-        """
-        failed_components = cur_agings >= 1.0
-
-        if np.any(failed_components[self.alive_components]):
-            return self.handle_failures(failed_components)
-
-        return True
 
     def index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.
@@ -98,6 +96,17 @@ class Components(SimulatorElement):
 
         return self._comp_loc_map[pos]['index'][0]
 
+    def get_failed_indices(self, failed_components):
+        """ Receive the failed indices of components.
+
+        :param failed_components: 2D boolean array of all components that have failed.
+        :return: numpy integer array containing all indices of failed components.
+        """
+        failed_locations = np.asarray(np.nonzero(failed_components)).T
+        failed_indices = np.array([self.pos_to_index(loc[1], loc[0]) for loc in failed_locations])
+
+        return failed_indices
+
     def adjust_power_uses(self):
         """ Updates the power_uses for components based on the application mapping (self.app_mapping).
 
@@ -109,17 +118,6 @@ class Components(SimulatorElement):
             grid[self.index_to_pos(comp)] += app
 
         self._power_uses = grid
-
-    def get_failed_indices(self, failed_components):
-        """ Receive the failed indices of components.
-
-        :param failed_components: 2D boolean array of all components that have failed.
-        :return: numpy integer array containing all indices of failed components.
-        """
-        failed_locations = np.asarray(np.nonzero(failed_components)).T
-        failed_indices = np.array([self.pos_to_index(loc[1], loc[0]) for loc in failed_locations])
-
-        return failed_indices
 
     def remove_failed_components(self, failed_components):
         """ Cleanup and alter variables of components that have failed.
@@ -137,13 +135,14 @@ class Components(SimulatorElement):
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
-        to_map = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices)]
+        all_failed_indices = np.isin(self._app_mapping['comp'], failed_indices)
 
-        self._app_mapping = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices, invert=True)]
+        to_map = self._app_mapping[all_failed_indices]
+        self._app_mapping = self._app_mapping[np.invert(all_failed_indices)]
         self.adjust_power_uses()
 
         for app in to_map['app']:
-            self.remap_application(app)
+            self.remap_application(app, self.policy)
 
         return self._app_mapping.size == self._nr_applications
 
@@ -168,6 +167,7 @@ class Components(SimulatorElement):
         :return:
         """
         if policy not in ['random', 'most', 'least']:
+            warnings.warn("Policy: " + str(policy) + " is not known. Using random policy instead.")
             policy = 'random'
 
         if policy == 'random':
@@ -210,9 +210,24 @@ class Components(SimulatorElement):
         :return: Boolean indicating reliability system (True = OK, False = failure)
         """
         # Check if failed components are already adjusted (i.e. any remapping required?)
+
         self.remove_failed_components(failed_components)
         failed_indices = self.get_failed_indices(failed_components)
 
         return self.adjust_app_mapping(failed_indices)
 
+    def step(self, cur_agings):
+        """ Run one iteration regarding the component process of the simulation
 
+        :param cur_agings: 2D numpy float array containing the current agings for components
+        :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
+        """
+        failed_components = cur_agings >= 1.0
+
+        if np.any(failed_components[self.alive_components]):
+            return self.handle_failures(failed_components)
+
+        return True
+
+    def do_n_steps(self, n, cur_agings):
+        return self.step(cur_agings)

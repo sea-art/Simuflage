@@ -49,3 +49,21 @@ applications to components are required. Once these are created, a design point 
 ```python
 dp = Designpoint(components, applications, app_map)
 ```
+
+### Quick designpoint creation
+#### Manually
+Instead of doing all previous steps manually, it is possible to create designpoints in a direct way
+```python
+Designpoint.create_designpoint(capacities=[100, 120], 
+                               locs=[(1, 1), (0, 1)],
+                               apps=[50, 40], 
+                               mapping=[(0, 0), (1,1)])
+```
+will do all previous steps in a single statement. All the arguments of this functions are corresponding index-wise. 
+
+#### Randomly
+It is also possibly to quickly generate a random Designpoint
+```python
+dp = Designpoint.create_random(n)
+```
+where ```n``` indicates the amount of components and applications that will reandomly be created and mapped.

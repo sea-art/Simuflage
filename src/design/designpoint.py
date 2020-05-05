@@ -1,21 +1,52 @@
 import numpy as np
-from design.mapping import comp_to_loc_mapping, application_mapping
+
+from design.application import Application
+from design.component import Component
+from design.mapping import comp_to_loc_mapping, application_mapping, all_possible_pos_mappings
 
 
 class Designpoint:
     """Designpoint object representing a system to evaluate."""
 
-    def __init__(self, comp_list, app_list, app_map):
+    def __init__(self, comp_list, app_list, app_map, policy="random"):
         """ Initialize a Design point.
 
         :param comp_list: list of Component objects
         :param app_list: list of Application objects
-        :param app_map: dictionary mapping {Component : [Appliction]}
+        :param app_map: List of tuples [(Component obj, Appliction obj)}
         """
         self._components = comp_list
         self._applications = app_list
         self._application_map = app_map
         self._comp_loc_map = comp_to_loc_mapping(self._components)
+        self.policy = policy
+
+    def __str__(self):
+        return "policy: " + self.policy + "\n" + str(self._application_map)
+
+    @staticmethod
+    def create(caps, locs, apps, maps, policy='random'):
+        comps = [Component(caps[i], locs[i]) for i in range(len(caps))]
+        apps = [Application(a) for a in apps]
+        mapping = [(comps[maps[i][0]], apps[maps[i][1]]) for i in range(len(maps))]
+
+        return Designpoint(comps, apps, mapping, policy=policy)
+
+    @staticmethod
+    def create_random(n):
+        """ Random experiment for the simulator.
+        n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
+
+        :return: Designpoint object
+        """
+        caps = np.random.randint(61, 200, n)
+        locs = all_possible_pos_mappings(n)
+        apps = np.random.randint(10, 60, n)
+        maps = [(a, a) for a in range(n)]
+
+        policy = np.random.choice(["random", "most", "least"])
+
+        return Designpoint.create(caps, locs, apps, maps, policy)
 
     def get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.
@@ -90,7 +121,7 @@ class Designpoint:
             application_mapping(self._components, self._application_map)
 
     def calc_power_usage_per_component(self):
-        """ Calculate the power usage per compenent based on the mapped applications to the corresponding components.
+        """ Calculate the power usage per component based on the mapped applications to the corresponding components.
 
         :return: numpy integer array indicating the mapped application power per component.
         """

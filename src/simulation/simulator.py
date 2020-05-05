@@ -10,8 +10,9 @@ class Simulator:
         :param design_point: Designpoint object representing a system to evaluate.
         """
         dp_data = design_point.to_numpy()
+        policy = design_point.policy
 
-        self._integrator = Integrator(design_point)
+        self._integrator = Integrator(design_point, policy)
         self._timesteps = 0
 
     @property
@@ -48,6 +49,16 @@ class Simulator:
 
         return system_ok
 
+    def do_n_steps(self):
+        system_ok = self._integrator.do_n_steps()
+        self._timesteps = self._integrator.timesteps
+
+        return system_ok
+
+    def reset(self):
+        self._integrator.reset()
+        self._timesteps = 0
+
     def run(self, iteration_amount=5000, until_failure=False, debug=False):
         """ Runs the simulation an iteration_amount of time or until a failure occurs.
 
@@ -64,3 +75,13 @@ class Simulator:
 
             if not self.step():
                 return self._timesteps
+
+    def run_optimized(self):
+        while True:
+            if not self.do_n_steps():
+                break
+
+        ts = self._timesteps
+        self.reset()
+
+        return ts

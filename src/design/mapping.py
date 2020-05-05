@@ -1,8 +1,25 @@
 import numpy as np
+import math
 
+
+def all_possible_pos_mappings(n):
+    """ Cartesian product of all possible position values.
+
+    :param n: amount of components
+    :return: (N x 2) integer array containing all possible positions.
+    """
+    grid_size = int(math.ceil(math.sqrt(n)))
+    x = np.arange(grid_size)
+
+    return np.transpose([np.tile(x, len(x)), np.repeat(x, len(x))])
 
 def verify_unique_locations(components):
-    observed_locs = [c.loc for c in components]
+    """ Verifies that all locations are unique.
+
+    :param components: list of Component objects.
+    :return: Boolean indicating that all locations of the provided components are unique.
+    """
+    observed_locs = [tuple(c.loc) for c in components]
 
     return len(observed_locs) == len(set(observed_locs))
 

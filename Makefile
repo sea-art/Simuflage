@@ -12,3 +12,6 @@ setup:
 
 test:
 	bash -c 'source ./venv/bin/activate && CODECOV_TOKEN="22f55b2c-7d73-4540-915a-7e6b61567e46" PYTHONPATH="./src/" coverage run -m pytest && deactivate'
+
+run:
+	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/dse/montecarlo.py && deactivate'

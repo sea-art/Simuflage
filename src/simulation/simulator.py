@@ -1,4 +1,3 @@
-import copy
 import sys
 
 from simulation.integrator import Integrator

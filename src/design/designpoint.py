@@ -1,5 +1,8 @@
 import numpy as np
-from design.mapping import comp_to_loc_mapping, application_mapping
+
+from design.application import Application
+from design.component import Component
+from design.mapping import comp_to_loc_mapping, application_mapping, all_possible_pos_mappings
 
 
 class Designpoint:
@@ -20,6 +23,30 @@ class Designpoint:
 
     def __str__(self):
         return "policy: " + self.policy + "\n" + str(self._application_map)
+
+    @staticmethod
+    def create(caps, locs, apps, maps, policy='random'):
+        comps = [Component(caps[i], locs[i]) for i in range(len(caps))]
+        apps = [Application(a) for a in apps]
+        mapping = [(comps[maps[i][0]], apps[maps[i][1]]) for i in range(len(maps))]
+
+        return Designpoint(comps, apps, mapping, policy=policy)
+
+    @staticmethod
+    def create_random(n):
+        """ Random experiment for the simulator.
+        n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
+
+        :return: Designpoint object
+        """
+        caps = np.random.randint(61, 200, n)
+        locs = all_possible_pos_mappings(n)
+        apps = np.random.randint(10, 60, n)
+        maps = [(a, a) for a in range(n)]
+
+        policy = np.random.choice(["random", "most", "least"])
+
+        return Designpoint.create(caps, locs, apps, maps, policy)
 
     def get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.

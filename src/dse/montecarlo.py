@@ -52,7 +52,7 @@ def manual_designpoint(caps, locs, apps, maps, policy='random'):
     return Designpoint(comps, apps, mapping, policy=policy)
 
 
-def monte_carlo(designpoints, iterations=5000):
+def monte_carlo(designpoints, iterations=1000):
     TTFs = [[] for _ in designpoints]
     sims = [Simulator(d) for d in designpoints]
 
@@ -63,38 +63,37 @@ def monte_carlo(designpoints, iterations=5000):
     for i in range(len(TTFs)):
         TTFs[i] = sum(TTFs[i]) / len(TTFs[i])
 
-    print(TTFs)
+    return TTFs
 
 
 def run_test():
     # dp1 = create_dp(cap1=100, cap2=100, policy='most')
     # dp2 = create_dp(cap1=100, cap2=100, policy='least')
 
-    # dp1 = random_designpoint()
-    # dp2 = random_designpoint()
+    dp1 = random_designpoint()
+    dp2 = random_designpoint()
 
-    dp1 = manual_designpoint(caps=[100, 100, 100, 100],
-                             locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
-                             apps=[20, 70, 10, 80],
-                             maps=[(0, 0), (0, 1), (1, 2), (1, 3)],
-                             policy='random')
+    # dp1 = manual_designpoint(caps=[100, 100, 100, 100],
+    #                          locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
+    #                          apps=[20, 70, 10, 80],
+    #                          maps=[(0, 0), (0, 1), (1, 2), (1, 3)],
+    #                          policy='random')
+    #
+    # dp2 = manual_designpoint(caps=[100, 100, 100, 100],
+    #                          locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
+    #                          apps=[20, 70, 10, 80],
+    #                          maps=[(0, 0), (1, 1), (2, 2), (3, 3)],
+    #                          policy='random')
 
-    dp2 = manual_designpoint(caps=[100, 100, 100, 100],
-                             locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
-                             apps=[20, 70, 10, 80],
-                             maps=[(0, 0), (1, 1), (2, 2), (3, 3)],
-                             policy='random')
+    dp3 = random_designpoint()
+    dp4 = random_designpoint()
 
-    # dp3 = random_designpoint()
-    # dp4 = random_designpoint()
+    x = [random_designpoint() for _ in range(20)]
 
-    print("dp1", dp1)
-    print("dp2", dp2)
-    # print("dp3", dp3)
-    # print("dp4", dp4)
+    TTFs = monte_carlo(x)
 
+    print(sorted(TTFs))
 
-    monte_carlo([dp1, dp2])
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@ from simulation.elements.element import SimulatorElement
 
 
 class Components(SimulatorElement):
-    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy):
+    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy='random'):
         """ Initializes the components for the simulator.
 
         :param capacities: 2D float numpy array with capacities on component positions

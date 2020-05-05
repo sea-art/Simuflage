@@ -18,6 +18,12 @@ class Component:
         self._capacity = power_capacity
         self._loc = location
 
+    def __str__(self):
+        return "comp: " + str(self._capacity) + "->" + str(self._loc)
+
+    def __repr__(self):
+        return "\n" + self.__str__()
+
     @property
     def max_temp(self):
         """ Getter function for the max_temp instance variable.

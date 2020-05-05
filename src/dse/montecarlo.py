@@ -20,13 +20,13 @@ def all_possible_pos_mappings(n):
 
     return np.transpose([np.tile(x, len(x)), np.repeat(x, len(x))])
 
-def random_designpoint(policy):
+def random_designpoint():
     """ Random experiment for the simulator.
     n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
 
     :return: None
     """
-    n = 14
+    n = random.randint(2, 20)
     choices = list(map(tuple, all_possible_pos_mappings(n)))
 
     components = []
@@ -38,6 +38,8 @@ def random_designpoint(policy):
 
     applications = [Application(x) for x in np.random.randint(10, 60, n)]
     app_map = [(components[x], applications[x]) for x in range(n)]
+
+    policy = random.choice(["random", "most", "least"])
 
     return Designpoint(components, applications, app_map, policy)
 
@@ -74,13 +76,18 @@ def run_test():
     # dp1 = create_dp(cap1=100, cap2=100, policy='most')
     # dp2 = create_dp(cap1=100, cap2=100, policy='least')
 
-    dp1 = random_designpoint('most')
-    dp2 = deepcopy(dp1)
-    dp2.policy = 'least'
+    dp1 = random_designpoint()
+    dp2 = random_designpoint()
 
-    print(dp1.policy, dp2.policy)
+    dp3 = random_designpoint()
+    dp4 = random_designpoint()
 
-    monte_carlo([dp1, dp2])
+    print("dp1", dp1)
+    print("dp2", dp2)
+    print("dp3", dp3)
+    print("dp4", dp4)
+
+    monte_carlo([dp1, dp2, dp3, dp4])
 
 
 if __name__ == "__main__":

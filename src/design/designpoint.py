@@ -18,6 +18,9 @@ class Designpoint:
         self._comp_loc_map = comp_to_loc_mapping(self._components)
         self.policy = policy
 
+    def __str__(self):
+        return "policy: " + self.policy + "\n" + str(self._application_map)
+
     def get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.
 

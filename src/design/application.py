@@ -10,6 +10,12 @@ class Application:
 
         self._power_req = power
 
+    def __str__(self):
+        return "app: " + str(self._power_req)
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def power_req(self):
         """ Getter function for the power_req instance variable.

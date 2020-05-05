@@ -56,3 +56,6 @@ class Thermals(SimulatorElement):
         :return: None
         """
         self.adjusted_thermals(comp_loc_map, fluctuate)
+
+    def do_n_steps(self, comp_loc_map, fluctuate=0.01):
+        self.adjusted_thermals(comp_loc_map, fluctuate)

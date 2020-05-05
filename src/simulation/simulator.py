@@ -49,6 +49,12 @@ class Simulator:
 
         return system_ok
 
+    def do_n_steps(self):
+        system_ok = self._integrator.do_n_steps()
+        self._timesteps = self._integrator.timesteps
+
+        return system_ok
+
     def run(self, iteration_amount=5000, until_failure=False, debug=False):
         """ Runs the simulation an iteration_amount of time or until a failure occurs.
 
@@ -64,4 +70,9 @@ class Simulator:
                 self.print_current_status()
 
             if not self.step():
+                return self._timesteps
+
+    def run_optimized(self):
+        while True:
+            if not self.do_n_steps():
                 return self._timesteps

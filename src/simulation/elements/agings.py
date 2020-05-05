@@ -10,12 +10,10 @@ class Agings(SimulatorElement):
 
         :param alive_components: 2D numpy boolean array (True indicates a living component on that position)
         """
-        omegas = np.zeros(alive_components.shape)
-        omegas[alive_components] = 100 * np.random.weibull(5, np.sum(alive_components))  # repr. iterations on 100% usage when cpu will fail
+        self._omegas = np.zeros(alive_components.shape)
+        self._omegas[alive_components] = 100 * np.random.weibull(5, np.sum(alive_components))  # repr. iterations on 100% usage when cpu will fail
 
-
-
-        self._lambdas = np.divide(1, omegas, out=np.zeros_like(omegas), where=omegas != 0)
+        self._lambdas = np.divide(1, self._omegas, out=np.zeros_like(self._omegas), where=self._omegas != 0)
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
 
     @property
@@ -38,6 +36,12 @@ class Agings(SimulatorElement):
 
         return np.any((self._cur_agings >= 1.0)[alive_components])
 
+    def steps_till_next_failure(self, alive_components, thermals, steps_taken):
+        # TODO: minus timesteps already done * lambdas
+        timesteps = np.ceil(np.ceil(self._omegas[alive_components]) / (thermals[alive_components] / 100)) - (steps_taken - 1)
+
+        return int(np.ceil(np.amin(timesteps)))
+
     def step(self, alive_components, thermals):
         """ Increment a timestep regarding the aging process of the simulation
 
@@ -46,3 +50,10 @@ class Agings(SimulatorElement):
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
         return self.update_agings(alive_components, thermals)
+
+    def do_n_steps(self, n, alive_components, thermals):
+        self._cur_agings[alive_components] += n * self._lambdas[alive_components] * (thermals[alive_components] / 100)
+
+        assert np.any((self._cur_agings >= 1.0)[alive_components]), "n steps did not result in aging > 1.0" + str(self._cur_agings[alive_components])
+
+        return np.any((self._cur_agings >= 1.0)[alive_components])

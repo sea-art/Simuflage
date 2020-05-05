@@ -214,9 +214,14 @@ class Components(SimulatorElement):
         :return: Boolean indicating reliability system (True = OK, False = failure)
         """
         # Check if failed components are already adjusted (i.e. any remapping required?)
+
         self.remove_failed_components(failed_components)
         failed_indices = self.get_failed_indices(failed_components)
 
         return self.adjust_app_mapping(failed_indices)
+
+    @property
+    def power_uses(self):
+        return self._power_uses
 
 

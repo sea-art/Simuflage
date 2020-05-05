@@ -57,13 +57,12 @@ def manual_designpoint(cap1=100, cap2=100,
     return Designpoint([c1, c2], [a1, a2], mapping, policy=policy)
 
 
-def monte_carlo(designpoints, iterations=400):
+def monte_carlo(designpoints, iterations=1000):
     TTFs = [[] for _ in designpoints]
 
     for a in range(iterations):
-        print("iteration: ", a)
         i = random.randint(0, len(designpoints) - 1)
-        TTFs[i].append(Simulator(designpoints[i]).run(until_failure=True))
+        TTFs[i].append(Simulator(designpoints[i]).run_optimized())
 
     for i in range(len(TTFs)):
         TTFs[i] = sum(TTFs[i]) / len(TTFs[i])

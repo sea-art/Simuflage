@@ -18,11 +18,12 @@ def all_possible_pos_mappings(n):
     return np.transpose([np.tile(x, len(x)), np.repeat(x, len(x))])
 
 
-def monte_carlo(designpoints, iterations=500):
+def monte_carlo(designpoints, iterations=1000):
     TTFs = [[] for _ in designpoints]
     sims = [Simulator(d) for d in designpoints]
 
     for a in range(iterations):
+        print("MC iteration:", a, end="\r")
         i = random.randint(0, len(designpoints) - 1)
         TTFs[i].append(sims[i].run_optimized())
 
@@ -33,30 +34,14 @@ def monte_carlo(designpoints, iterations=500):
 
 
 def run_test():
-    # dp1 = create_dp(cap1=100, cap2=100, policy='most')
-    # dp2 = create_dp(cap1=100, cap2=100, policy='least')
-
     dp1 = Designpoint.create_random(10)
     dp2 = Designpoint.create_random(10)
 
-    # dp1 = Designpoint.create(caps=[100, 100, 100, 100],
-    #                          locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
-    #                          apps=[20, 70, 10, 80],
-    #                          maps=[(0, 0), (0, 1), (1, 2), (1, 3)],
-    #                          policy='random')
-    #
-    # dp2 = Designpoint.create(caps=[100, 100, 100, 100],
-    #                          locs=[(0, 0), (2, 0), (0, 2), (2, 2)],
-    #                          apps=[20, 70, 10, 80],
-    #                          maps=[(0, 0), (1, 1), (2, 2), (3, 3)],
-    #                          policy='random')
+    MTTFs = monte_carlo([dp1, dp2])
 
-    # dp3 = random_designpoint()
-    # dp4 = random_designpoint()
+    print("Two random designpoint MTTFs:", MTTFs)
+    print("Winner is designpoint", MTTFs.index(max(MTTFs)) + 1)
 
-    TTFs = monte_carlo([dp1, dp2])
-
-    print(sorted(TTFs))
 
 if __name__ == "__main__":
     run_test()

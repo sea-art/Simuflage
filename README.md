@@ -36,6 +36,7 @@ cd Simuflage
 make setup
 make run
 ```
+Which currently runs a Monte Carlo simulation on several random design points.
 
 ## Libraries used
 - [Numpy](https://numpy.org/) - efficient multi-dimensional container of generic data 
@@ -43,8 +44,8 @@ make run
 
 ## Quickstart
 - [Designing an embedded system](src/design/README.md)
-- [Evaluate a designed system with the simulator](src/simulation/README.md)
-
+- [Evaluate a single design point with the simulator](src/simulation/README.md)
+- [Evaluating multiple design points with Monte Carlo](src/dse/README.md)
 
 ## Contributing
 For information about contributing to this project, see [CONTRIBUTING](CONTRIBUTING.md)

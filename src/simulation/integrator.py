@@ -1,15 +1,27 @@
+#!/usr/bin/env python
+
+""" The integrator contains all the functionalities that the simulator will run.
+
+This file should describe how the Simulator elements are integrated with eachother in order
+to run the simulation.
+"""
+
 import copy
-from abc import ABC, abstractmethod
 import os
+
 import numpy as np
-import json
+from abc import ABC, abstractmethod
 
 from simulation.elements.thermals import Thermals
 from simulation.elements.agings import Agings
 from simulation.elements.components import Components
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
 
 class AbsIntegrator(ABC):
+    """ Abstract class for the integrator."""
     @abstractmethod
     def step(self, *args):
         pass
@@ -47,9 +59,18 @@ class Integrator(AbsIntegrator):
 
     @property
     def timesteps(self):
+        """ Getter function for the timesteps instance variable.
+
+        :return: integer - representing the amount of timesteps already taken in the simulator.
+        """
         return self._timesteps
 
     def reset(self):
+        """ Resets the simulator back to default. Resamples all random variables.
+
+        :return: None
+        """
+
         self._components = copy.deepcopy(self._reset_params[0])
         self._thermals = copy.deepcopy(self._reset_params[1])
         self._agings = Agings(self._reset_params[2])

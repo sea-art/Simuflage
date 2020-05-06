@@ -1,8 +1,21 @@
+#!/usr/bin/env python
+
+""" Abstract representation of an embedded system design point.
+A design point for an adaptive embedded system consists of:
+- A list of Component objects
+- A list of Application objects
+- A mapping indicating which Application is being executed by which Component
+- An adaptive policy on the occurrence of a Component failure.
+"""
+
 import numpy as np
 
 from design.application import Application
 from design.component import Component
 from design.mapping import comp_to_loc_mapping, application_mapping, all_possible_pos_mappings
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Designpoint:
@@ -22,10 +35,26 @@ class Designpoint:
         self.policy = policy
 
     def __str__(self):
-        return "policy: " + self.policy + "\n" + str(self._application_map)
+        """ String representation of an Component object.
+
+        :return: string - representation of this Component
+        """
+        return "Designpoint:\n" + str(self._application_map) + "\npolicy: " + self.policy
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):
+        """ Simplified static function to quickly generate design points.
+
+        No other objects (e.g. Components or Applications) have to be created in order
+        to initialize this design point.
+
+        :param caps: [integer] - List of integers representing the power capacity
+        :param locs: [(integer, integer)] - List of integer tuples representing the coordinates of components
+        :param apps: [integer] - List of integers representing the power requirement of applications
+        :param maps: [(integer, integer)] - Indexwise mapping of component indices and application indices
+        :param policy: ['random', 'most', 'least'] - adaptivity policy (see Simulator)
+        :return: Designpoint object
+        """
         comps = [Component(caps[i], locs[i]) for i in range(len(caps))]
         apps = [Application(a) for a in apps]
         mapping = [(comps[maps[i][0]], apps[maps[i][1]]) for i in range(len(maps))]
@@ -34,9 +63,12 @@ class Designpoint:
 
     @staticmethod
     def create_random(n):
-        """ Random experiment for the simulator.
-        n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
+        """ Simplified static function to quickly generate random design points.
 
+        Creates n components with a random capacity and random location. Creates n applications with a random power
+        requirement. Picks a random adaptivity policy.
+
+        :param n: integer - representing amount of components and applications that will be randomly created.
         :return: Designpoint object
         """
         caps = np.random.randint(61, 200, n)

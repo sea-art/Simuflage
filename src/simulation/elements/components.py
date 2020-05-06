@@ -1,10 +1,21 @@
+#!/usr/bin/env python
+
+""" Contains all logical operations that are required for the components in a simulation
+
+The variables of components are spatially stored as a 2D numpy float arrayS.
+"""
+
 import numpy as np
 import warnings
 
 from simulation.elements.element import SimulatorElement
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
 
 class Components(SimulatorElement):
+    """ Contains all logical operations that are required for the components in a simulation."""
     def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy='random'):
         """ Initializes the components for the simulator.
 
@@ -231,4 +242,10 @@ class Components(SimulatorElement):
         return True
 
     def do_n_steps(self, n, cur_agings):
+        """ Run n iterations regarding the component process of the simulation.
+
+        :param n: int - amount of timesteps to take
+        :param cur_agings: 2D numpy float array containing the current agings for components
+        :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
+        """
         return self.step(cur_agings)

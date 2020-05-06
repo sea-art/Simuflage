@@ -1,9 +1,20 @@
+#!/usr/bin/env python
+
+""" This file contains most top-level functionality in order to evaluate a designpoint.
+
+Functionalities of the simulator should be defined in the integrator.py file.
+"""
+
 import sys
 
 from simulation.integrator import Integrator
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
 
 class Simulator:
+    """ This file contains all the functions that the Simulator is ought to perform."""
     def __init__(self, design_point):
         """Creates a simulator to calculate the TTF, temperatures and power output given a designpoint.
 
@@ -41,7 +52,7 @@ class Simulator:
     def step(self):
         """ Run one iteration of the simulator.
 
-        :return: Boolean indicating if a core has failed this iteration.
+        :return: Boolean - indicating if the system is still running.
         """
         system_ok = self._integrator.step()
 
@@ -50,12 +61,20 @@ class Simulator:
         return system_ok
 
     def do_n_steps(self):
+        """ Run n iterations of the simulator.
+
+        :return: Boolean - indicating if the system is still running.
+        """
         system_ok = self._integrator.do_n_steps()
         self._timesteps = self._integrator.timesteps
 
         return system_ok
 
     def reset(self):
+        """ Resets the simulator back to default.
+
+        :return: None
+        """
         self._integrator.reset()
         self._timesteps = 0
 
@@ -77,6 +96,11 @@ class Simulator:
                 return self._timesteps
 
     def run_optimized(self):
+        """ Run the simulation in an optimized form, where timesteps will be skipped to
+        the point where a failure occurs.
+
+        :return: integer - timesteps till failure of the design point
+        """
         while True:
             if not self.do_n_steps():
                 break

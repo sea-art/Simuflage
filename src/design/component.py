@@ -1,5 +1,17 @@
+#!/usr/bin/env python
+
+""" Abstract representation of a component present in embedded system design points.
+
+A Component object is a simplification of a processing component (e.g. CPU) that is represented by its power capacity
+(which is closely related to Application objects), a location on the embedded system grid and a maximum temperature.
+"""
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
+
 class Component:
-    """ Represents a CPU within the design space exploration."""
+    """Represents a computing component within a design point."""
 
     def __init__(self, power_capacity, location, max_temp=100):
         """ Initialize a component representing a CPU.
@@ -19,9 +31,17 @@ class Component:
         self._loc = location
 
     def __str__(self):
+        """ String representation of an Component object.
+
+        :return: string - representation of this Component
+        """
         return "comp: " + str(self._capacity) + "->" + str(self._loc)
 
     def __repr__(self):
+        """ Representation of an Component object.
+
+        :return: string - representation of this Component object
+        """
         return "\n" + self.__str__()
 
     @property

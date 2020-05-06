@@ -1,5 +1,14 @@
+#!/usr/bin/env python
+
+""" Contains helper functions regarding various amounts of mappings that are present in
+a design point, components or applications.
+"""
+
 import numpy as np
 import math
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 def all_possible_pos_mappings(n):
@@ -31,7 +40,6 @@ def comp_to_loc_mapping(components):
 
     :return: structured numpy array [(index, x, y)]
     """
-
     assert verify_unique_locations(components), "components do not have unique locations"
 
     return np.asarray([(i, components[i].loc[0], components[i].loc[1])

@@ -144,7 +144,6 @@ class Designpoint:
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
                 )
         """
-
         return                                       \
             self.create_capacity_grid(),             \
             self.create_thermal_grid(),              \

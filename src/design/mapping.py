@@ -7,9 +7,8 @@ a design point, components or applications.
 import numpy as np
 import math
 
-__author__ = "Siard Keulen"
-__email__ = "siardkeulen@gmail.com"
-__licence__ = "GNU General Public License v3.0"
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 def all_possible_pos_mappings(n):

@@ -6,9 +6,8 @@ A Component object is a simplification of a processing component (e.g. CPU) that
 (which is closely related to Application objects), a location on the embedded system grid and a maximum temperature.
 """
 
-__author__ = "Siard Keulen"
-__email__ = "siardkeulen@gmail.com"
-__licence__ = "GNU General Public License v3.0"
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Component:

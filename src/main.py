@@ -1,22 +1,22 @@
-from design.application import Application
-from design.designpoint import Designpoint
-from design.component import Component
-from simulation import simulator
+#!/usr/bin/env python
+
+""" This file is currently mainly used for testing/debugging purposes
+
+Use src/dse/montecarlo.py instead for the evaluation of design points.
+"""
+
 import numpy as np
 import math
 import random
 
+from design.application import Application
+from design.designpoint import Designpoint
+from design.component import Component
+from design.mapping import all_possible_pos_mappings
+from simulation import simulator
 
-def all_possible_pos_mappings(n):
-    """ Cartesian product of all possible position values.
-
-    :param n: amount of components
-    :return: (N x 2) integer array containing all possible positions.
-    """
-    grid_size = int(math.ceil(math.sqrt(n)))
-    x = np.arange(grid_size)
-
-    return np.transpose([np.tile(x, len(x)), np.repeat(x, len(x))])
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 def random_experiment():

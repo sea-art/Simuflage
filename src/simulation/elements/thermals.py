@@ -1,10 +1,21 @@
+#!/usr/bin/env python
+
+""" Contains all logical operations that are required for the thermals of components in the simulation
+
+Thermals are stored as a 2D numpy float array.
+"""
+
 import numpy as np
 from scipy import signal
 
 from simulation.elements.element import SimulatorElement
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
 
 class Thermals(SimulatorElement):
+    """ Contains all logical operators based on the thermals of components."""
     def __init__(self, init_thermals):
         """ Initializes a Thermals object based on the current initial thermals.
 
@@ -58,4 +69,10 @@ class Thermals(SimulatorElement):
         self.adjusted_thermals(comp_loc_map, fluctuate)
 
     def do_n_steps(self, n, comp_loc_map, fluctuate=0.01):
+        """ Run n iterations regarding the thermals of the simulation.
+
+        :param comp_loc_map: (np structured array) mapping of component index to x, y location
+        :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
+        :return: None
+        """
         self.step(comp_loc_map, fluctuate=fluctuate)

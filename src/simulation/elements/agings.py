@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+
+""" Contains all logical operations that are required for the aging of components in the simulation
+
+Agings are stored as a 2D numpy float array.
+"""
+
 import numpy as np
+
 from simulation.elements.element import SimulatorElement
-import json
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Agings(SimulatorElement):
@@ -19,9 +29,17 @@ class Agings(SimulatorElement):
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
 
     def __str__(self):
+        """ String representation of an Agings object.
+
+        :return: string - representation of this Component
+        """
         return str(self._cur_agings)
 
     def __repr__(self):
+        """ Representation of an Agings object.
+
+        :return: string - representation of this Agings object
+        """
         return self.__str__()
 
     @property
@@ -45,12 +63,20 @@ class Agings(SimulatorElement):
         return np.any((self._cur_agings >= 1.0)[alive_components])
 
     def steps_till_next_failure(self, alive_components, thermals, steps_taken):
+        """ Calculate in how many timesteps the next failure occurs.
+
+        :param alive_components: 2D numpy boolean array indicating the position of alive components.
+        :param thermals: 2D numpy float array with the current local thermals at this iteration.
+        :param steps_taken: integer - indicating how many timesteps are already taken in the simulation.
+        :return: int - indicating how many timesteps are required for the next failure.
+        """
+
         timesteps = np.ceil(self._omegas[alive_components] / (thermals[alive_components] / 100)) - steps_taken + 1
 
         return int(np.ceil(np.amin(timesteps)))
 
     def step(self, alive_components, thermals):
-        """ Increment a timestep regarding the aging process of the simulation
+        """ Increment a single timestep regarding the aging process of the simulation
 
         :param alive_components: 2D numpy boolean array indicating the position of alive components.
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
@@ -59,6 +85,13 @@ class Agings(SimulatorElement):
         return self.update_agings(alive_components, thermals)
 
     def do_n_steps(self, n, alive_components, thermals):
+        """ Increment n timesteps regarding te aging process of the simulation.
+
+        :param n: amount of timesteps to take
+        :param alive_components: 2D numpy boolean array indicating the position of alive components.
+        :param thermals: 2D numpy float array with the current local thermals at this iteration.
+        :return: Boolean - indicating if any new failures have occurred (which should be handled).
+        """
         self._cur_agings[alive_components] += (n + 1) * self._lambdas[alive_components] * \
                                               (thermals[alive_components] / 100)
 

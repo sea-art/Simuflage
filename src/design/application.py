@@ -6,9 +6,8 @@ Applications are represented by a single power requirement value, that indicates
 a component will use in order to run this application.
 """
 
-__author__ = "Siard Keulen"
-__email__ = "siardkeulen@gmail.com"
-__licence__ = "GNU General Public License v3.0"
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Application:

@@ -21,7 +21,8 @@ def all_possible_pos_mappings(n):
 
 def random_experiment():
     """ Random experiment for the simulator.
-    n components will randomly be placed on a grid with a random power capacity and a random application mapped to it.
+    n components will randomly be placed on a grid with a random power capacity
+    and a random application mapped to it.
 
     :return: None
     """
@@ -86,7 +87,8 @@ def manual_designpoint():
 
 def manual_experiment(dp=None, debug=False):
     """ Manual experiment for the simulator.
-    Components are manually made. This function is mainly used for test/debugging purposes.
+    Components are manually made. This function is mainly used for test and
+    debugging purposes.
 
     :return: None
     """

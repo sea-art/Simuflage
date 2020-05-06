@@ -13,6 +13,7 @@ def all_possible_pos_mappings(n):
 
     return np.transpose([np.tile(x, len(x)), np.repeat(x, len(x))])
 
+
 def verify_unique_locations(components):
     """ Verifies that all locations are unique.
 

@@ -131,4 +131,3 @@ class Designpoint:
             grid[comp.loc[1], comp.loc[0]] += app.power_req
 
         return grid
-

@@ -55,8 +55,10 @@ def monte_carlo_iterative(designpoints, iterations):
 
 
 def monte_carlo_parallelized(designpoints, iterations):
-    """ Parallelised implementaiton of the MCS. This function should be used over the
-    monte_carlo_iterative due to significant decrease in execution time.
+    """ Parallelised implementation of the MCS.
+
+    This function should be used over the monte_carlo_iterative due to significant decrease
+    in execution time.
 
     :param designpoints: [Designpoint object] - List of designpoint objects (the candidates).
     :param iterations: number of MC iterations to run

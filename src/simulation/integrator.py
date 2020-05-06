@@ -70,7 +70,6 @@ class Integrator(AbsIntegrator):
 
         :return: None
         """
-
         self._components = copy.deepcopy(self._reset_params[0])
         self._thermals = copy.deepcopy(self._reset_params[1])
         self._agings = Agings(self._reset_params[2])

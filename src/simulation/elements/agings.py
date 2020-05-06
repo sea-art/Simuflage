@@ -12,7 +12,8 @@ class Agings(SimulatorElement):
         :param alive_components: 2D numpy boolean array (True indicates a living component on that position)
         """
         self._omegas = np.zeros(alive_components.shape)
-        self._omegas[alive_components] = 100 * np.random.weibull(5, np.sum(alive_components))  # repr. iterations on 100% usage when cpu will fail
+        # repr. iterations on 100% usage when cpu will fail
+        self._omegas[alive_components] = 100 * np.random.weibull(5, np.sum(alive_components))
 
         self._lambdas = np.divide(1, self._omegas, out=np.zeros_like(self._omegas), where=self._omegas != 0)
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
@@ -44,7 +45,7 @@ class Agings(SimulatorElement):
         return np.any((self._cur_agings >= 1.0)[alive_components])
 
     def steps_till_next_failure(self, alive_components, thermals, steps_taken):
-        timesteps = np.ceil(np.ceil(self._omegas[alive_components]) / (thermals[alive_components] / 100)) - (steps_taken - 1)
+        timesteps = np.ceil(self._omegas[alive_components] / (thermals[alive_components] / 100)) - steps_taken + 1
 
         return int(np.ceil(np.amin(timesteps)))
 
@@ -58,8 +59,10 @@ class Agings(SimulatorElement):
         return self.update_agings(alive_components, thermals)
 
     def do_n_steps(self, n, alive_components, thermals):
-        self._cur_agings[alive_components] += n * self._lambdas[alive_components] * (thermals[alive_components] / 100)
+        self._cur_agings[alive_components] += (n + 1) * self._lambdas[alive_components] * \
+                                              (thermals[alive_components] / 100)
 
-        assert np.any((self._cur_agings >= 1.0)[alive_components]), "n steps did not result in aging > 1.0" + str(self._cur_agings[alive_components])
+        assert np.any((self._cur_agings >= 1.0)[alive_components]), "n steps did not result in aging > 1.0" + \
+                                                                    str(self._cur_agings[alive_components])
 
         return np.any((self._cur_agings >= 1.0)[alive_components])

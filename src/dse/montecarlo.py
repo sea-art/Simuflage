@@ -34,10 +34,7 @@ def monte_carlo(designpoints, iterations=1000):
 
 
 def run_test():
-    dp1 = Designpoint.create_random(10)
-    dp2 = Designpoint.create_random(10)
-
-    MTTFs = monte_carlo([dp1, dp2])
+    MTTFs = monte_carlo([Designpoint.create_random(2) for _ in range(5)])
 
     print("Two random designpoint MTTFs:", MTTFs)
     print("Winner is designpoint", MTTFs.index(max(MTTFs)) + 1)

@@ -30,7 +30,7 @@ class Thermals(SimulatorElement):
         :return: NOne
         """
         self._isolated_thermals[m['y'], m['x']] += np.random.uniform(-fluctuate, fluctuate,
-                                                                    self._isolated_thermals.shape)[m['y'], m['x']]
+                                                                     self._isolated_thermals.shape)[m['y'], m['x']]
         _neighbour_thermals = self.neighbour_thermal_influences()
 
         self._temps[m['y'], m['x']] = _neighbour_thermals[m['y'], m['x']]

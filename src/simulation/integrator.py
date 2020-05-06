@@ -105,5 +105,3 @@ class Integrator(AbsIntegrator):
         f = open(root_dir + "/../../out/" + filename_out, "a+")
         f.write("%d %s %f\n" % (timestep, np.sum(self._components.capacities), np.average(self._thermals.temps)))
         f.close()
-
-

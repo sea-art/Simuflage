@@ -90,7 +90,8 @@ class Components(SimulatorElement):
         :param y: integer of y position
         :return: integer of index of component
         """
-        pos = np.logical_and(self._comp_loc_map['x'] == x, self._comp_loc_map['y'] == y)
+        pos = np.logical_and(self._comp_loc_map['x'] == x,
+                             self._comp_loc_map['y'] == y)
 
         assert self._comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
 

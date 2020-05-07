@@ -17,4 +17,4 @@ check-pep8:
 	bash -c 'source ./venv/bin/activate && pycodestyle --ignore E501 ./src/ && deactivate'
 
 run:
-	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/dse/montecarlo.py && deactivate'
+	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/main.py && deactivate'

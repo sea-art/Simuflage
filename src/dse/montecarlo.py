@@ -6,7 +6,6 @@ import random
 import math
 import multiprocessing
 
-from design.designpoint import Designpoint
 from simulation.simulator import Simulator
 
 __licence__ = "GPL-3.0-or-later"
@@ -113,11 +112,3 @@ def print_results(results, dps):
 
     print("\nWinner: design point", sorted_results[0], dps[sorted_results[0]])
     print("\nLoser: design point", sorted_results[-1], dps[sorted_results[-1]])
-
-
-if __name__ == "__main__":
-    dps = [Designpoint.create_random(3) for _ in range(20)]
-
-    results = monte_carlo(dps, iterations=10000, parallelized=True)
-
-    print_results(results, dps)

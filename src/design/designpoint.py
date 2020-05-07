@@ -9,6 +9,7 @@ A design point for an adaptive embedded system consists of:
 """
 
 import numpy as np
+import random
 
 from design.application import Application
 from design.component import Component
@@ -82,8 +83,10 @@ class Designpoint:
         :param n: integer - representing amount of components and applications that will be randomly created.
         :return: Designpoint object
         """
+        choices = list(map(tuple, all_possible_pos_mappings(n)))
+
         caps = np.random.randint(61, 200, n)
-        locs = all_possible_pos_mappings(n)
+        locs = random.sample(choices, n)
         apps = np.random.randint(10, 60, n)
         maps = [(a, a) for a in range(n)]
 

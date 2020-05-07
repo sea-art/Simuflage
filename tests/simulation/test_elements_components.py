@@ -6,11 +6,6 @@ from design.component import Component
 from design.designpoint import Designpoint
 from simulation.elements.components import Components
 
-"""
-TODO:
-- index_to_pos
-"""
-
 
 class TestComponents:
     @staticmethod

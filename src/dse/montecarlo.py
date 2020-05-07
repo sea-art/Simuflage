@@ -66,7 +66,7 @@ def monte_carlo_parallelized(designpoints, iterations):
     """
     i_per_dp = int(math.ceil(iterations / len(designpoints)))
     print("Running montecarlo simulation")
-    print("Total iterations:\t\t", iterations)
+    print("Total iterations:\t", iterations)
     print("Iterations per design point:\t", i_per_dp)
     jobs = []
 
@@ -111,11 +111,13 @@ def print_results(results, dps):
     for k in sorted_results:
         print("Designpoint", k, "MTTF:", results[k])
 
-    print("Winner: design point", sorted_results[0])
+    print("\nWinner: design point", sorted_results[0], dps[sorted_results[0]])
+    print("\nLoser: design point", sorted_results[-1], dps[sorted_results[-1]])
 
 
 if __name__ == "__main__":
-    dps = [Designpoint.create_random(3) for _ in range(8)]
+    dps = [Designpoint.create_random(3) for _ in range(20)]
 
-    results = monte_carlo(dps, 10000)
+    results = monte_carlo(dps, iterations=10000, parallelized=True)
+
     print_results(results, dps)

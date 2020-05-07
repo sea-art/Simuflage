@@ -28,6 +28,9 @@ class Components(SimulatorElement):
         self._power_uses = power_uses
         self._alive_components = capacities > 0
 
+        assert np.all(self._capacities >= self._power_uses), \
+            "One or more components have a workload that it can not handle."
+
         # Mappings
         self._comp_loc_map = comp_loc_map
         self._app_mapping = app_mapping

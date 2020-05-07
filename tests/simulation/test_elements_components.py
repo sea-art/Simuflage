@@ -17,6 +17,7 @@ class TestComponents:
     def get_components_example(cap1=100, cap2=100,
            loc1=(0, 0), loc2=(1, 1),
            app1=50, app2=50):
+
         c1 = Component(cap1, loc1)
         c2 = Component(cap2, loc2)
 
@@ -32,10 +33,11 @@ class TestComponents:
     def slack_order_verification(policy, out):
         slack = np.asarray([[20, 0],
                             [0, 40]])
+        power_req = np.asarray([[10, 0],
+                                [0, 20]])
 
         comp_loc_map = np.asarray([(0, 0, 0), (1, 1, 1)], dtype=[('index', 'i4'), ('x', 'i4'), ('y', 'i4')])
-
-        c = Components(slack, None, comp_loc_map, [(0, 1), (1, 1)])
+        c = Components(slack, power_req, comp_loc_map, [(0, 1), (1, 1)])
 
         return np.array_equal(np.asarray(out), c.get_mapping_order(slack, policy))
 

@@ -52,7 +52,7 @@ def application_mapping(components, tuple_mapping):
     [(component_index, application_power_required)]
 
     :param components: list of component objects
-    :param tuple_mapping:  list of tuples, mapping (component_index, app_power_req)
+    :param tuple_mapping: list of tuples, mapping (Component object, Application object)
     :return: structured numpy array [(`comp`, `app`)]
     """
     app_map = np.asarray([(components.index(comp), app.power_req) for comp, app in tuple_mapping],

@@ -18,6 +18,8 @@ from design.mapping import comp_to_loc_mapping, application_mapping, all_possibl
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
+ENV_TEMP = 20
+
 
 class Designpoint:
     """Designpoint object representing a system to evaluate."""
@@ -122,7 +124,8 @@ class Designpoint:
         grid = self.get_empty_grid()
 
         for i, x, y in self._comp_loc_map:
-            grid[y, x] = self._applications[i].power_req / self._components[i].capacity * self._components[i].max_temp
+            grid[y, x] = ENV_TEMP + (self._applications[i].power_req / self._components[i].capacity) \
+                         * self._components[i].max_temp
 
         return grid
 

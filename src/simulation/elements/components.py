@@ -82,6 +82,14 @@ class Components(SimulatorElement):
         """
         return self._app_mapping
 
+    @property
+    def workload(self):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            workload = self.power_uses / self._capacities
+            workload[np.isnan(workload)] = 0
+
+        return workload
+
     def index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.
 
@@ -236,7 +244,7 @@ class Components(SimulatorElement):
         :param cur_agings: 2D numpy float array containing the current agings for components
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
-        failed_components = cur_agings >= 1.0
+        failed_components = np.isclose(cur_agings, 1.0)
 
         if np.any(failed_components[self.alive_components]):
             return self.handle_failures(failed_components)

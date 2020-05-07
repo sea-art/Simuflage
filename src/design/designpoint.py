@@ -28,6 +28,8 @@ class Designpoint:
         :param app_list: list of Application objects
         :param app_map: List of tuples [(Component obj, Appliction obj)}
         """
+        assert len(app_list) == len(app_map), "Not all applications are mapped."
+
         self._components = comp_list
         self._applications = app_list
         self._application_map = app_map
@@ -55,6 +57,15 @@ class Designpoint:
         :param policy: ['random', 'most', 'least'] - adaptivity policy (see Simulator)
         :return: Designpoint object
         """
+        comp_indices = [comp for comp, _ in maps]
+        app_indices = [app for _, app in maps]
+
+        assert len(app_indices) == len(set(app_indices)), \
+            "Applications are not uniquely mapped."
+
+        assert all(x >= 0 for x in comp_indices), "Components in the application mapping have negative indices."
+        assert all(x >= 0 for x in app_indices), "Components in the application mapping have negative indices."
+
         comps = [Component(caps[i], locs[i]) for i in range(len(caps))]
         apps = [Application(a) for a in apps]
         mapping = [(comps[maps[i][0]], apps[maps[i][1]]) for i in range(len(maps))]
@@ -144,11 +155,16 @@ class Designpoint:
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
                 )
         """
-        return                                       \
-            self.create_capacity_grid(),             \
-            self.create_thermal_grid(),              \
-            self.calc_power_usage_per_component(),   \
-            self._comp_loc_map,                       \
+        capacities = self.create_capacity_grid()
+        power_usage = self.calc_power_usage_per_component()
+
+        assert np.any(capacities >= power_usage), "Components have higher workload than capacity"
+
+        return                          \
+            capacities,                 \
+            self.create_thermal_grid(), \
+            power_usage,                \
+            self._comp_loc_map,         \
             application_mapping(self._components, self._application_map)
 
     def calc_power_usage_per_component(self):

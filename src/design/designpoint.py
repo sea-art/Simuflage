@@ -112,22 +112,22 @@ class Designpoint:
         """
         return np.zeros(self.get_grid_dimensions())
 
-    def create_thermal_grid(self):
-        """ Creates a thermal grid of all the components.
-
-        The temperatures of each component will be placed on the
-        corresponding position. All other positions temperature are 0.
-
-        :return: 2D numpy array of local temperatures
-        """
-
-        grid = self.get_empty_grid()
-
-        for i, x, y in self._comp_loc_map:
-            grid[y, x] = ENV_TEMP + (self._applications[i].power_req / self._components[i].capacity) \
-                         * self._components[i].max_temp
-
-        return grid
+    # def create_thermal_grid(self):
+    #     """ Creates a thermal grid of all the components.
+    #
+    #     The temperatures of each component will be placed on the
+    #     corresponding position. All other positions temperature are 0.
+    #
+    #     :return: 2D numpy array of local temperatures
+    #     """
+    #
+    #     grid = self.get_empty_grid()
+    #
+    #     for i, x, y in self._comp_loc_map:
+    #         grid[y, x] = ENV_TEMP + (self._applications[i].power_req / self._components[i].capacity) \
+    #                      * self._components[i].max_temp
+    #
+    #     return grid
 
     def create_capacity_grid(self):
         """ Creates a capacity grid of all the components.
@@ -148,6 +148,23 @@ class Designpoint:
 
         return grid
 
+    def create_max_temp_grid(self):
+        """ Creates a max temp grid of all the components.
+
+        The capacity of each component will be placed on the
+        corresponding position. All other position (i.e. spots where the components are not placed) are 0.
+
+        :return: 2D numpy array of power capacities
+        """
+        grid = self.get_empty_grid()
+
+        for i in range(len(self._components)):
+            c = self._components[i]
+
+            grid[c.loc[1], c.loc[0]] = c.max_temp
+
+        return grid
+
     def to_numpy(self):
         """Return the components of a designpoint as numpy arrays.
 
@@ -155,7 +172,7 @@ class Designpoint:
 
         :return: (
                     numpy 2D float array - capacities
-                    numpy 2D float array - temperatures
+                    numpy 2D float array - workload
                     numpy 2D float array -  used power per component by mapped applications
                     numpy 2D structured array [(component_index, app_power_req] - application mapping
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
@@ -163,13 +180,14 @@ class Designpoint:
         """
         capacities = self.create_capacity_grid()
         power_usage = self.calc_power_usage_per_component()
+        max_temps = self.create_max_temp_grid()
 
         assert np.any(capacities >= power_usage), "Components have higher workload than capacity"
 
         return                          \
             capacities,                 \
-            self.create_thermal_grid(), \
             power_usage,                \
+            max_temps,                  \
             self._comp_loc_map,         \
             application_mapping(self._components, self._application_map)
 

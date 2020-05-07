@@ -13,17 +13,22 @@ from simulation.elements.element import SimulatorElement
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
+ENV_TEMP = 20
+
 
 class Thermals(SimulatorElement):
     """ Contains all logical operators based on the thermals of components."""
-    def __init__(self, init_thermals):
+
+    def __init__(self, workload, max_temps, comp_loc_map):
         """ Initializes a Thermals object based on the current initial thermals.
 
-        :param init_thermals: 2D numpy float array containing the local temperatures.
+        :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
+        :param max_temps: 2D numpy float array locally indicating the max temp (at 1.0 usage) per component.
+        :param comp_loc_map: mapping of component index to xy-location (i, x , y)
         """
-        self._isolated_thermals = init_thermals
-        self._neighbour_thermals = np.zeros(init_thermals.shape)
-        self._temps = np.copy(init_thermals)
+        self._max_temps = max_temps
+        self._temps = ENV_TEMP + max_temps * workload
+        self._m = comp_loc_map  # comp_loc_map
 
     @property
     def temps(self):
@@ -33,46 +38,51 @@ class Thermals(SimulatorElement):
         """
         return self._temps
 
-    def adjusted_thermals(self, m, fluctuate):
+    def adjusted_thermals(self, workload, fluc):
         """ Adjusts the thermals based on uniform fluctuation and neighbour thermal influences.
 
-        :param m: mapping of component index to xy-location (i, x , y)
-        :param fluctuate: float representing the max uniformly fluctuation of temperature each iteration.
-        :return: NOne
+        :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
+        :param fluc: float representing the max uniformly fluctuation of temperature.
+        :return: None
         """
-        self._isolated_thermals[m['y'], m['x']] += np.random.uniform(-fluctuate, fluctuate,
-                                                                     self._isolated_thermals.shape)[m['y'], m['x']]
-        _neighbour_thermals = self.neighbour_thermal_influences()
+        temperatures = workload * self._max_temps
+        temperatures[self._m['y'], self._m['x']] += \
+            np.random.uniform(-fluc, fluc, temperatures.shape)[self._m['y'], self._m['x']]
 
-        self._temps[m['y'], m['x']] = _neighbour_thermals[m['y'], m['x']]
+        neighbour_thermals = self.neighbour_thermal_influences(temperatures)
 
-    def neighbour_thermal_influences(self, kernel=None):
+        self._temps[m['y'], m['x']] = neighbour_thermals[m['y'], m['x']]
+
+    @staticmethod
+    def neighbour_thermal_influences(self, temperatures, kernel=None):
         """ Adjusts the thermals based on the neighbouring components thermals
 
+        :param temperatures: 2D numpy float array - locally indicating the temperatures
         :param kernel: 2D kernel which will be used for convolution
         :return: 2D numpy float array - grid thermals after neighbouring contributions
         """
         if not kernel:
             kernel = np.asarray([[0.01, 0.01, 0.01],
-                                 [0.01, 1, 0.01],
+                                 [0.01, 1,    0.01],
                                  [0.01, 0.01, 0.01]])
 
-        return signal.convolve2d(self._isolated_thermals, kernel, "same")
+        return signal.convolve2d(temperatures, kernel, "same")
 
-    def step(self, comp_loc_map, fluctuate=0.01):
+    def step(self, workload, fluctuate=0.0):
         """ Iterate the thermal influences
 
-        :param comp_loc_map: (np structured array) mapping of component index to x, y location
+        :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
         :return: None
         """
-        self.adjusted_thermals(comp_loc_map, fluctuate)
+        self.adjusted_thermals(workload, fluctuate)
 
-    def do_n_steps(self, n, comp_loc_map, fluctuate=0.01):
+    def do_n_steps(self, n, workload, fluctuate=0.0):
         """ Run n iterations regarding the thermals of the simulation.
 
-        :param comp_loc_map: (np structured array) mapping of component index to x, y location
+        :param n: (int) amount of timesteps
+        :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
         :return: None
         """
-        self.step(comp_loc_map, fluctuate=fluctuate)
+        self.step(workload, fluctuate=fluctuate)

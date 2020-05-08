@@ -14,7 +14,6 @@ from dse.montecarlo import monte_carlo
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
-from simulation.simulator import Simulator
 
 if __name__ == "__main__":
     print("Simulating different workloads for 2x2 homogeneous grid.\n")

@@ -23,7 +23,6 @@ class Agings(SimulatorElement):
 
         :param alive_components: 2D numpy boolean array (True indicates a living component on that position)
         """
-
         samples = np.zeros(alive_components.shape)
         samples[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5.0,
                                                                                               np.sum(alive_components))

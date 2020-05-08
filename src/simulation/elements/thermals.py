@@ -19,7 +19,7 @@ ENV_TEMP = 20
 class Thermals(SimulatorElement):
     """ Contains all logical operators based on the thermals of components."""
 
-    def __init__(self, workload, max_temps, comp_loc_map):
+    def __init__(self, workload, max_temps, comp_loc_map, alive_components):
         """ Initializes a Thermals object based on the current initial thermals.
 
         :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
@@ -27,8 +27,11 @@ class Thermals(SimulatorElement):
         :param comp_loc_map: mapping of component index to xy-location (i, x , y)
         """
         self._max_temps = max_temps
-        self._temps = ENV_TEMP + max_temps * workload
         self._m = comp_loc_map  # comp_loc_map
+        self._alive_components = alive_components
+
+        self._temps = np.zeros(workload.shape)
+        self._temps[alive_components] = self.adjusted_thermals(workload, 0.0)[alive_components]
 
     @property
     def temps(self):
@@ -45,13 +48,13 @@ class Thermals(SimulatorElement):
         :param fluc: float representing the max uniformly fluctuation of temperature.
         :return: None
         """
-        temperatures = workload * self._max_temps
+        temperatures = ENV_TEMP + workload * self._max_temps
         temperatures[self._m['y'], self._m['x']] += \
             np.random.uniform(-fluc, fluc, temperatures.shape)[self._m['y'], self._m['x']]
 
         neighbour_thermals = self.neighbour_thermal_influences(temperatures)
 
-        self._temps[self._m['y'], self._m['x']] = neighbour_thermals[self._m['y'], self._m['x']]
+        return neighbour_thermals
 
     @staticmethod
     def neighbour_thermal_influences(temperatures, kernel=None):
@@ -75,7 +78,8 @@ class Thermals(SimulatorElement):
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
         :return: None
         """
-        self.adjusted_thermals(workload, fluctuate)
+        self._temps = np.zeros(workload.shape)
+        self._temps[self._alive_components] = self.adjusted_thermals(workload, fluctuate)[self._alive_components]
 
     def do_n_steps(self, n, workload, fluctuate=0.0):
         """ Run n iterations regarding the thermals of the simulation.

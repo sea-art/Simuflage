@@ -33,6 +33,13 @@ class Thermals(SimulatorElement):
         self._temps = np.zeros(workload.shape)
         self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]
 
+    def __repr__(self):
+        """ Representation of an Components object.
+
+        :return: string - representation of this Components object
+        """
+        return str(self._temps)
+
     @property
     def temps(self):
         """ Getter function for the temps instance variable.

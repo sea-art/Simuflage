@@ -20,19 +20,12 @@ class Application:
 
         self._power_req = power
 
-    def __str__(self):
-        """ String representation of an Application object.
-
-        :return: string - representation of this Application
-        """
-        return "app: " + str(self._power_req)
-
     def __repr__(self):
         """ Representation of an Application object.
 
         :return: string - representation of this Application object
         """
-        return self.__str__()
+        return "app: " + str(self._power_req)
 
     @property
     def power_req(self):

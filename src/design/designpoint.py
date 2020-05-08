@@ -37,7 +37,7 @@ class DesignPoint:
         self._comp_loc_map = comp_to_loc_mapping(self._components)
         self.policy = policy
 
-    def __str__(self):
+    def __repr__(self):
         """ String representation of an Component object.
 
         :return: string - representation of this Component

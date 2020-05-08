@@ -30,7 +30,7 @@ for i in range(1, 11):
                                   maps=[(i, i) for i in range(n * n)],
                                   policy='random'))
 
-results = monte_carlo(dps, iterations=len(dps) * 1000, parallelized=True)
+results = monte_carlo(dps, iterations=len(dps) * 1000)
 
 for k, v in results.items():
     print("Workload:", (k + 1) / 10, "\tMTTF:", np.around(v, 1), "\t(Years: " + str((v / (24 * 365))) + ")")

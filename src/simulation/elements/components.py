@@ -42,6 +42,13 @@ class Components(SimulatorElement):
         self._adjust_power_uses()
         self.policy = policy
 
+    def __repr__(self):
+        """ Representation of an Components object.
+
+        :return: string - representation of this Components object
+        """
+        return str(np.vstack(([self._capacities.T], [self._power_uses.T])).T)
+
     @property
     def alive_components(self):
         """ Getter function for the alive_components instance variable.

@@ -37,6 +37,7 @@ class AbsSimulator(ABC):
 
 class Integrator(AbsSimulator):
     """ This class should be edited when adding new elements or changing simulation functionality."""
+
     def __init__(self, design_point, policy):
         """ Integrator is used to change/add functionality to the simulator.
 

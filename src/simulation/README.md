@@ -1,7 +1,7 @@
 ## Simulator
-Given a designed embedded system, we can run the simulator
+Given a [designed embedded system](../design/README.md), we can run the simulator
 to evaluate this design point. It is assumed that the design point is
-created and stored in a variable as:
+created and stored in a variable. For example:
 ```python
 dp = DesignPoint(components, applications, app_map)
 ```
@@ -13,17 +13,18 @@ of that design point. All that the simulator requires is a designpoint, which ca
 from simulation.simulator import Simulator
 
 sim = simulator.Simulator(dp)
-sim.run(until_failure=True)
+sim.run()
 ```
-When running the simulator it is either possible to run a fixed amount of iterations, 
-or to keep running the simulator until a failure has occurred.
+Which will run the simulator until the given design point has failed. It will return the TTF of the given design point.
 
 ## Code structure
 ```
 ├───src
 │   ├───design
+│   ├───dse
 │   └───simulation
-│       └───elements
+│       ├───elements
+│       └───faultmodels
 └───tests
     ├───design
     └───simulation
@@ -36,7 +37,7 @@ The ```simulator.py``` can be seen as the *main* function for the simulator. All
 based on some parameters, which the simulator will call each simulation iteration.
 
 This section explains the structure of this project in more detail aiming to provide information
-about how to contribute/alter the simulator.
+about how to alter the simulator.
 
 
 ### Definitions
@@ -46,6 +47,8 @@ file is used to make sure the elements integrate and work with each other.
 - **Integrator** - since the aim of this simulator is to be modular and easily be changable, the simulator behavior
 is expected to change frequently. The integrator file (located at ```src/simulation/integrator.py```) is used to specify
 how the simulator should behave each timestep based on the ```simulator elements```.
+- **Faultmodel** - This is the faultmodel that the system is using to determine when components are failing.
+The current available faultmodel is [electromigration](https://en.wikipedia.org/wiki/Electromigration).
 
 ### Simulation
 #### Adding simulation functionality
@@ -54,9 +57,10 @@ All elements of the simulator are currently:
 - ```components.py```
 - ```thermals.py```
 
-When adding elements to the simulator, it has to extend the abstract class ```simulator_element.py```.
+When adding elements to the simulator, it has to implement the abstract class ```simulator_element.py```.
 
 ### Integrator
 The integrator, located at ```src/simulation/integrator.py``` is the file to edit the simulator functionality
 upon altering or changing simulator elements. Most of the times, these files should be integrated with each other (e.g.
-functionality for the aging of components requires the thermals of the same timestep)
+functionality for the aging of components requires the thermals of the same timestep). All logic regarding integration
+of simulator elements should be defined here.

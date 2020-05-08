@@ -34,19 +34,12 @@ class Agings(SimulatorElement):
         self._cur_workload = np.copy(workload)  # Stores the current workload to see alterations in remapping
         self._model = model
 
-    def __str__(self):
-        """ String representation of an Agings object.
-
-        :return: string - representation of this Component
-        """
-        return str(self._cur_agings)
-
     def __repr__(self):
         """ Representation of an Agings object.
 
         :return: string - representation of this Agings object
         """
-        return self.__str__()
+        return "Agings: " + str(self._cur_agings)
 
     @property
     def cur_agings(self):

@@ -33,7 +33,7 @@ cd Simuflage
 make setup
 make run
 ```
-Which currently runs a Monte Carlo simulation on several random design points.
+Which currently outputs the MTTF of an arbitrary 2x2 heterogeneous design point via Monte Carlo simulation on several different workloads.
 
 ## Libraries used
 - [Numpy](https://numpy.org/) - efficient multi-dimensional container of generic data 

@@ -27,13 +27,27 @@ if __name__ == "__main__":
     dp4 = Designpoint.create([100, 100, 100, 100], [(0, 0), (1, 0), (1, 1), (0, 1)], [40, 40, 40, 40], [(0, 0), (1, 1), (2, 2), (3, 3)])
     dp5 = Designpoint.create([100, 100, 100, 100], [(0, 0), (1, 0), (1, 1), (0, 1)], [50, 50, 50, 50], [(0, 0), (1, 1), (2, 2), (3, 3)])
 
-    results = monte_carlo([dp1, dp2, dp3, dp4, dp5], iterations=5 * 50, parallelized=True)
+    dps1 = [dp1, dp2, dp3, dp4, dp5]
 
-    results = collections.OrderedDict(sorted(results.items()))
+    dp6 = Designpoint.create([100, 100, 100, 100], [(0, 0), (2, 0), (2, 2), (0, 2)], [10, 10, 10, 10], [(0, 0), (1, 1), (2, 2), (3, 3)])
+    dp7 = Designpoint.create([100, 100, 100, 100], [(0, 0), (2, 0), (2, 2), (0, 2)], [20, 20, 20, 20], [(0, 0), (1, 1), (2, 2), (3, 3)])
+    dp8 = Designpoint.create([100, 100, 100, 100], [(0, 0), (2, 0), (2, 2), (0, 2)], [30, 30, 30, 30], [(0, 0), (1, 1), (2, 2), (3, 3)])
+    dp9 = Designpoint.create([100, 100, 100, 100], [(0, 0), (2, 0), (2, 2), (0, 2)], [40, 40, 40, 40], [(0, 0), (1, 1), (2, 2), (3, 3)])
+    dp0 = Designpoint.create([100, 100, 100, 100], [(0, 0), (2, 0), (2, 2), (0, 2)], [50, 50, 50, 50], [(0, 0), (1, 1), (2, 2), (3, 3)])
+
+    dps2 = [dp6, dp7, dp8, dp9, dp0]
+
+    results1 = monte_carlo(dps1, iterations=5 * 5000, parallelized=True)
+    results = collections.OrderedDict(sorted(results1.items()))
 
     for k, v in results.items():
         print((k+1)/10, "mttf:", v, "(years: " + str((v / (24 * 365))) + ")")
 
+    results2 = monte_carlo(dps2, iterations=5 * 5000, parallelized=True)
+    results = collections.OrderedDict(sorted(results2.items()))
+
+    for k, v in results.items():
+        print((k+1)/10, "mttf:", v, "(years: " + str((v / (24 * 365))) + ")")
 
     # mttf = sum(results.values()) / len(results)
     # years = (mttf / (24 * 365))

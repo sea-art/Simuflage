@@ -1,4 +1,5 @@
 import time
+import pytest
 
 from design.designpoint import DesignPoint
 from dse.montecarlo import monte_carlo
@@ -24,4 +25,5 @@ class TestMonteCarlo:
         """
         dps = [DesignPoint.create_random(2) for _ in range(3)]
 
-        monte_carlo(dps, iterations=500, parallelized=False)
+        with pytest.warns(UserWarning):
+            monte_carlo(dps, iterations=500, parallelized=False)

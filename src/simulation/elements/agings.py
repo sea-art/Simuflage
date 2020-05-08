@@ -73,11 +73,9 @@ class Agings(SimulatorElement):
         # failed = np.logical_and(np.isclose(self._cur_agings, 1.0), np.invert(alive_components))
         remapped_locs = workload != self._cur_workload
         remapped_locs[workload == 0] = False
-        omegas = self._model(thermals[remapped_locs]) * np.random.weibull(5, np.sum(remapped_locs))
+        omega = self._model(thermals[remapped_locs]) * np.random.weibull(5, np.sum(remapped_locs))
 
-        self._omegas[remapped_locs] = omegas
-        self._lambdas[remapped_locs] = np.divide(1, omegas)
-        print("OMEGAS", omegas)
+        self._lambdas[remapped_locs] = np.divide(1, omega)
 
         self._cur_workload = np.copy(workload)
 

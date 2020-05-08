@@ -45,12 +45,14 @@ class Integrator(AbsIntegrator):
 
         :param design_point: Designpoint object representing a system to evaluate.
         """
-        dp_data = design_point.to_numpy()
+        capacities, power_uses, max_temps, comp_loc_map, app_map = design_point.to_numpy()
+        with np.errstate(divide='ignore', invalid='ignore'):
+            workload = power_uses / capacities
 
         # Simulation variables
-        self._components = Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4], policy)
-        self._thermals = Thermals(dp_data[1])
-        self._agings = Agings(self._components.alive_components)
+        self._components = Components(capacities, power_uses, comp_loc_map, app_map, policy)
+        self._thermals = Thermals(workload, max_temps, comp_loc_map)
+        self._agings = Agings(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
         self._reset_params = [copy.deepcopy(self._components),
@@ -72,7 +74,7 @@ class Integrator(AbsIntegrator):
         """
         self._components = copy.deepcopy(self._reset_params[0])
         self._thermals = copy.deepcopy(self._reset_params[1])
-        self._agings = Agings(self._reset_params[2])
+        self._agings = Agings(self._reset_params[2], self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
     def step(self):
@@ -85,8 +87,15 @@ class Integrator(AbsIntegrator):
         :return: Boolean indicating if a core has failed this iteration.
         """
         self._thermals.step(self._components.comp_loc_map)
+
         remap_required = self._agings.step(self._components.alive_components, self._thermals.temps)
+
         system_ok = self._components.step(self._agings.cur_agings)
+        # self._thermals.update_thermals(self._components.power_uses)
+
+        print(self._components.workload)
+
+        self._agings.adjust_agings(self._components.workload, self._thermals.temps)
 
         return system_ok
 
@@ -99,9 +108,15 @@ class Integrator(AbsIntegrator):
                                                  self._thermals.temps,
                                                  self._timesteps)
 
-        self._thermals.do_n_steps(n, self._components.comp_loc_map)
         self._agings.do_n_steps(n, self._components.alive_components, self._thermals.temps)
         system_ok = self._components.do_n_steps(n, self._agings.cur_agings)
+
+        with np.errstate(divide='ignore', invalid='ignore'):
+            workload = self._components.power_uses / self._components.capacities
+            workload[np.isnan(workload)] = 0
+
+        self._thermals.do_n_steps(n, workload)
+        self._agings.adjust_agings(self._components.workload, self._thermals.temps)
 
         self._timesteps += n
 

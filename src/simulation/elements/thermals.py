@@ -51,10 +51,10 @@ class Thermals(SimulatorElement):
 
         neighbour_thermals = self.neighbour_thermal_influences(temperatures)
 
-        self._temps[m['y'], m['x']] = neighbour_thermals[m['y'], m['x']]
+        self._temps[self._m['y'], self._m['x']] = neighbour_thermals[self._m['y'], self._m['x']]
 
     @staticmethod
-    def neighbour_thermal_influences(self, temperatures, kernel=None):
+    def neighbour_thermal_influences(temperatures, kernel=None):
         """ Adjusts the thermals based on the neighbouring components thermals
 
         :param temperatures: 2D numpy float array - locally indicating the temperatures

@@ -7,7 +7,7 @@ import pytest
 # - thermals 0 means no aging
 from design.application import Application
 from design.component import Component
-from design.designpoint import Designpoint
+from design.designpoint import DesignPoint
 from simulation.simulator import Simulator
 
 import numpy as np
@@ -24,7 +24,7 @@ class TestAgings:
         a1 = Application(app1)
         a2 = Application(app2)
 
-        dp = Designpoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
+        dp = DesignPoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
 
         return Simulator(dp)
 
@@ -32,5 +32,6 @@ class TestAgings:
         sim = self.get_simulator_example()
 
         sim.step()
+        print(sim._integrator._agings.cur_agings)
 
         assert np.any(sim._integrator._agings.cur_agings > 0)

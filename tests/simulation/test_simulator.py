@@ -2,7 +2,7 @@ import pytest
 
 from design.application import Application
 from design.component import Component
-from design.designpoint import Designpoint
+from design.designpoint import DesignPoint
 from simulation.simulator import Simulator
 
 
@@ -17,7 +17,7 @@ class TestSimulator:
         a1 = Application(app1)
         a2 = Application(app2)
 
-        dp = Designpoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
+        dp = DesignPoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
         return Simulator(dp)
 
     def test_timestep(self):

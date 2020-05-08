@@ -92,7 +92,7 @@ class Simulator(AbsSimulator):
 
         for _ in range(iteration_amount):
             if debug:
-                self.print_current_status()
+                self.print_status()
 
             if not self.step():
                 return self._timesteps

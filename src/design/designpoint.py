@@ -21,8 +21,8 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 ENV_TEMP = 20
 
 
-class Designpoint:
-    """Designpoint object representing a system to evaluate."""
+class DesignPoint:
+    """DesignPoint object representing a system to evaluate."""
 
     def __init__(self, comp_list, app_list, app_map, policy="random"):
         """ Initialize a Design point.
@@ -44,7 +44,7 @@ class Designpoint:
 
         :return: string - representation of this Component
         """
-        return "Designpoint:\n" + str(self._application_map) + "\npolicy: " + self.policy
+        return "DesignPoint:\n" + str(self._application_map) + "\npolicy: " + self.policy
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):
@@ -58,14 +58,12 @@ class Designpoint:
         :param apps: [integer] - List of integers representing the power requirement of applications
         :param maps: [(integer, integer)] - Indexwise mapping of component indices and application indices
         :param policy: ['random', 'most', 'least'] - adaptivity policy (see Simulator)
-        :return: Designpoint object
+        :return: DesignPoint object
         """
         comp_indices = [comp for comp, _ in maps]
         app_indices = [app for _, app in maps]
 
-        assert len(app_indices) == len(set(app_indices)), \
-            "Applications are not uniquely mapped."
-
+        assert len(app_indices) == len(set(app_indices)), "Applications are not uniquely mapped."
         assert all(x >= 0 for x in comp_indices), "Components in the application mapping have negative indices."
         assert all(x >= 0 for x in app_indices), "Components in the application mapping have negative indices."
 
@@ -73,7 +71,7 @@ class Designpoint:
         apps = [Application(a) for a in apps]
         mapping = [(comps[maps[i][0]], apps[maps[i][1]]) for i in range(len(maps))]
 
-        return Designpoint(comps, apps, mapping, policy=policy)
+        return DesignPoint(comps, apps, mapping, policy=policy)
 
     @staticmethod
     def create_random(n):
@@ -83,10 +81,9 @@ class Designpoint:
         requirement. Picks a random adaptivity policy.
 
         :param n: integer - representing amount of components and applications that will be randomly created.
-        :return: Designpoint object
+        :return: DesignPoint object
         """
         choices = list(map(tuple, all_possible_pos_mappings(n)))
-
         caps = np.random.randint(61, 200, n)
         locs = random.sample(choices, n)
         apps = np.random.randint(10, 60, n)
@@ -94,9 +91,9 @@ class Designpoint:
 
         policy = np.random.choice(["random", "most", "least"])
 
-        return Designpoint.create(caps, locs, apps, maps, policy)
+        return DesignPoint.create(caps, locs, apps, maps, policy)
 
-    def get_grid_dimensions(self):
+    def _get_grid_dimensions(self):
         """ Get the dimensions of the designpoint grid.
 
         :return: max dimensions (y, x) NOTE: unexpected order
@@ -105,31 +102,14 @@ class Designpoint:
             np.max(self._comp_loc_map['y']) + 1, \
             np.max(self._comp_loc_map['x']) + 1
 
-    def get_empty_grid(self):
+    def _get_empty_grid(self):
         """ Creates a 2D numpy array (grid) of zero's based on the position of components.
 
         :return: 2D numpy array
         """
-        return np.zeros(self.get_grid_dimensions())
+        return np.zeros(self._get_grid_dimensions())
 
-    # def create_thermal_grid(self):
-    #     """ Creates a thermal grid of all the components.
-    #
-    #     The temperatures of each component will be placed on the
-    #     corresponding position. All other positions temperature are 0.
-    #
-    #     :return: 2D numpy array of local temperatures
-    #     """
-    #
-    #     grid = self.get_empty_grid()
-    #
-    #     for i, x, y in self._comp_loc_map:
-    #         grid[y, x] = ENV_TEMP + (self._applications[i].power_req / self._components[i].capacity) \
-    #                      * self._components[i].max_temp
-    #
-    #     return grid
-
-    def create_capacity_grid(self):
+    def _create_capacity_grid(self):
         """ Creates a capacity grid of all the components.
 
         The capacity of each component will be placed on the
@@ -137,7 +117,7 @@ class Designpoint:
 
         :return: 2D numpy array of power capacities
         """
-        grid = self.get_empty_grid()
+        grid = self._get_empty_grid()
 
         for i in range(len(self._components)):
             c = self._components[i]
@@ -148,20 +128,32 @@ class Designpoint:
 
         return grid
 
-    def create_max_temp_grid(self):
-        """ Creates a max temp grid of all the components.
+    def _create_self_temp_grid(self):
+        """ Creates a self temp grid of all the components.
 
         The capacity of each component will be placed on the
         corresponding position. All other position (i.e. spots where the components are not placed) are 0.
 
         :return: 2D numpy array of power capacities
         """
-        grid = self.get_empty_grid()
+        grid = self._get_empty_grid()
 
         for i in range(len(self._components)):
             c = self._components[i]
 
             grid[c.loc[1], c.loc[0]] = c.max_temp
+
+        return grid
+
+    def _calc_power_usage_per_component(self):
+        """ Calculate the power usage per component based on the mapped applications to the corresponding components.
+
+        :return: numpy integer array indicating the mapped application power per component.
+        """
+        grid = self._get_empty_grid()
+
+        for comp, app in self._application_map:
+            grid[comp.loc[1], comp.loc[0]] += app.power_req
 
         return grid
 
@@ -172,33 +164,21 @@ class Designpoint:
 
         :return: (
                     numpy 2D float array - capacities
-                    numpy 2D float array - workload
-                    numpy 2D float array -  used power per component by mapped applications
+                    numpy 2D float array - power_usage
+                    numpy 2D float array - self_temperatures (max temperature each component can generate)
                     numpy 2D structured array [(component_index, app_power_req] - application mapping
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
                 )
         """
-        capacities = self.create_capacity_grid()
-        power_usage = self.calc_power_usage_per_component()
-        max_temps = self.create_max_temp_grid()
+        capacities = self._create_capacity_grid()
+        power_usage = self._calc_power_usage_per_component()
+        self_temps = self._create_self_temp_grid()
 
         assert np.any(capacities >= power_usage), "Components have higher workload than capacity"
 
         return                          \
             capacities,                 \
             power_usage,                \
-            max_temps,                  \
+            self_temps,                 \
             self._comp_loc_map,         \
             application_mapping(self._components, self._application_map)
-
-    def calc_power_usage_per_component(self):
-        """ Calculate the power usage per component based on the mapped applications to the corresponding components.
-
-        :return: numpy integer array indicating the mapped application power per component.
-        """
-        grid = self.get_empty_grid()
-
-        for comp, app in self._application_map:
-            grid[comp.loc[1], comp.loc[0]] += app.power_req
-
-        return grid

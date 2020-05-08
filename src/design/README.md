@@ -4,7 +4,7 @@
 ```python
 from design.application import Application
 from design.component import Component
-from design.designpoint import Designpoint
+from design.designpoint import DesignPoint
 ```
 
 ### Creation of components
@@ -47,14 +47,14 @@ Which maps the application of 50 to component 1, and the application of 40 to co
 In order to create a design point the component, the applications and the mapping of 
 applications to components are required. Once these are created, a design point is initialized as:
 ```python
-dp = Designpoint(components, applications, app_map)
+dp = DesignPoint(components, applications, app_map)
 ```
 
 ### Quick designpoint creation
 #### Manually
 Instead of doing all previous steps manually, it is possible to create designpoints in a direct way
 ```python
-Designpoint.create_designpoint(capacities=[100, 120], 
+DesignPoint.create_designpoint(capacities=[100, 120], 
                                locs=[(1, 1), (0, 1)],
                                apps=[50, 40], 
                                mapping=[(0, 0), (1,1)])
@@ -62,8 +62,8 @@ Designpoint.create_designpoint(capacities=[100, 120],
 will do all previous steps in a single statement. All the arguments of this functions are corresponding index-wise. 
 
 #### Randomly
-It is also possibly to quickly generate a random Designpoint
+It is also possibly to quickly generate a random DesignPoint
 ```python
-dp = Designpoint.create_random(n)
+dp = DesignPoint.create_random(n)
 ```
 where ```n``` indicates the amount of components and applications that will reandomly be created and mapped.

@@ -3,7 +3,7 @@ import numpy as np
 
 from design.application import Application
 from design.component import Component
-from design.designpoint import Designpoint
+from design.designpoint import DesignPoint
 from simulation.elements.components import Components
 
 
@@ -19,7 +19,7 @@ class TestComponents:
         a1 = Application(app1)
         a2 = Application(app2)
 
-        dp = Designpoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
+        dp = DesignPoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
         dp_data = dp.to_numpy()
 
         return Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4])
@@ -34,7 +34,7 @@ class TestComponents:
         comp_loc_map = np.asarray([(0, 0, 0), (1, 1, 1)], dtype=[('index', 'i4'), ('x', 'i4'), ('y', 'i4')])
         c = Components(slack, power_req, comp_loc_map, [(0, 1), (1, 1)])
 
-        return np.array_equal(np.asarray(out), c.get_mapping_order(slack, policy))
+        return np.array_equal(np.asarray(out), c._get_mapping_order(slack, policy))
 
     def test_most_slack_first_order(self):
         assert self.slack_order_verification(policy='most', out=[1, 0])
@@ -66,23 +66,23 @@ class TestComponents:
     def test_index_to_pos(self):
         components = self.get_components_example()
 
-        assert components.index_to_pos(0) == (0, 0)
-        assert components.index_to_pos(1) == (1, 1)
+        assert components._index_to_pos(0) == (0, 0)
+        assert components._index_to_pos(1) == (1, 1)
 
     def test_get_failed_indices(self):
         components = self.get_components_example()
 
         failed_components = np.asarray([[True, False], [False, False]])
 
-        assert components.get_failed_indices(failed_components).size == 1
-        assert list(components.get_failed_indices(failed_components))[0] == 0
+        assert components._get_failed_indices(failed_components).size == 1
+        assert list(components._get_failed_indices(failed_components))[0] == 0
 
     def test_handle_failure_ok(self):
         components = self.get_components_example()
 
         failed_components = np.asarray([[True, False], [False, False]])
 
-        new_mapping = components.handle_failures(failed_components)
+        new_mapping = components._handle_failures(failed_components)
 
         assert tuple(components.app_mapping[0]) == (1, 50)
         assert tuple(components.app_mapping[1]) == (1, 50)
@@ -93,7 +93,7 @@ class TestComponents:
 
         failed_components = np.asarray([[True, False], [False, False]])
 
-        new_mapping = components.handle_failures(failed_components)
+        new_mapping = components._handle_failures(failed_components)
 
         assert not new_mapping
 

@@ -6,7 +6,6 @@ Agings are stored as a 2D numpy float array.
 """
 
 import numpy as np
-import math
 
 from simulation.elements.element import SimulatorElement
 from simulation.faultmodels.electromigration import electro_migration
@@ -17,6 +16,7 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 class Agings(SimulatorElement):
     """ Contains all logical operators based on the aging of components."""
+
     def __init__(self, alive_components, temperatures, workload, model=electro_migration):
         """ Initializes an aging grid (which computes the aging rate for each of the components) based on the Weibull
         distribution.
@@ -27,12 +27,11 @@ class Agings(SimulatorElement):
         samples = np.zeros(alive_components.shape)
         samples[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5.0,
                                                                                               np.sum(alive_components))
-        self._lambdas = np.divide(1, np.floor(samples),
-                                  out=np.zeros_like(samples),
-                                  where=samples != 0)
-        self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
 
-        self._cur_workload = workload
+        self._lambdas = np.divide(1, np.floor(samples), out=np.zeros_like(samples), where=samples != 0)
+        self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)
+
+        self._cur_workload = np.copy(workload)  # Stores the current workload to see alterations in remapping
         self._model = model
 
     def __str__(self):
@@ -57,30 +56,20 @@ class Agings(SimulatorElement):
         """
         return self._cur_agings
 
-    # def get_alpha(self, t):
-    #     """ Get the alpha value (scale parameter) by using the _temp function and the given temperature.
-    #
-    #     :param t: float - temperature
-    #     :return: float
-    #     """
-    #     return self._func(t)
-
     def resample_workload_changes(self, workload, thermals):
-        """ Updates the agings
+        """ Resample the next failure of components based on the given workload and thermals.
 
-        :param alive_components:
-        :param thermals:
+        :param workload: 2D numpy float array with values between [0.0, 1.0], indicating workload.
+        :param thermals: 2D numpy float array with the current local thermals at this iteration.
         :return:
         """
-        # failed = np.logical_and(np.isclose(self._cur_agings, 1.0), np.invert(alive_components))
         remapped_locs = workload > self._cur_workload
         samples = self._model(thermals[remapped_locs]) * np.random.weibull(5, np.sum(remapped_locs))
 
         self._lambdas[remapped_locs] = np.divide(1, samples)
-
         self._cur_workload = np.copy(workload)
 
-    def update_agings(self, alive_components, thermals):
+    def _update_agings(self, alive_components, thermals):
         """ Update the aging values of all components with a single iteration.
 
         :return: Boolean indicating if any new failures have occurred (which should be handled).
@@ -112,7 +101,7 @@ class Agings(SimulatorElement):
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
-        return self.update_agings(alive_components, thermals)
+        return self._update_agings(alive_components, thermals)
 
     def do_n_steps(self, n, alive_components, thermals):
         """ Increment n timesteps regarding te aging process of the simulation.

@@ -3,7 +3,7 @@ Given a designed embedded system, we can run the simulator
 to evaluate this design point. It is assumed that the design point is
 created and stored in a variable as:
 ```python
-dp = Designpoint(components, applications, app_map)
+dp = DesignPoint(components, applications, app_map)
 ```
 
 ### Creating and running the simulator

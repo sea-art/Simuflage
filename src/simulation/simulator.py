@@ -7,18 +7,19 @@ Functionalities of the simulator should be defined in the integrator.py file.
 
 import sys
 
-from simulation.integrator import Integrator
+from simulation.integrator import Integrator, AbsSimulator
+
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 
-class Simulator:
+class Simulator(AbsSimulator):
     """ This file contains all the functions that the Simulator is ought to perform."""
     def __init__(self, design_point):
         """Creates a simulator to calculate the TTF, temperatures and power output given a designpoint.
 
-        :param design_point: Designpoint object representing a system to evaluate.
+        :param design_point: DesignPoint object representing a system to evaluate.
         """
         dp_data = design_point.to_numpy()
         policy = design_point.policy
@@ -34,20 +35,20 @@ class Simulator:
         """
         return self._timesteps
 
-    def log_iteration(self, filename_out):
+    def log_timestep(self, filename_out):
         """ Write the current iteration information to a file.
 
         :param filename_out: file to write to (/out/<filename_out>)
         :return: None
         """
-        self._integrator.log_timestep(self._timesteps)
+        self._integrator.log_timestep(filename_out)
 
-    def print_current_status(self):
+    def print_status(self):
         """ Print the current system values based on each simulation iteration.
 
         :return: None
         """
-        self._integrator.print_status(self._timesteps)
+        self._integrator.print_status()
 
     def step(self):
         """ Run one iteration of the simulator.

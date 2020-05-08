@@ -1,6 +1,6 @@
 import time
 
-from design.designpoint import Designpoint
+from design.designpoint import DesignPoint
 from dse.montecarlo import monte_carlo
 
 
@@ -9,7 +9,7 @@ class TestMonteCarlo:
         """ Checks if a Monte Carlo simulation is fast enough.
         :return: None
         """
-        dps = [Designpoint.create_random(2) for _ in range(20)]
+        dps = [DesignPoint.create_random(2) for _ in range(20)]
 
         start = time.time()
         monte_carlo(dps, iterations=10000, parallelized=True)
@@ -22,6 +22,6 @@ class TestMonteCarlo:
 
         :return: None
         """
-        dps = [Designpoint.create_random(2) for _ in range(3)]
+        dps = [DesignPoint.create_random(2) for _ in range(3)]
 
         monte_carlo(dps, iterations=500, parallelized=False)

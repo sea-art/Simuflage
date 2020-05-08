@@ -84,11 +84,10 @@ class Integrator(AbsIntegrator):
 
         :return: Boolean indicating if a core has failed this iteration.
         """
-        self._thermals.step(self._components.comp_loc_map)
-
         remap_required = self._agings.step(self._components.alive_components, self._thermals.temps)
-
         system_ok = self._components.step(self._agings.cur_agings)
+        self._thermals.step(self._components.workload)
+
         # self._thermals.update_thermals(self._components.power_uses)
 
         print(self._components.workload)

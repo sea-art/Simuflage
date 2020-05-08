@@ -23,15 +23,18 @@ class Agings(SimulatorElement):
 
         :param alive_components: 2D numpy boolean array (True indicates a living component on that position)
         """
-        self._omegas = np.zeros(alive_components.shape)
-        self._omegas[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5, np.sum(alive_components))
 
-        self._lambdas = np.divide(1, np.floor(self._omegas), out=np.zeros_like(self._omegas), where=self._omegas != 0)
+        samples = np.zeros(alive_components.shape)
+        samples[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5.0,
+                                                                                              np.sum(alive_components))
+
+        self._lambdas = np.divide(1, np.floor(samples),
+                                  out=np.zeros_like(samples),
+                                  where=samples != 0)
         self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)  # Will increment each iteration
 
         self._cur_workload = workload
         self._model = model
-
 
     def __str__(self):
         """ String representation of an Agings object.
@@ -63,7 +66,7 @@ class Agings(SimulatorElement):
     #     """
     #     return self._func(t)
 
-    def adjust_agings(self, workload, thermals):
+    def resample_workload_changes(self, workload, thermals):
         """ Updates the agings
 
         :param alive_components:
@@ -71,11 +74,10 @@ class Agings(SimulatorElement):
         :return:
         """
         # failed = np.logical_and(np.isclose(self._cur_agings, 1.0), np.invert(alive_components))
-        remapped_locs = workload != self._cur_workload
-        remapped_locs[workload == 0] = False
-        omega = self._model(thermals[remapped_locs]) * np.random.weibull(5, np.sum(remapped_locs))
+        remapped_locs = workload > self._cur_workload
+        samples = self._model(thermals[remapped_locs]) * np.random.weibull(5, np.sum(remapped_locs))
 
-        self._lambdas[remapped_locs] = np.divide(1, omega)
+        self._lambdas[remapped_locs] = np.divide(1, samples)
 
         self._cur_workload = np.copy(workload)
 
@@ -98,8 +100,9 @@ class Agings(SimulatorElement):
         :param steps_taken: integer - indicating how many timesteps are already taken in the simulation.
         :return: int - indicating how many timesteps are required for the next failure.
         """
-        timesteps = self._omegas[alive_components] - steps_taken
-        return int(np.amin(timesteps))
+        timesteps = np.ceil((1.0 - self._cur_agings) / self._lambdas)
+
+        return int(np.amin(timesteps[alive_components]))
 
     def step(self, alive_components, thermals):
         """ Increment a single timestep regarding the aging process of the simulation
@@ -119,8 +122,13 @@ class Agings(SimulatorElement):
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
         assert n > 1, "Incrementing with 0 timesteps\n" + str(self._cur_agings)
+
         self._cur_agings[alive_components] += n * self._lambdas[alive_components]
 
-        assert np.any(np.isclose(self._cur_agings[alive_components], 1.0)), "n steps did not result in aging > 1.0\n" + str(self._cur_agings[alive_components])
+        assert np.any(
+            np.logical_or(np.isclose(self._cur_agings, 1.0),
+                                    self._cur_agings > 1.0)[alive_components]), \
+            "n steps did not result in aging > 1.0\n" + str(self._cur_agings[alive_components])
 
-        return np.any(np.isclose(self._cur_agings[alive_components], 1.0))
+        return np.any(np.logical_or(np.isclose(self._cur_agings, 1.0),
+                                    self._cur_agings > 1.0)[alive_components])

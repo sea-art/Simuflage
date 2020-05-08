@@ -30,19 +30,12 @@ class Component:
         self._capacity = power_capacity
         self._loc = location
 
-    def __str__(self):
-        """ String representation of an Component object.
-
-        :return: string - representation of this Component
-        """
-        return "comp: " + str(self._capacity) + "->" + str(self._loc)
-
     def __repr__(self):
         """ Representation of an Component object.
 
         :return: string - representation of this Component object
         """
-        return "\n" + self.__str__()
+        return "\n" + "comp: " + str(self._capacity) + "->" + str(self._loc)
 
     @property
     def max_temp(self):

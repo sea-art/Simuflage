@@ -16,6 +16,7 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 class Simulator(AbsSimulator):
     """ This file contains all the functions that the Simulator is ought to perform."""
+
     def __init__(self, design_point):
         """Creates a simulator to calculate the TTF, temperatures and power output given a designpoint.
 

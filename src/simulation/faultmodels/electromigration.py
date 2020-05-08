@@ -10,7 +10,7 @@ BOLTZMANCONSTANT = 8.6173324 * 0.00001
 CONST_JMJCRIT = 1500000
 CONST_N = 1.1
 CONST_ERRF = 0.88623
-CONST_A0 = 30000  # cross section = 1um^2  material constant = 3*10^13
+CONST_A0 = 30000
 
 
 def electro_migration(temperature):
@@ -19,5 +19,5 @@ def electro_migration(temperature):
     :param temperature: float - temperature of component in Celsius
     :return: float - Scale parameter for the Weibull distribution based on the temperature
     """
-    temp = convert_temperature(temperature, 'C', 'K')  # temp in Kelvin
+    temp = convert_temperature(temperature, 'C', 'K')  # temperature in Kelvin
     return (CONST_A0 * (np.power(CONST_JMJCRIT, (-CONST_N))) * np.exp(ACTIVATIONENERGY / (BOLTZMANCONSTANT * temp))) / CONST_ERRF

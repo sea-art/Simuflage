@@ -27,7 +27,6 @@ class Agings(SimulatorElement):
         samples = np.zeros(alive_components.shape)
         samples[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5.0,
                                                                                               np.sum(alive_components))
-
         self._lambdas = np.divide(1, np.floor(samples),
                                   out=np.zeros_like(samples),
                                   where=samples != 0)
@@ -100,7 +99,9 @@ class Agings(SimulatorElement):
         :param steps_taken: integer - indicating how many timesteps are already taken in the simulation.
         :return: int - indicating how many timesteps are required for the next failure.
         """
-        timesteps = np.ceil((1.0 - self._cur_agings) / self._lambdas)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            timesteps = np.ceil((1.0 - self._cur_agings) / self._lambdas)
+            timesteps[np.isinf(timesteps)] = 0
 
         return int(np.amin(timesteps[alive_components]))
 

@@ -49,6 +49,7 @@ class Thermals(SimulatorElement):
         :return: None
         """
         temperatures = ENV_TEMP + workload * self._max_temps
+
         temperatures[self._m['y'], self._m['x']] += \
             np.random.uniform(-fluc, fluc, temperatures.shape)[self._m['y'], self._m['x']]
 

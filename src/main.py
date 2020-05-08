@@ -27,9 +27,7 @@ if __name__ == "__main__":
     dp4 = Designpoint.create([100, 100, 100, 100], [(0, 0), (1, 0), (1, 1), (0, 1)], [40, 40, 40, 40], [(0, 0), (1, 1), (2, 2), (3, 3)])
     dp5 = Designpoint.create([100, 100, 100, 100], [(0, 0), (1, 0), (1, 1), (0, 1)], [50, 50, 50, 50], [(0, 0), (1, 1), (2, 2), (3, 3)])
 
-    results = monte_carlo([dp5], iterations=1, parallelized=True)
-
-    print(results)
+    results = monte_carlo([dp1, dp2, dp3, dp4, dp5], iterations=5 * 50, parallelized=True)
 
     results = collections.OrderedDict(sorted(results.items()))
 

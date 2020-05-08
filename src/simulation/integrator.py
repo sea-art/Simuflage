@@ -46,12 +46,10 @@ class Integrator(AbsIntegrator):
         :param design_point: Designpoint object representing a system to evaluate.
         """
         capacities, power_uses, max_temps, comp_loc_map, app_map = design_point.to_numpy()
-        with np.errstate(divide='ignore', invalid='ignore'):
-            workload = power_uses / capacities
 
         # Simulation variables
         self._components = Components(capacities, power_uses, comp_loc_map, app_map, policy)
-        self._thermals = Thermals(workload, max_temps, comp_loc_map)
+        self._thermals = Thermals(self._components.workload, max_temps, comp_loc_map, self._components.alive_components)
         self._agings = Agings(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
@@ -95,7 +93,7 @@ class Integrator(AbsIntegrator):
 
         print(self._components.workload)
 
-        self._agings.adjust_agings(self._components.workload, self._thermals.temps)
+        self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
 
         return system_ok
 
@@ -104,19 +102,36 @@ class Integrator(AbsIntegrator):
 
         :return:
         """
+        # print("~~~~~~~~~~~")
+        # print("Timestep:", self._timesteps)
         n = self._agings.steps_till_next_failure(self._components.alive_components,
                                                  self._thermals.temps,
                                                  self._timesteps)
 
+        # print("Doing", n, "steps!")
+        # print("AGINGS BEFORE:")
+        # print(self._agings.cur_agings)
         self._agings.do_n_steps(n, self._components.alive_components, self._thermals.temps)
+        # print("AGINGS AFTER:")
+        # print(self._agings.cur_agings)
+
+        # print("COMPONENTS BEFORE:")
+        # print(self._components.workload)
         system_ok = self._components.do_n_steps(n, self._agings.cur_agings)
+        # print("COMPONENTS AFTER:")
+        # print(self._components.workload)
 
-        with np.errstate(divide='ignore', invalid='ignore'):
-            workload = self._components.power_uses / self._components.capacities
-            workload[np.isnan(workload)] = 0
+        # print("THERMALS BEFORE:")
+        # print(self._thermals.temps)
+        self._thermals.do_n_steps(n, self._components.workload)
+        # print("THERMALS AFTER:")
+        # print(self._thermals.temps)
 
-        self._thermals.do_n_steps(n, workload)
-        self._agings.adjust_agings(self._components.workload, self._thermals.temps)
+        # print("AGINGS ADJUSTMENT BEFORE:")
+        # print(self._agings._lambdas)
+        self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
+        # print("AGINGS ADJUSTMENT AFTER:")
+        # print(self._agings._lambdas)
 
         self._timesteps += n
 

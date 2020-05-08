@@ -24,13 +24,13 @@ dps = []
 n = 2
 
 for i in range(1, 11):
-    dps.append(DesignPoint.create(np.repeat(100, n * n),
-                                  all_possible_pos_mappings(n * n),
-                                  np.repeat(i * 10, n * n),
-                                  [(i, i) for i in range(n * n)]))
+    dps.append(DesignPoint.create(caps=np.repeat(100, n * n),
+                                  locs=all_possible_pos_mappings(n * n),
+                                  apps=np.repeat(i * 10, n * n),
+                                  maps=[(i, i) for i in range(n * n)],
+                                  policy='random'))
 
-results1 = monte_carlo(dps, iterations=len(dps) * 1000, parallelized=True)
-results = collections.OrderedDict(sorted(results1.items()))
+results = monte_carlo(dps, iterations=len(dps) * 1000, parallelized=True)
 
 for k, v in results.items():
     print("Workload:", (k + 1) / 10, "\tMTTF:", np.around(v, 1), "\t(Years: " + str((v / (24 * 365))) + ")")

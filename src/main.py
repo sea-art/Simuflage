@@ -32,4 +32,3 @@ if __name__ == "__main__":
 
     for k, v in results.items():
         print("Workload:", (k + 1) / 10, "\tMTTF:", np.around(v, 1), "\t(Years: " + str((v / (24 * 365))) + ")")
-

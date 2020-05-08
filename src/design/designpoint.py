@@ -18,8 +18,6 @@ from design.mapping import comp_to_loc_mapping, application_mapping, all_possibl
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
-ENV_TEMP = 20
-
 
 class DesignPoint:
     """DesignPoint object representing a system to evaluate."""

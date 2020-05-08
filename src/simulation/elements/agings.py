@@ -117,7 +117,7 @@ class Agings(SimulatorElement):
 
         assert np.any(
             np.logical_or(np.isclose(self._cur_agings, 1.0),
-                                    self._cur_agings > 1.0)[alive_components]), \
+                          self._cur_agings > 1.0)[alive_components]), \
             "n steps did not result in aging > 1.0\n" + str(self._cur_agings[alive_components])
 
         return np.any(np.logical_or(np.isclose(self._cur_agings, 1.0),

@@ -67,7 +67,7 @@ class Thermals(SimulatorElement):
         """
         if not kernel:
             kernel = np.asarray([[0.01, 0.01, 0.01],
-                                 [0.01, 1,    0.01],
+                                 [0.01, 1, 0.01],
                                  [0.01, 0.01, 0.01]])
 
         return signal.convolve2d(temperatures, kernel, "same")

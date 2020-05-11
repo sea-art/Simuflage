@@ -74,7 +74,7 @@ class TestComponents:
 
         failed_components = np.asarray([[True, False], [False, False]])
 
-        assert components._get_failed_indices(failed_components).size == 1
+        assert len(components._get_failed_indices(failed_components)) == 1
         assert list(components._get_failed_indices(failed_components))[0] == 0
 
     def test_handle_failure_ok(self):

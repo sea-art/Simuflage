@@ -148,9 +148,8 @@ class Components(SimulatorElement):
         :return: numpy integer array containing all indices of failed components.
         """
         failed_locations = np.asarray(np.nonzero(failed_components)).T
-        failed_indices = np.array([self._pos_to_index(loc[1], loc[0]) for loc in failed_locations])
 
-        return failed_indices
+        return [self._pos_to_index(loc[1], loc[0]) for loc in failed_locations]
 
     def _adjust_power_uses(self):
         """ Updates the power_uses for components based on the application mapping (self.app_mapping).
@@ -172,6 +171,15 @@ class Components(SimulatorElement):
         """
         self._alive_components[failed_components] = False
         self._capacities[failed_components] = 0
+        self._power_uses[failed_components] = 0
+
+    # def _clean_app_map(self, failed_indices):
+    #     print("FAILED INDICES", failed_indices)
+    #     failed_coordinates = [z for z in map(self._index_to_pos, failed_indices)]
+    #
+    #     for y, x in failed_coordinates:
+    #         self._capacities[y, x] = 0
+    #         self._power_uses[y, x] = 0
 
     def _adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.
@@ -180,11 +188,8 @@ class Components(SimulatorElement):
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
-        all_failed_indices = np.isin(self._app_mapping['comp'], failed_indices)
-
-        to_map = self._app_mapping[all_failed_indices]
-        self._app_mapping = self._app_mapping[np.invert(all_failed_indices)]
-        self._adjust_power_uses()
+        to_map = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices)]
+        self._app_mapping = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices, invert=True)]
 
         for app in to_map['app']:
             self._remap_application(app, self.policy)
@@ -239,13 +244,14 @@ class Components(SimulatorElement):
 
         # Loop randomly over all non-failed components
         for i in map_order:
-            x, y = self._comp_loc_map[self._comp_loc_map['index'] == i][['x', 'y']][0]
+            y, x = self._index_to_pos(i)
 
             if app <= components_slack[y, x]:
+
                 self._app_mapping = np.append(self._app_mapping, np.array([(i, app)],
                                                                           dtype=self._app_mapping.dtype))
-                self._adjust_power_uses()  # TODO: can be speed up
-                break
+                self._power_uses[y, x] += app
+                return
 
     def _handle_failures(self, failed_components):
         """Look at the aging values to determine if a component has failed.

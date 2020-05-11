@@ -70,7 +70,7 @@ class Agings(SimulatorElement):
 
         self._wear[alive_components] += (self._lambdas * thermals / 100)[alive_components]
 
-        return np.any((np.isclose(self._wear, 1.0))[alive_components])
+        return np.any(self._wear[alive_components] > 0.9999)
 
     def steps_till_next_failure(self, alive_components, thermals, steps_taken):
         """ Calculate in how many timesteps the next failure occurs.
@@ -107,13 +107,10 @@ class Agings(SimulatorElement):
 
         self._wear[alive_components] += n * self._lambdas[alive_components]
 
-        assert np.any(
-            np.logical_or(np.isclose(self._wear, 1.0),
-                          self._wear > 1.0)[alive_components]), \
+        assert np.any(self._wear[alive_components] > 0.9999), \
             "n steps did not result in aging > 1.0\n" + str(self._wear[alive_components])
 
-        return np.any(np.logical_or(np.isclose(self._wear, 1.0),
-                                    self._wear > 1.0)[alive_components])
+        return np.any(self._wear[alive_components] > 0.9999)
 
     def reset(self, alive_components, temperatures, workload):
         """ Resets the agings back to default.

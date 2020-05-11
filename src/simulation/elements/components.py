@@ -260,8 +260,7 @@ class Components(SimulatorElement):
         :param cur_agings: 2D numpy float array containing the current agings for components
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
-        failed_components = np.logical_or(np.isclose(cur_agings, 1.0, 1.e-3),
-                                          cur_agings >= 1.0)
+        failed_components = cur_agings > 0.9999
 
         if np.any(failed_components[self.alive_components]):
             return self._handle_failures(failed_components)

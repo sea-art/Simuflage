@@ -17,18 +17,18 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 if __name__ == "__main__":
     print("Simulating different workloads for 2x2 homogeneous grid.\n")
-
     dps = []
     n = 2
+    amount_dps = 10
 
-    for i in range(1, 11):
+    for i in range(1, amount_dps + 1):
         dps.append(DesignPoint.create(caps=np.repeat(100, n * n),
                                       locs=all_possible_pos_mappings(n * n),
-                                      apps=np.repeat(i * 10, n * n),
+                                      apps=np.repeat(i * (100 / amount_dps), n * n),
                                       maps=[(i, i) for i in range(n * n)],
                                       policy='random'))
 
-    results = monte_carlo(dps, iterations=len(dps) * 1000)
+    results = monte_carlo(dps, iterations=len(dps) * 1000, parallelized=True)
 
     for k, v in results.items():
-        print("Workload:", (k + 1) / 10, "\tMTTF:", np.around(v, 1), "\t(Years: " + str((v / (24 * 365))) + ")")
+        print("Workload:", (k + 1) / amount_dps, "\tMTTF:", np.around(v, 1), "\t(Years: " + str((v / (24 * 365))) + ")")

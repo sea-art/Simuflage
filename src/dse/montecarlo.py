@@ -43,7 +43,7 @@ def monte_carlo_iterative(designpoints, iterations):
     warnings.warn("Using the non-parallelized Monte Carlo evaluation. "
                   "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
 
-    TTFs = [[] for _ in designpoints]
+    TTFs = {i: [] for i in range(len(designpoints))}
     sims = [Simulator(d) for d in designpoints]
 
     for a in range(iterations):

@@ -34,6 +34,7 @@ class Components(SimulatorElement):
         # Mappings
         self._comp_loc_map = comp_loc_map
         self._app_mapping = app_mapping
+        self._index_loc_map = {x[0]: (x[1], x[2]) for x in self._comp_loc_map}
 
         # Miscellaneous variables
         self._nr_applications = np.count_nonzero(self._app_mapping)
@@ -41,6 +42,21 @@ class Components(SimulatorElement):
 
         self._adjust_power_uses()
         self.policy = policy
+
+    # def _index_to_pos(self, index):
+    #     """ Yield tuple (y, x) of the position of the index of a component.
+    #
+    #     :param index: integer containing the component index
+    #     :return: tuple (y, x)
+    #     """
+    #     pos = self._comp_loc_map['index'] == index
+    #     loc = self._comp_loc_map[pos]
+    #
+    #     assert loc.size == 1, "A component has multiple locations"
+    #
+    #     loc = loc[0]  # Is an array of one element (tuple)
+    #
+    #     return loc[2], loc[1]
 
     def __repr__(self):
         """ Representation of an Components object.
@@ -107,14 +123,9 @@ class Components(SimulatorElement):
         :param index: integer containing the component index
         :return: tuple (y, x)
         """
-        pos = self._comp_loc_map['index'] == index
-        loc = self._comp_loc_map[pos]
+        loc = self._index_loc_map[index]
 
-        assert loc.size == 1, "A component has multiple locations"
-
-        loc = loc[0]  # Is an array of one element (tuple)
-
-        return loc[2], loc[1]
+        return loc[1], loc[0]
 
     def _pos_to_index(self, x, y):
         """ Returns the position of a component based on a given x, y coordinate.

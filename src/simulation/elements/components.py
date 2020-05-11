@@ -28,9 +28,9 @@ class Components(SimulatorElement):
         self._power_uses = power_uses
         self._alive_components = capacities > 0
 
-        self._reset_values = np.array(capacities, copy=True), \
-                             np.array(power_uses, copy=True), \
-                             np.array(app_mapping, copy=True)
+        self._reset_values = (np.array(capacities, copy=True),
+                              np.array(power_uses, copy=True),
+                              np.array(app_mapping, copy=True))
 
         assert np.all(self._capacities >= self._power_uses), \
             "One or more components have a workload that it can not handle."
@@ -39,6 +39,7 @@ class Components(SimulatorElement):
         self._comp_loc_map = comp_loc_map
         self._app_mapping = app_mapping
         self._index_loc_map = {x[0]: (x[1], x[2]) for x in self._comp_loc_map}
+        self._loc_index_map = {v: k for k, v in self._index_loc_map.items()}
 
         # Miscellaneous variables
         self._nr_applications = np.count_nonzero(self._app_mapping)
@@ -123,12 +124,7 @@ class Components(SimulatorElement):
         :param y: integer of y position
         :return: integer of index of component
         """
-        pos = np.logical_and(self._comp_loc_map['x'] == x,
-                             self._comp_loc_map['y'] == y)
-
-        assert self._comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
-
-        return self._comp_loc_map[pos]['index'][0]
+        return self._loc_index_map[(x, y)]
 
     def _get_failed_indices(self, failed_components):
         """ Receive the failed indices of components.
@@ -136,7 +132,7 @@ class Components(SimulatorElement):
         :param failed_components: 2D boolean array of all components that have failed.
         :return: numpy integer array containing all indices of failed components.
         """
-        failed_locations = np.asarray(np.nonzero(failed_components)).T
+        failed_locations = np.transpose(np.nonzero(failed_components))
 
         return [self._pos_to_index(loc[1], loc[0]) for loc in failed_locations]
 
@@ -177,8 +173,9 @@ class Components(SimulatorElement):
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
-        to_map = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices)]
-        self._app_mapping = self._app_mapping[np.isin(self._app_mapping['comp'], failed_indices, invert=True)]
+        positions = np.isin(self._app_mapping['comp'], failed_indices)
+        to_map = self._app_mapping[positions]
+        self._app_mapping = self._app_mapping[np.invert(positions)]
 
         for app in to_map['app']:
             self._remap_application(app, self.policy)

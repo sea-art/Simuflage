@@ -56,10 +56,6 @@ class Thermals(SimulatorElement):
         :return: None
         """
         temperatures = ENV_TEMP + workload * self._max_temps
-
-        temperatures[self._m['y'], self._m['x']] += \
-            np.random.uniform(-fluc, fluc, temperatures.shape)[self._m['y'], self._m['x']]
-
         neighbour_thermals = self._neighbour_thermal_influences(temperatures)
 
         return neighbour_thermals
@@ -107,4 +103,3 @@ class Thermals(SimulatorElement):
         self._temps = np.zeros(workload.shape)
         self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]
         self._alive_components = alive_components
-

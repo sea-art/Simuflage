@@ -118,8 +118,7 @@ class Agings(SimulatorElement):
         :return: None
         """
         samples = np.zeros(alive_components.shape)
-        samples[alive_components] = self._model(temperatures[alive_components]) * \
-                                    np.random.weibull(5.0, np.sum(alive_components))
+        samples[alive_components] = self._model(temperatures[alive_components]) * np.random.weibull(5.0, np.sum(alive_components))
 
         self._lambdas = np.divide(1, np.floor(samples), out=np.zeros_like(samples), where=samples != 0)
         self._wear = np.zeros(alive_components.shape, dtype=np.float)

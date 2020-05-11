@@ -28,6 +28,10 @@ class Components(SimulatorElement):
         self._power_uses = power_uses
         self._alive_components = capacities > 0
 
+        self._reset_values = np.array(capacities, copy=True), \
+                             np.array(power_uses, copy=True), \
+                             np.array(app_mapping, copy=True)
+
         assert np.all(self._capacities >= self._power_uses), \
             "One or more components have a workload that it can not handle."
 
@@ -40,23 +44,8 @@ class Components(SimulatorElement):
         self._nr_applications = np.count_nonzero(self._app_mapping)
         self._nr_components = np.count_nonzero(self._capacities)
 
-        self._adjust_power_uses()
+        # self._adjust_power_uses()
         self.policy = policy
-
-    # def _index_to_pos(self, index):
-    #     """ Yield tuple (y, x) of the position of the index of a component.
-    #
-    #     :param index: integer containing the component index
-    #     :return: tuple (y, x)
-    #     """
-    #     pos = self._comp_loc_map['index'] == index
-    #     loc = self._comp_loc_map[pos]
-    #
-    #     assert loc.size == 1, "A component has multiple locations"
-    #
-    #     loc = loc[0]  # Is an array of one element (tuple)
-    #
-    #     return loc[2], loc[1]
 
     def __repr__(self):
         """ Representation of an Components object.
@@ -287,3 +276,15 @@ class Components(SimulatorElement):
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
         return self.step(cur_agings)
+
+    def reset(self):
+        """ Resets the components back to default.
+
+        :return: None
+        """
+        capacities, power_uses, app_map = self._reset_values
+        self._capacities = np.array(capacities, copy=True)
+        self._power_uses = np.array(power_uses, copy=True)
+        self._app_mapping = np.array(app_map, copy=True)
+        self._alive_components = capacities > 0
+        self._adjust_power_uses()

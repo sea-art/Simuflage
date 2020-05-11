@@ -98,3 +98,13 @@ class Thermals(SimulatorElement):
         :return: None
         """
         self.step(workload, fluctuate=fluctuate)
+
+    def reset(self, workload, alive_components):
+        """ Resets the thermals back to default.
+
+        :return: None
+        """
+        self._temps = np.zeros(workload.shape)
+        self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]
+        self._alive_components = alive_components
+

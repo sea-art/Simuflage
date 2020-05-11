@@ -114,3 +114,16 @@ class Agings(SimulatorElement):
 
         return np.any(np.logical_or(np.isclose(self._wear, 1.0),
                                     self._wear > 1.0)[alive_components])
+
+    def reset(self, alive_components, temperatures, workload):
+        """ Resets the agings back to default.
+
+        :return: None
+        """
+        samples = np.zeros(alive_components.shape)
+        samples[alive_components] = self._model(temperatures[alive_components]) * \
+                                    np.random.weibull(5.0, np.sum(alive_components))
+
+        self._lambdas = np.divide(1, np.floor(samples), out=np.zeros_like(samples), where=samples != 0)
+        self._wear = np.zeros(alive_components.shape, dtype=np.float)
+        self._cur_workload = np.copy(workload)  # Stores the current workload to see alterations in remapping

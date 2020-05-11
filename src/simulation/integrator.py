@@ -54,10 +54,6 @@ class Integrator(AbsSimulator):
         self._agings = Agings(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
-        self._reset_params = [copy.deepcopy(self._components),
-                              copy.deepcopy(self._thermals),
-                              copy.deepcopy(self._components.alive_components)]
-
     @property
     def timesteps(self):
         """ Getter function for the timesteps instance variable.
@@ -71,9 +67,9 @@ class Integrator(AbsSimulator):
 
         :return: None
         """
-        self._components = copy.deepcopy(self._reset_params[0])
-        self._thermals = copy.deepcopy(self._reset_params[1])
-        self._agings = Agings(self._reset_params[2], self._thermals.temps, self._components.workload)
+        self._components.reset()
+        self._thermals.reset(self._components.workload, self._components.alive_components)
+        self._agings.reset(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
     def step(self):

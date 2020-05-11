@@ -16,3 +16,7 @@ class SimulatorElement(ABC):
     @abstractmethod
     def do_n_steps(self, *args):
         pass
+
+    @abstractmethod
+    def reset(self, *args):
+        pass

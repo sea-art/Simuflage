@@ -28,18 +28,24 @@ class Components(SimulatorElement):
         self._power_uses = power_uses
         self._alive_components = capacities > 0
 
+        self._reset_values = (np.array(capacities, copy=True),
+                              np.array(power_uses, copy=True),
+                              np.array(app_mapping, copy=True))
+
         assert np.all(self._capacities >= self._power_uses), \
             "One or more components have a workload that it can not handle."
 
         # Mappings
         self._comp_loc_map = comp_loc_map
         self._app_mapping = app_mapping
+        self._index_loc_map = {x[0]: (x[1], x[2]) for x in self._comp_loc_map}
+        self._loc_index_map = {v: k for k, v in self._index_loc_map.items()}
 
         # Miscellaneous variables
         self._nr_applications = np.count_nonzero(self._app_mapping)
         self._nr_components = np.count_nonzero(self._capacities)
 
-        self._adjust_power_uses()
+        # self._adjust_power_uses()
         self.policy = policy
 
     def __repr__(self):
@@ -107,14 +113,9 @@ class Components(SimulatorElement):
         :param index: integer containing the component index
         :return: tuple (y, x)
         """
-        pos = self._comp_loc_map['index'] == index
-        loc = self._comp_loc_map[pos]
+        loc = self._index_loc_map[index]
 
-        assert loc.size == 1, "A component has multiple locations"
-
-        loc = loc[0]  # Is an array of one element (tuple)
-
-        return loc[2], loc[1]
+        return loc[1], loc[0]
 
     def _pos_to_index(self, x, y):
         """ Returns the position of a component based on a given x, y coordinate.
@@ -123,12 +124,7 @@ class Components(SimulatorElement):
         :param y: integer of y position
         :return: integer of index of component
         """
-        pos = np.logical_and(self._comp_loc_map['x'] == x,
-                             self._comp_loc_map['y'] == y)
-
-        assert self._comp_loc_map[pos]['index'].size == 1, "No or multiple components found at given index"
-
-        return self._comp_loc_map[pos]['index'][0]
+        return self._loc_index_map[(x, y)]
 
     def _get_failed_indices(self, failed_components):
         """ Receive the failed indices of components.
@@ -136,10 +132,9 @@ class Components(SimulatorElement):
         :param failed_components: 2D boolean array of all components that have failed.
         :return: numpy integer array containing all indices of failed components.
         """
-        failed_locations = np.asarray(np.nonzero(failed_components)).T
-        failed_indices = np.array([self._pos_to_index(loc[1], loc[0]) for loc in failed_locations])
+        failed_locations = np.transpose(np.nonzero(failed_components))
 
-        return failed_indices
+        return [self._pos_to_index(loc[1], loc[0]) for loc in failed_locations]
 
     def _adjust_power_uses(self):
         """ Updates the power_uses for components based on the application mapping (self.app_mapping).
@@ -161,6 +156,15 @@ class Components(SimulatorElement):
         """
         self._alive_components[failed_components] = False
         self._capacities[failed_components] = 0
+        self._power_uses[failed_components] = 0
+
+    # def _clean_app_map(self, failed_indices):
+    #     print("FAILED INDICES", failed_indices)
+    #     failed_coordinates = [z for z in map(self._index_to_pos, failed_indices)]
+    #
+    #     for y, x in failed_coordinates:
+    #         self._capacities[y, x] = 0
+    #         self._power_uses[y, x] = 0
 
     def _adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.
@@ -169,11 +173,9 @@ class Components(SimulatorElement):
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
-        all_failed_indices = np.isin(self._app_mapping['comp'], failed_indices)
-
-        to_map = self._app_mapping[all_failed_indices]
-        self._app_mapping = self._app_mapping[np.invert(all_failed_indices)]
-        self._adjust_power_uses()
+        positions = np.isin(self._app_mapping['comp'], failed_indices)
+        to_map = self._app_mapping[positions]
+        self._app_mapping = self._app_mapping[np.invert(positions)]
 
         for app in to_map['app']:
             self._remap_application(app, self.policy)
@@ -228,13 +230,14 @@ class Components(SimulatorElement):
 
         # Loop randomly over all non-failed components
         for i in map_order:
-            x, y = self._comp_loc_map[self._comp_loc_map['index'] == i][['x', 'y']][0]
+            y, x = self._index_to_pos(i)
 
             if app <= components_slack[y, x]:
+
                 self._app_mapping = np.append(self._app_mapping, np.array([(i, app)],
                                                                           dtype=self._app_mapping.dtype))
-                self._adjust_power_uses()  # TODO: can be speed up
-                break
+                self._power_uses[y, x] += app
+                return
 
     def _handle_failures(self, failed_components):
         """Look at the aging values to determine if a component has failed.
@@ -254,8 +257,7 @@ class Components(SimulatorElement):
         :param cur_agings: 2D numpy float array containing the current agings for components
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
-        failed_components = np.logical_or(np.isclose(cur_agings, 1.0, 1.e-3),
-                                          cur_agings >= 1.0)
+        failed_components = cur_agings > 0.9999
 
         if np.any(failed_components[self.alive_components]):
             return self._handle_failures(failed_components)
@@ -270,3 +272,15 @@ class Components(SimulatorElement):
         :return: Boolean indicating if the simulator is still up (True = OK, False = System failure).
         """
         return self.step(cur_agings)
+
+    def reset(self):
+        """ Resets the components back to default.
+
+        :return: None
+        """
+        capacities, power_uses, app_map = self._reset_values
+        self._capacities = np.array(capacities, copy=True)
+        self._power_uses = np.array(power_uses, copy=True)
+        self._app_mapping = np.array(app_map, copy=True)
+        self._alive_components = capacities > 0
+        self._adjust_power_uses()

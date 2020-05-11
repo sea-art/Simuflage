@@ -28,7 +28,7 @@ class Agings(SimulatorElement):
                                                                                               np.sum(alive_components))
 
         self._lambdas = np.divide(1, np.floor(samples), out=np.zeros_like(samples), where=samples != 0)
-        self._cur_agings = np.zeros(alive_components.shape, dtype=np.float)
+        self._wear = np.zeros(alive_components.shape, dtype=np.float)
 
         self._cur_workload = np.copy(workload)  # Stores the current workload to see alterations in remapping
         self._model = model
@@ -38,7 +38,7 @@ class Agings(SimulatorElement):
 
         :return: string - representation of this Agings object
         """
-        return "Agings: " + str(self._cur_agings)
+        return "Agings: " + str(self._wear)
 
     @property
     def cur_agings(self):
@@ -46,7 +46,7 @@ class Agings(SimulatorElement):
 
         :return: 2D float numpy array with the current agings based on component positions.
         """
-        return self._cur_agings
+        return self._wear
 
     def resample_workload_changes(self, workload, thermals):
         """ Resample the next failure of components based on the given workload and thermals.
@@ -68,9 +68,9 @@ class Agings(SimulatorElement):
         """
         assert np.all((self._lambdas * thermals / 100)[alive_components] >= 0), "Negative aging rate"
 
-        self._cur_agings[alive_components] += (self._lambdas * thermals / 100)[alive_components]
+        self._wear[alive_components] += (self._lambdas * thermals / 100)[alive_components]
 
-        return np.any((np.isclose(self._cur_agings, 1.0))[alive_components])
+        return np.any((np.isclose(self._wear, 1.0))[alive_components])
 
     def steps_till_next_failure(self, alive_components, thermals, steps_taken):
         """ Calculate in how many timesteps the next failure occurs.
@@ -81,7 +81,7 @@ class Agings(SimulatorElement):
         :return: int - indicating how many timesteps are required for the next failure.
         """
         with np.errstate(divide='ignore', invalid='ignore'):
-            timesteps = np.ceil((1.0 - self._cur_agings) / self._lambdas)
+            timesteps = np.ceil((1.0 - self._wear) / self._lambdas)
             timesteps[np.isinf(timesteps)] = 0
 
         return int(np.amin(timesteps[alive_components]))
@@ -103,14 +103,14 @@ class Agings(SimulatorElement):
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
-        assert n > 1, "Incrementing with 0 timesteps\n" + str(self._cur_agings)
+        assert n > 1, "Incrementing with 0 timesteps\n" + str(self._wear)
 
-        self._cur_agings[alive_components] += n * self._lambdas[alive_components]
+        self._wear[alive_components] += n * self._lambdas[alive_components]
 
         assert np.any(
-            np.logical_or(np.isclose(self._cur_agings, 1.0),
-                          self._cur_agings > 1.0)[alive_components]), \
-            "n steps did not result in aging > 1.0\n" + str(self._cur_agings[alive_components])
+            np.logical_or(np.isclose(self._wear, 1.0),
+                          self._wear > 1.0)[alive_components]), \
+            "n steps did not result in aging > 1.0\n" + str(self._wear[alive_components])
 
-        return np.any(np.logical_or(np.isclose(self._cur_agings, 1.0),
-                                    self._cur_agings > 1.0)[alive_components])
+        return np.any(np.logical_or(np.isclose(self._wear, 1.0),
+                                    self._wear > 1.0)[alive_components])

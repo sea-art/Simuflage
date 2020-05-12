@@ -1,8 +1,8 @@
 import time
 import pytest
 
-from design.designpoint import DesignPoint
-from dse.montecarlo import monte_carlo
+from design import DesignPoint
+from DSE import monte_carlo
 
 
 class TestMonteCarlo:

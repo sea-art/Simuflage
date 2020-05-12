@@ -42,7 +42,7 @@ Which currently outputs the MTTF of an arbitrary 2x2 heterogeneous design point 
 ## Quickstart
 - [Designing an embedded system](src/design/README.md)
 - [Evaluate a single design point with the simulator](src/simulation/README.md)
-- [Evaluating multiple design points via Monte Carlo simulation](src/dse/README.md)
+- [Evaluating multiple design points via Monte Carlo simulation](src/DSE/README.md)
 
 ## Contributing
 For information about contributing to this project, see [CONTRIBUTING](CONTRIBUTING.md)

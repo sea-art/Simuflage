@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
 
-from design.application import Application
-from design.component import Component
-from design.designpoint import DesignPoint
-from simulation.elements.components import Components
+from design import Application
+from design import Component
+from design import DesignPoint
+from simulation.elements import Components
 
 
 class TestComponents:

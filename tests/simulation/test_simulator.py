@@ -1,9 +1,9 @@
 import pytest
 
-from design.application import Application
-from design.component import Component
-from design.designpoint import DesignPoint
-from simulation.simulator import Simulator
+from design import Application
+from design import Component
+from design import DesignPoint
+from simulation import Simulator
 
 
 class TestSimulator:

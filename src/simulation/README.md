@@ -10,7 +10,7 @@ dp = DesignPoint(components, applications, app_map)
 Once a design point is created, the simulator can be used in order to calculate the Time To Failure (TTF) 
 of that design point. All that the simulator requires is a designpoint, which can be initialized as:
 ```python
-from simulation.simulator import Simulator
+from simulation import Simulator
 
 sim = simulator.Simulator(dp)
 sim.run()

@@ -1,7 +1,7 @@
 import pytest
 import random
 
-from design.component import Component
+from design import Component
 
 
 class TestComponent:

@@ -7,8 +7,8 @@ Agings are stored as a 2D numpy float array.
 
 import numpy as np
 
-from simulation.elements.element import SimulatorElement
-from simulation.faultmodels.electromigration import electro_migration
+from .element import SimulatorElement
+from simulation.faultmodels import electro_migration
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

@@ -2,14 +2,14 @@
 
 """ This file is currently mainly used for testing/debugging purposes
 
-Use src/dse/montecarlo.py instead for the evaluation of design points.
+Use src/DSE/montecarlo.py instead for the evaluation of design points.
 """
 
 import numpy as np
 
-from design.designpoint import DesignPoint
+from design import DesignPoint
 from design.mapping import all_possible_pos_mappings
-from dse.montecarlo import monte_carlo
+from DSE import monte_carlo
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

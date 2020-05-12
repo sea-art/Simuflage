@@ -7,7 +7,7 @@ Functionalities of the simulator should be defined in the integrator.py file.
 
 import sys
 
-from simulation.integrator import Integrator, AbsSimulator
+from .integrator import Integrator, AbsSimulator
 
 
 __licence__ = "GPL-3.0-or-later"

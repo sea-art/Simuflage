@@ -13,9 +13,9 @@ design point can be created to make up a design point.
 
 ### Import statements
 ```python
-from design.application import Application
-from design.component import Component
-from design.designpoint import DesignPoint
+from design import Application
+from design import Component
+from design import DesignPoint
 ```
 
 ### Components
@@ -94,10 +94,10 @@ The default policy (when no policy is specified) is set to random, but it can al
 Instead of doing all previous steps manually, it is possible to create designpoints in a direct way, for example:
 ```python
 DesignPoint.create(capacities=[100, 120], 
-                               locs=[(1, 1), (0, 1)],
-                               apps=[50, 40], 
-                               mapping=[(0, 0), (1,1)],
-                               policy='random')
+                   locs=[(1, 1), (0, 1)],
+                   apps=[50, 40], 
+                   mapping=[(0, 0), (1,1)],
+                   policy='random')
 ```
 will do all previous steps in a single statement. All the arguments of this functions are corresponding index-wise. 
 

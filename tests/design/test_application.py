@@ -1,7 +1,7 @@
 import pytest
 import random
 
-from design.application import Application
+from design import Application
 
 
 class TestApplication:

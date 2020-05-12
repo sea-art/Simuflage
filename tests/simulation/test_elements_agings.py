@@ -5,10 +5,10 @@ import pytest
 # - aging for all locs with no component is 0
 # - aging for all components > 1 results in system failure
 # - thermals 0 means no aging
-from design.application import Application
-from design.component import Component
-from design.designpoint import DesignPoint
-from simulation.simulator import Simulator
+from design import Application
+from design import Component
+from design import DesignPoint
+from simulation import Simulator
 
 import numpy as np
 

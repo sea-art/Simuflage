@@ -6,6 +6,8 @@ designpoints = [DesignPoint.create_random(k) for _ in range(n)]
 ```
 Given this list of designpoints, we can evaluate these via:
 ```python
+from DSE import monte_carlo
+
 monte_carlo(designpoints, iterations=10000, parallelized=True)
 ```
 It is advised to use the parallelized version of the Monte Carlo simulation for performance purposes.
@@ -16,9 +18,9 @@ will print the MTTF of this Design Point per every 10% workload increase.
 ```python
 import numpy as np
 
-from design.designpoint import DesignPoint
+from design import DesignPoint
 from design.mapping import all_possible_pos_mappings
-from dse.montecarlo import monte_carlo
+from DSE import monte_carlo
 
 dps = []
 n = 2

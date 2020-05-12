@@ -8,7 +8,7 @@ The variables of components are spatially stored as a 2D numpy float arrayS.
 import numpy as np
 import warnings
 
-from simulation.elements.element import SimulatorElement
+from .element import SimulatorElement
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

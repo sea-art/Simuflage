@@ -8,7 +8,7 @@ Thermals are stored as a 2D numpy float array.
 import numpy as np
 from scipy import signal
 
-from simulation.elements.element import SimulatorElement
+from .element import SimulatorElement
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

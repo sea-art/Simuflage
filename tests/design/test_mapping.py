@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import random
 
-from design.application import Application
-from design.component import Component
+from design import Application
+from design import Component
 from design.mapping import comp_to_loc_mapping, application_mapping
 
 

@@ -7,7 +7,7 @@ import math
 import multiprocessing
 import warnings
 
-from simulation.simulator import Simulator
+from simulation import Simulator
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

@@ -6,15 +6,14 @@ This file should describe how the Simulator elements are integrated with eachoth
 to run the simulation.
 """
 
-import copy
 import os
 
 import numpy as np
 from abc import ABC, abstractmethod
 
-from simulation.elements.thermals import Thermals
-from simulation.elements.agings import Agings
-from simulation.elements.components import Components
+from simulation.elements import Thermals
+from simulation.elements import Agings
+from simulation.elements import Components
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"

@@ -42,7 +42,7 @@ class DesignPoint:
 
         :return: string - representation of this Component
         """
-        return "DesignPoint:\n" + str(self._application_map) + "\npolicy: " + self.policy
+        return "DesignPoint ({}):\n {} \npolicy: {}\n".format(len(self._components), self._application_map, self.policy)
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):

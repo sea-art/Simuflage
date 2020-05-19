@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """ Contains methods to evaluate n designpoints via a Monte Carlo simulation approach."""
+
 import collections
 import random
 import math
@@ -40,8 +41,8 @@ def monte_carlo_iterative(designpoints, iterations):
     :param iterations: number of MC iterations to run
     :return: [float] - List of MTTF corresponding indexwise to the design points.
     """
-    warnings.warn("Using the non-parallelized Monte Carlo evaluation. "
-                  "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
+    # warnings.warn("Using the non-parallelized Monte Carlo evaluation. "
+    #               "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
 
     TTFs = {i: [] for i in range(len(designpoints))}
     sims = [Simulator(d) for d in designpoints]

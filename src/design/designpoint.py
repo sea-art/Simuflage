@@ -164,8 +164,8 @@ class DesignPoint:
                     numpy 2D float array - capacities
                     numpy 2D float array - power_usage
                     numpy 2D float array - self_temperatures (max temperature each component can generate)
-                    numpy 2D structured array [(component_index, app_power_req] - application mapping
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
+                    numpy 2D structured array [(component_index, app_power_req] - application mapping
                 )
         """
         capacities = self._create_capacity_grid()

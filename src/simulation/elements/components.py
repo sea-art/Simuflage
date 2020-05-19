@@ -169,7 +169,7 @@ class Components(SimulatorElement):
     def _adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.
 
-        :param failed_indices: 2D numpy boolean array indicating which components have failed.
+        :param failed_indices: list of integers corresponding to the failed component indices.
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components

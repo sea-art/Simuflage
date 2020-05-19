@@ -12,7 +12,7 @@ of that design point. All that the simulator requires is a designpoint, which ca
 ```python
 from simulation import Simulator
 
-sim = simulator.Simulator(dp)
+sim = Simulator(dp)
 sim.run()
 ```
 Which will run the simulator until the given design point has failed. It will return the TTF of the given design point.

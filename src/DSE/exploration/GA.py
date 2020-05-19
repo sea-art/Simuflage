@@ -14,10 +14,11 @@ from design import DesignPoint, Component, Application
 from design.mapping import all_possible_pos_mappings
 
 
-loc_choices = list(map(tuple, all_possible_pos_mappings(10)))
+loc_choices = list(map(tuple, all_possible_pos_mappings(100)))
 maps = [(0, 0), (1, 1), (2, 2), (3, 3)]
 capacity_candidates = [44, 88, 100, 200, 300, 600]
 apps = [10, 10, 10, 10]
+CXPB, MUTPB = 0.5, 0.2
 
 
 def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
@@ -83,6 +84,65 @@ def eval_dp(dp):
     return list(monte_carlo(dp, iterations=1000, parallelized=True).values())
 
 
+def mate_offspring(offspring):
+    offspring_mated = offspring
+
+    for child1, child2 in zip(offspring[::2], offspring[1::2]):
+        if random.random() < CXPB:
+            x1, x2 = toolbox.mate(child1, child2)
+            offspring_mated.remove(child1)
+            offspring_mated.remove(child2)
+            offspring_mated.append(x1)
+            offspring_mated.append(x2)
+
+    return offspring_mated
+
+
+def mutate_offpsring(offspring):
+    offspring_mutated = offspring
+
+    for mutant in offspring:
+        # mutate an individual with probability MUTPB
+        x1 = toolbox.mutate(mutant)
+        offspring_mutated.remove(mutant)
+        offspring_mutated.append(x1)
+
+    return offspring_mutated
+
+
+def offspring_determination(pop):
+    offspring = toolbox.select(pop, len(pop))
+    offspring = list(map(toolbox.clone, offspring))
+    offspring = mate_offspring(offspring)
+    offspring = mutate_offpsring(offspring)
+
+    invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+    fitnesses = list(map(lambda x: (x,), toolbox.evaluate(invalid_ind)))
+
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+
+    print("  Evaluated %i individuals" % len(invalid_ind))
+
+    return offspring
+
+
+def print_status(pop):
+    fits = [ind.fitness.values[0] for ind in pop]
+
+    length = len(pop)
+    mean = sum(fits) / length
+    sum2 = sum(x * x for x in fits)
+    std = abs(sum2 / length - mean ** 2) ** 0.5
+
+    print("  Min %s" % min(fits))
+    print("  Max %s" % max(fits))
+    print("  Avg %s" % mean)
+    print("  Std %s" % std)
+
+    print("-- End of (successful) evolution --")
+
+
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("DesignPoint", DesignPoint, fitness=creator.FitnessMax)
 
@@ -98,9 +158,7 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 
 def main():
     print("Start of evolution")
-
     pop = toolbox.population(n=100)
-    CXPB, MUTPB = 0.5, 0.2
 
     fitnesses = list(map(lambda x: (x,), toolbox.evaluate(pop)))
 
@@ -110,60 +168,13 @@ def main():
     print("  Evaluated %i individuals" % len(pop))
     g = 0
 
-    while g < 50:
+    while g < 20:
         g = g + 1
         print("Generation %i" % g)
 
-        offspring = toolbox.select(pop, len(pop))
-
-        offspring = list(map(toolbox.clone, offspring))
-
-        offspring_mated = offspring
-
-        for child1, child2 in zip(offspring[::2], offspring[1::2]):
-            if random.random() < CXPB:
-                # print("MATING", child1, child2)
-                x1, x2 = toolbox.mate(child1, child2)
-                offspring_mated.remove(child1)
-                offspring_mated.remove(child2)
-                offspring_mated.append(x1)
-                offspring_mated.append(x2)
-
-        offspring = offspring_mated
-
-        offspring_mutated = offspring
-
-        for mutant in offspring:
-            # mutate an individual with probability MUTPB
-            x1 = toolbox.mutate(mutant)
-            offspring_mutated.remove(mutant)
-            offspring_mutated.append(x1)
-
-        offspring = offspring_mutated
-
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-        fitnesses = list(map(lambda x: (x,), toolbox.evaluate(invalid_ind)))
-
-        for ind, fit in zip(invalid_ind, fitnesses):
-            ind.fitness.values = fit
-
-        print("  Evaluated %i individuals" % len(invalid_ind))
-
+        offspring = offspring_determination(pop)
         pop[:] = offspring
-
-        fits = [ind.fitness.values[0] for ind in pop]
-
-        length = len(pop)
-        mean = sum(fits) / length
-        sum2 = sum(x * x for x in fits)
-        std = abs(sum2 / length - mean ** 2) ** 0.5
-
-        print("  Min %s" % min(fits))
-        print("  Max %s" % max(fits))
-        print("  Avg %s" % mean)
-        print("  Std %s" % std)
-
-    print("-- End of (successful) evolution --")
+        print_status(pop)
 
     best_ind = tools.selBest(pop, 1)[0]
     print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))

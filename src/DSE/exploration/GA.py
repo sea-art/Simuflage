@@ -56,6 +56,8 @@ def mutate_dp(x1):
     locs = [z._loc for z in  x1._components]
 
     policy = x1.policy
+    possible_policies = ['most', 'least', 'random']
+    possible_policies.remove(policy)
 
     i = random.randint(0, 3)
 
@@ -69,6 +71,7 @@ def mutate_dp(x1):
 
     caps[i] = random.choice(possible_candidates)
     locs[i] = random.choice(loc_candidates)
+    policy = random.choice(possible_policies)
 
     x1 = toolbox.designpoint(caps=caps, locs=locs, policy=policy)
     return x1
@@ -107,7 +110,7 @@ def main():
     print("  Evaluated %i individuals" % len(pop))
     g = 0
 
-    while g < 300:
+    while g < 50:
         g = g + 1
         print("Generation %i" % g)
 

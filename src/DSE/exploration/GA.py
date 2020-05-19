@@ -11,17 +11,22 @@ from deap import tools
 
 from DSE import monte_carlo
 from design import DesignPoint, Component, Application
+from design.mapping import all_possible_pos_mappings
 
-locs = [(0, 0), (0, 2), (2, 0), (2, 2)]
+
+loc_choices = list(map(tuple, all_possible_pos_mappings(10)))
 maps = [(0, 0), (1, 1), (2, 2), (3, 3)]
 capacity_candidates = [44, 88, 100, 200, 300, 600]
 apps = [10, 10, 10, 10]
 
 
-def init_dp(pcls, caps=None, init_apps=None, policy=None):
+def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
     if not caps:
         caps = capacity_candidates
         caps = random.choices(caps, k=4)
+
+    if not locs:
+        locs = random.sample(loc_choices, 4)
 
     if not policy:
         policy = random.choice(['most', 'least', 'random'])
@@ -48,6 +53,8 @@ def mate_dps(x1, x2):
 
 def mutate_dp(x1):
     caps = [z._capacity for z in  x1._components]
+    locs = [z._loc for z in  x1._components]
+
     policy = x1.policy
 
     i = random.randint(0, 3)
@@ -55,9 +62,15 @@ def mutate_dp(x1):
     possible_candidates = deepcopy(capacity_candidates)
     possible_candidates.remove(caps[i])
 
-    caps[i] = random.choice(possible_candidates)
+    loc_candidates = deepcopy(loc_choices)
 
-    x1 = toolbox.designpoint(caps=caps, policy=policy)
+    for i in range(len(locs)):
+        loc_candidates.remove(locs[i])
+
+    caps[i] = random.choice(possible_candidates)
+    locs[i] = random.choice(loc_candidates)
+
+    x1 = toolbox.designpoint(caps=caps, locs=locs, policy=policy)
     return x1
 
 
@@ -83,7 +96,7 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 def main():
     print("Start of evolution")
 
-    pop = toolbox.population(n=20)
+    pop = toolbox.population(n=100)
     CXPB, MUTPB = 0.5, 0.2
 
     fitnesses = list(map(lambda x: (x,), toolbox.evaluate(pop)))
@@ -94,7 +107,7 @@ def main():
     print("  Evaluated %i individuals" % len(pop))
     g = 0
 
-    while g < 100:
+    while g < 300:
         g = g + 1
         print("Generation %i" % g)
 

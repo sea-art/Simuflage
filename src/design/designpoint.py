@@ -42,7 +42,8 @@ class DesignPoint:
 
         :return: string - representation of this Component
         """
-        return "DesignPoint ({}):\n {} \npolicy: {}\n".format(len(self._components), self._application_map, self.policy)
+        return "DesignPoint ({}): {} \npolicy: {}\n".format(len(self._components), self._application_map, self.policy)
+
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):
@@ -99,6 +100,11 @@ class DesignPoint:
         return \
             np.max(self._comp_loc_map['y']) + 1, \
             np.max(self._comp_loc_map['x']) + 1
+
+    def _calc_grid_size(self):
+        return \
+            (np.max(self._comp_loc_map['y']) + 1) - (np.min(self._comp_loc_map['y']) + 1), \
+            (np.max(self._comp_loc_map['x']) + 1) - (np.min(self._comp_loc_map['x']) + 1)
 
     def _get_empty_grid(self):
         """ Creates a 2D numpy array (grid) of zero's based on the position of components.

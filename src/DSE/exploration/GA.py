@@ -3,7 +3,7 @@
 """ Contains methods to explore the design space exploration with genetic algrorithms."""
 
 import random
-from copy import deepcopy
+from copy import deepcopy, copy
 
 from deap import base
 from deap import creator
@@ -16,17 +16,21 @@ from design.mapping import all_possible_pos_mappings
 
 loc_choices = list(map(tuple, all_possible_pos_mappings(100)))
 maps = [(0, 0), (1, 1), (2, 2), (3, 3)]
-capacity_candidates = [44, 88, 100, 200, 300, 600]
+capacity_candidates = [44, 88, 100, 150, 200, 600]
 apps = [10, 10, 10, 10]
-CXPB, MUTPB = 0.5, 0.2
+CXPB, MUTPB = 0.5, 0.3
 
 
 def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
     if not caps:
-        caps = capacity_candidates
-        caps = random.choices(caps, k=4)
+        # caps = capacity_candidates
+        caps = random.choices(capacity_candidates, k=4)
+        # caps = [44, 44, 44, 44]
+
+    # print(caps)
 
     if not locs:
+        # locs = [(0, 0), (9, 0), (0, 9), (9, 9)]
         locs = random.sample(loc_choices, 4)
 
     if not policy:
@@ -43,11 +47,14 @@ def mate_dps(x1, x2):
     caps1 = [z._capacity for z in  x1._components[:2] + x2._components[2:]]
     caps2 = [z._capacity for z in x2._components[:2] + x1._components[2:]]
 
+    locs1 = [z._loc for z in  x1._components]
+    locs2 = [z._loc for z in x2._components]
+
     policy1 = x1.policy
     policy2 = x2.policy
 
-    x1 = toolbox.designpoint(caps=caps1, policy=policy1)
-    x2 = toolbox.designpoint(caps=caps2, policy=policy2)
+    x1 = toolbox.designpoint(caps=caps1, locs=locs1, policy=policy1)
+    x2 = toolbox.designpoint(caps=caps2, locs=locs2, policy=policy2)
 
     return x1, x2
 
@@ -60,32 +67,42 @@ def mutate_dp(x1):
     possible_policies = ['most', 'least', 'random']
     possible_policies.remove(policy)
 
-    i = random.randint(0, 3)
+    caps_index = random.randint(0, 3)
+    loc_index = random.randint(0, 3)
 
     possible_candidates = deepcopy(capacity_candidates)
-    possible_candidates.remove(caps[i])
+    possible_candidates.remove(caps[caps_index])
 
     loc_candidates = deepcopy(loc_choices)
 
-    for i in range(len(locs)):
-        loc_candidates.remove(locs[i])
+    for z in range(len(locs)):
+        loc_candidates.remove(locs[z])
 
-    caps[i] = random.choice(possible_candidates)
-    locs[i] = random.choice(loc_candidates)
-    policy = random.choice(possible_policies)
+    tmp_c = random.choice(possible_candidates)
+    tmp_l = random.choice(loc_candidates)
+    # print("Changing (%s : %s) --[to]--> (%s, %s)" % (caps[i], locs[i], tmp_c, tmp_l))
 
-    x1 = toolbox.designpoint(caps=caps, locs=locs, policy=policy)
-    return x1
+    caps[caps_index] = tmp_c
+    locs[loc_index] = tmp_l
+
+
+    change_policy = random.randint(0, 2)
+
+    if change_policy == 0:
+        policy = random.choice(possible_policies)
+
+    return toolbox.designpoint(caps=caps, locs=locs, policy=policy)
 
 
 def eval_dp(dp):
     if len(dp) < 1:
         return []
+
     return list(monte_carlo(dp, iterations=1000, parallelized=True).values())
 
 
 def mate_offspring(offspring):
-    offspring_mated = offspring
+    offspring_mated = copy(offspring)
 
     for child1, child2 in zip(offspring[::2], offspring[1::2]):
         if random.random() < CXPB:
@@ -99,13 +116,14 @@ def mate_offspring(offspring):
 
 
 def mutate_offpsring(offspring):
-    offspring_mutated = offspring
+    offspring_mutated = copy(offspring)
 
-    for mutant in offspring:
-        # mutate an individual with probability MUTPB
-        x1 = toolbox.mutate(mutant)
-        offspring_mutated.remove(mutant)
-        offspring_mutated.append(x1)
+    for idx in range(len(offspring)):
+        if random.random() < MUTPB:
+            x1 = toolbox.mutate(offspring[idx])
+            # print("MUTATING", offspring[idx], x1)
+            offspring_mutated.remove(offspring[idx])
+            offspring_mutated.append(x1)
 
     return offspring_mutated
 
@@ -117,7 +135,14 @@ def offspring_determination(pop):
     offspring = mutate_offpsring(offspring)
 
     invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-    fitnesses = list(map(lambda x: (x,), toolbox.evaluate(invalid_ind)))
+
+    fitnesses_mttf = toolbox.evaluate(invalid_ind)
+    fitnesses_size = []
+
+    for i in range(len(invalid_ind)):
+        fitnesses_size.append(invalid_ind[i]._calc_grid_size()[0] * invalid_ind[i]._calc_grid_size()[1])
+
+    fitnesses = zip(fitnesses_mttf, fitnesses_size)
 
     for ind, fit in zip(invalid_ind, fitnesses):
         ind.fitness.values = fit
@@ -129,22 +154,28 @@ def offspring_determination(pop):
 
 def print_status(pop):
     fits = [ind.fitness.values[0] for ind in pop]
+    fits_size = [ind.fitness.values[1] for ind in pop]
 
     length = len(pop)
     mean = sum(fits) / length
+    mean_size = sum(fits_size) / length
+
     sum2 = sum(x * x for x in fits)
     std = abs(sum2 / length - mean ** 2) ** 0.5
 
-    print("  Min %s" % min(fits))
-    print("  Max %s" % max(fits))
-    print("  Avg %s" % mean)
-    print("  Std %s" % std)
+    sum3 = sum(x * x for x in fits_size)
+    std2 = abs(sum3 / length - mean_size ** 2) ** 0.5
 
-    print("-- End of (successful) evolution --")
+    print(" \t\t | MTTF \t| Size")
+    print("--------------------------------")
+    print("  Min \t| %s \t| %s" % (int(min(fits)), min(fits_size)))
+    print("  Max \t| %s \t| %s" % (int(max(fits)), max(fits_size)))
+    print("  Avg \t| %s \t| %s" % (int(mean), mean_size))
+    print("  Std \t| %s \t| %s" % (int(std), std2))
 
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("DesignPoint", DesignPoint, fitness=creator.FitnessMax)
+creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
+creator.create("DesignPoint", DesignPoint, fitness=creator.FitnessMulti)
 
 toolbox = base.Toolbox()
 toolbox.register('designpoint', init_dp, creator.DesignPoint)
@@ -158,9 +189,15 @@ toolbox.register("select", tools.selTournament, tournsize=3)
 
 def main():
     print("Start of evolution")
-    pop = toolbox.population(n=100)
+    pop = toolbox.population(n=40)
 
-    fitnesses = list(map(lambda x: (x,), toolbox.evaluate(pop)))
+    fitnesses_mttf = toolbox.evaluate(pop)
+    fitnesses_size = []
+
+    for i in range(len(pop)):
+        fitnesses_size.append(pop[i]._calc_grid_size()[0] * pop[i]._calc_grid_size()[1])
+
+    fitnesses = zip(fitnesses_mttf, fitnesses_size)
 
     for ind, fit in zip(pop, fitnesses):
         ind.fitness.values = fit
@@ -168,16 +205,22 @@ def main():
     print("  Evaluated %i individuals" % len(pop))
     g = 0
 
-    while g < 20:
+    while g < 100:
         g = g + 1
         print("Generation %i" % g)
 
         offspring = offspring_determination(pop)
+        # print(offspring)
         pop[:] = offspring
         print_status(pop)
 
     best_ind = tools.selBest(pop, 1)[0]
-    print("Best individual is %s, %s" % (best_ind, best_ind.fitness.values))
+    print("Best individual is %s, %s % s %s" % (best_ind,
+                                                best_ind.fitness.values,
+                                                toolbox.evaluate([best_ind]),
+                                                best_ind._calc_grid_size()))
+
+    print("-- End of (successful) evolution --")
 
 
 if __name__ == "__main__":

@@ -68,10 +68,12 @@ class Thermals(SimulatorElement):
         :param kernel: 2D kernel which will be used for convolution
         :return: 2D numpy float array - grid thermals after neighbouring contributions
         """
+        ni = 0.01
+
         if not kernel:
-            kernel = np.asarray([[0.01, 0.01, 0.01],
-                                 [0.01, 1, 0.01],
-                                 [0.01, 0.01, 0.01]])
+            kernel = np.asarray([[ni, ni, ni],
+                                 [ni, 1, ni],
+                                 [ni, ni, ni]])
 
         return signal.convolve2d(temperatures, kernel, "same")
 

@@ -24,10 +24,7 @@ CXPB, MUTPB = 0.5, 0.3
 
 def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
     if not caps:
-        # caps = capacity_candidates
-        # caps = random.choices(capacity_candidates, k=4)
-        caps = [100, 100, 100, 100]
-
+        caps = random.choices(capacity_candidates, k=4)
 
     if not locs:
         locs = random.sample(loc_choices, 4)
@@ -43,10 +40,10 @@ def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
 
 
 def mate_dps(x1, x2):
-    caps1 = [z._capacity for z in  x1._components[:2] + x2._components[2:]]
+    caps1 = [z._capacity for z in x1._components[:2] + x2._components[2:]]
     caps2 = [z._capacity for z in x2._components[:2] + x1._components[2:]]
 
-    locs1 = [z._loc for z in  x1._components]
+    locs1 = [z._loc for z in x1._components]
     locs2 = [z._loc for z in x2._components]
 
     policy1 = x1.policy
@@ -59,8 +56,8 @@ def mate_dps(x1, x2):
 
 
 def mutate_dp(x1):
-    caps = [z._capacity for z in  x1._components]
-    locs = [z._loc for z in  x1._components]
+    caps = [z._capacity for z in x1._components]
+    locs = [z._loc for z in x1._components]
 
     policy = x1.policy
     possible_policies = ['most', 'least', 'random']
@@ -83,7 +80,6 @@ def mutate_dp(x1):
 
     caps[caps_index] = tmp_c
     locs[loc_index] = tmp_l
-
 
     change_policy = random.randint(0, 2)
 

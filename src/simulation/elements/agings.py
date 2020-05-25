@@ -66,9 +66,9 @@ class Agings(SimulatorElement):
 
         :return: Boolean indicating if any new failures have occurred (which should be handled).
         """
-        assert np.all((self._lambdas * thermals / 100)[alive_components] >= 0), "Negative aging rate"
+        assert np.all(self._lambdas[alive_components] >= 0), "Negative aging rate"
 
-        self._wear[alive_components] += (self._lambdas * thermals / 100)[alive_components]
+        self._wear[alive_components] += self._lambdas[alive_components]
 
         return np.any(self._wear[alive_components] > 0.9999)
 

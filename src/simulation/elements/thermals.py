@@ -87,7 +87,7 @@ class Thermals(SimulatorElement):
         self._temps = np.zeros(workload.shape)
         self._temps[self._alive_components] = self._adjusted_thermals(workload, fluctuate)[self._alive_components]
 
-    def do_n_steps(self, n, workload, fluctuate=0.0):
+    def step_till_failure(self, n, workload, fluctuate=0.0):
         """ Run n iterations regarding the thermals of the simulation.
 
         :param n: (int) amount of timesteps

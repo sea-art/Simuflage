@@ -92,7 +92,7 @@ class Integrator(AbsSimulator):
 
         return system_ok
 
-    def do_n_steps(self):
+    def step_till_failure(self):
         """ Will skip all intermediate steps and will directly go to the timestep that an event occurs (e.g. failure).
 
         :return:
@@ -101,9 +101,9 @@ class Integrator(AbsSimulator):
                                                  self._thermals.temps,
                                                  self._timesteps)
 
-        self._agings.do_n_steps(n, self._components.alive_components, self._thermals.temps)
-        system_ok = self._components.do_n_steps(n, self._agings.cur_agings)
-        self._thermals.do_n_steps(n, self._components.workload)
+        self._agings.step_till_failure(n, self._components.alive_components, self._thermals.temps)
+        system_ok = self._components.step_till_failure(n, self._agings.cur_agings)
+        self._thermals.step_till_failure(n, self._components.workload)
 
         self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
 

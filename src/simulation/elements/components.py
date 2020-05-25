@@ -262,7 +262,7 @@ class Components(SimulatorElement):
 
         return True
 
-    def do_n_steps(self, n, cur_agings):
+    def step_till_failure(self, n, cur_agings):
         """ Run n iterations regarding the component process of the simulation.
 
         :param n: int - amount of timesteps to take

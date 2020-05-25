@@ -97,7 +97,7 @@ def monte_carlo(designpoints, iterations=10000, parallelized=True):
     if parallelized:
         return collections.OrderedDict(sorted(monte_carlo_parallelized(designpoints, iterations).items()))
     else:
-        return monte_carlo_iterative(designpoints, iterations)
+        return collections.OrderedDict(monte_carlo_iterative(designpoints, iterations))
 
 
 def print_results(results, dps):

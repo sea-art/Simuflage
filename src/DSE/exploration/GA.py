@@ -135,7 +135,7 @@ def offspring_determination(pop):
     fitnesses_size = []
 
     for i in range(len(invalid_ind)):
-        fitnesses_size.append(invalid_ind[i]._calc_grid_size()[0] * invalid_ind[i]._calc_grid_size()[1])
+        fitnesses_size.append(invalid_ind[i].calc_grid_size())
 
     fitnesses = zip(fitnesses_mttf, fitnesses_size)
 
@@ -190,7 +190,7 @@ def main():
     fitnesses_size = []
 
     for i in range(len(pop)):
-        fitnesses_size.append(pop[i]._calc_grid_size()[0] * pop[i]._calc_grid_size()[1])
+        fitnesses_size.append(pop[i].calc_grid_size())
 
     fitnesses = zip(fitnesses_mttf, fitnesses_size)
 
@@ -212,7 +212,7 @@ def main():
     print("Best individual is %s, %s % s %s" % (best_ind,
                                                 best_ind.fitness.values,
                                                 toolbox.evaluate([best_ind]),
-                                                best_ind._calc_grid_size()))
+                                                best_ind.calc_grid_size()))
 
     print("-- End of (successful) evolution --")
 

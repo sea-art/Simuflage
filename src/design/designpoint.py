@@ -100,11 +100,6 @@ class DesignPoint:
             np.max(self._comp_loc_map['y']) + 1, \
             np.max(self._comp_loc_map['x']) + 1
 
-    def _calc_grid_size(self):
-        return \
-            (np.max(self._comp_loc_map['y']) + 1) - (np.min(self._comp_loc_map['y']) + 1), \
-            (np.max(self._comp_loc_map['x']) + 1) - (np.min(self._comp_loc_map['x']) + 1)
-
     def _get_empty_grid(self):
         """ Creates a 2D numpy array (grid) of zero's based on the position of components.
 
@@ -159,6 +154,18 @@ class DesignPoint:
             grid[comp.loc[1], comp.loc[0]] += app.power_req
 
         return grid
+
+    def calc_grid_size(self):
+        """ Get the actual size of the grid that is being used.
+
+        Will calculate the size as if the components are translated to the origin.
+        NOTE: Current usage for this function is to define size of grid in genetic algorithm.
+
+        :return: int (the size of the grid)
+        """
+        return \
+            (np.max(self._comp_loc_map['y']) - np.min(self._comp_loc_map['y'])) * \
+            (np.max(self._comp_loc_map['x']) - np.min(self._comp_loc_map['x']))
 
     def to_numpy(self):
         """Return the components of a designpoint as numpy arrays.

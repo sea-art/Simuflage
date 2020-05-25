@@ -41,7 +41,7 @@ class Integrator(AbsSimulator):
         """ Integrator is used to change/add functionality to the simulator.
 
         All elements of the simulator are required to work together, this class achieves this collaboration between
-        simulator classes. More information is given at the CONTRIBUTING.md file.
+        simulator classes.
 
         :param design_point: DesignPoint object representing a system to evaluate.
         """
@@ -76,7 +76,6 @@ class Integrator(AbsSimulator):
 
         This function contains all integration aspects regarding the functionality per timestep of the simulator.
         Since these applications are ought to use variables from each other, this collaboration is implemented here.
-        For more information, see CONTRIBUTING.md.
 
         :return: Boolean indicating if a core has failed this iteration.
         """

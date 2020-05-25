@@ -43,12 +43,10 @@ def monte_carlo_iterative(designpoints, iterations):
     """
     # warnings.warn("Using the non-parallelized Monte Carlo evaluation. "
     #               "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
-
     TTFs = {i: [] for i in range(len(designpoints))}
     sims = [Simulator(d) for d in designpoints]
 
     for a in range(iterations):
-        print("MC iteration:", a, end="\r")
         i = random.randint(0, len(designpoints) - 1)
         TTFs[i].append(sims[i].run_optimized())
 
@@ -69,9 +67,6 @@ def monte_carlo_parallelized(designpoints, iterations):
     :return: {dp_indicator: MTTF} - Dictionary of the results
     """
     i_per_dp = int(math.ceil(iterations / len(designpoints)))
-    print("Running montecarlo simulation")
-    print("Total iterations:\t", iterations)
-    print("Iterations per design point:\t", i_per_dp, "\n")
     jobs = []
 
     manager = multiprocessing.Manager()

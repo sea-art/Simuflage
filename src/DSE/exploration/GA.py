@@ -14,7 +14,8 @@ from design import DesignPoint, Component, Application
 from design.mapping import all_possible_pos_mappings
 
 
-loc_choices = list(map(tuple, all_possible_pos_mappings(100)))
+loc_choices = list(map(tuple, all_possible_pos_mappings(26)))
+
 maps = [(0, 0), (1, 1), (2, 2), (3, 3)]
 capacity_candidates = [44, 88, 100, 150, 200, 600]
 apps = [10, 10, 10, 10]
@@ -24,13 +25,11 @@ CXPB, MUTPB = 0.5, 0.3
 def init_dp(pcls, locs=None, caps=None, init_apps=None, policy=None):
     if not caps:
         # caps = capacity_candidates
-        caps = random.choices(capacity_candidates, k=4)
-        # caps = [44, 44, 44, 44]
+        # caps = random.choices(capacity_candidates, k=4)
+        caps = [100, 100, 100, 100]
 
-    # print(caps)
 
     if not locs:
-        # locs = [(0, 0), (9, 0), (0, 9), (9, 9)]
         locs = random.sample(loc_choices, 4)
 
     if not policy:
@@ -70,10 +69,10 @@ def mutate_dp(x1):
     caps_index = random.randint(0, 3)
     loc_index = random.randint(0, 3)
 
-    possible_candidates = deepcopy(capacity_candidates)
+    possible_candidates = copy(capacity_candidates)
     possible_candidates.remove(caps[caps_index])
 
-    loc_candidates = deepcopy(loc_choices)
+    loc_candidates = copy(loc_choices)
 
     for z in range(len(locs)):
         loc_candidates.remove(locs[z])
@@ -171,7 +170,7 @@ def print_status(pop):
     print("  Min \t| %s \t| %s" % (int(min(fits)), min(fits_size)))
     print("  Max \t| %s \t| %s" % (int(max(fits)), max(fits_size)))
     print("  Avg \t| %s \t| %s" % (int(mean), mean_size))
-    print("  Std \t| %s \t| %s" % (int(std), std2))
+    print("  Std \t| %s \t| %s\n" % (int(std), std2))
 
 
 creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
@@ -205,12 +204,11 @@ def main():
     print("  Evaluated %i individuals" % len(pop))
     g = 0
 
-    while g < 100:
+    while g < 30:
         g = g + 1
         print("Generation %i" % g)
 
         offspring = offspring_determination(pop)
-        # print(offspring)
         pop[:] = offspring
         print_status(pop)
 

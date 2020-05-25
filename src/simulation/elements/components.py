@@ -169,7 +169,7 @@ class Components(SimulatorElement):
     def _adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.
 
-        :param failed_indices: 2D numpy boolean array indicating which components have failed.
+        :param failed_indices: list of integers corresponding to the failed component indices.
         :return: Boolean indiciating if application could be remapped (True = OK, False = System failure).
         """
         # Removes all applications that are mapped towards failed components
@@ -228,12 +228,10 @@ class Components(SimulatorElement):
         components_slack = self._capacities - self._power_uses
         map_order = self._get_mapping_order(components_slack, policy)
 
-        # Loop randomly over all non-failed components
         for i in map_order:
             y, x = self._index_to_pos(i)
 
             if app <= components_slack[y, x]:
-
                 self._app_mapping = np.append(self._app_mapping, np.array([(i, app)],
                                                                           dtype=self._app_mapping.dtype))
                 self._power_uses[y, x] += app
@@ -241,8 +239,8 @@ class Components(SimulatorElement):
 
     def _handle_failures(self, failed_components):
         """Look at the aging values to determine if a component has failed.
-        If a component has failed, the applications that were mapped to that component will randomly be remapped
-        to components with a sufficient amount of slack.
+        If a component has failed, the applications that were mapped to that component will be remapped
+        to components with a sufficient amount of slack based on the policy.
 
         :return: Boolean indicating reliability system (True = OK, False = failure)
         """
@@ -264,7 +262,7 @@ class Components(SimulatorElement):
 
         return True
 
-    def do_n_steps(self, n, cur_agings):
+    def step_till_failure(self, n, cur_agings):
         """ Run n iterations regarding the component process of the simulation.
 
         :param n: int - amount of timesteps to take

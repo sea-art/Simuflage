@@ -66,9 +66,9 @@ class Agings(SimulatorElement):
 
         :return: Boolean indicating if any new failures have occurred (which should be handled).
         """
-        assert np.all((self._lambdas * thermals / 100)[alive_components] >= 0), "Negative aging rate"
+        assert np.all(self._lambdas[alive_components] >= 0), "Negative aging rate"
 
-        self._wear[alive_components] += (self._lambdas * thermals / 100)[alive_components]
+        self._wear[alive_components] += self._lambdas[alive_components]
 
         return np.any(self._wear[alive_components] > 0.9999)
 
@@ -95,7 +95,7 @@ class Agings(SimulatorElement):
         """
         return self._update_agings(alive_components, thermals)
 
-    def do_n_steps(self, n, alive_components, thermals):
+    def step_till_failure(self, n, alive_components, thermals):
         """ Increment n timesteps regarding te aging process of the simulation.
 
         :param n: amount of timesteps to take

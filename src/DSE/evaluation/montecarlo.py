@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """ Contains methods to evaluate n designpoints via a Monte Carlo simulation approach."""
+
 import collections
 import random
 import math
@@ -47,7 +48,6 @@ def monte_carlo_iterative(designpoints, iterations):
     sims = [Simulator(d) for d in designpoints]
 
     for a in range(iterations):
-        print("MC iteration:", a, end="\r")
         i = random.randint(0, len(designpoints) - 1)
         TTFs[i].append(sims[i].run_optimized())
 
@@ -68,9 +68,6 @@ def monte_carlo_parallelized(designpoints, iterations):
     :return: {dp_indicator: MTTF} - Dictionary of the results
     """
     i_per_dp = int(math.ceil(iterations / len(designpoints)))
-    print("Running montecarlo simulation")
-    print("Total iterations:\t", iterations)
-    print("Iterations per design point:\t", i_per_dp, "\n")
     jobs = []
 
     manager = multiprocessing.Manager()
@@ -100,7 +97,7 @@ def monte_carlo(designpoints, iterations=10000, parallelized=True):
     if parallelized:
         return collections.OrderedDict(sorted(monte_carlo_parallelized(designpoints, iterations).items()))
     else:
-        return monte_carlo_iterative(designpoints, iterations)
+        return collections.OrderedDict(monte_carlo_iterative(designpoints, iterations))
 
 
 def print_results(results, dps):

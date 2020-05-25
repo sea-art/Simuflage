@@ -62,12 +62,12 @@ class Simulator(AbsSimulator):
 
         return system_ok
 
-    def do_n_steps(self):
+    def step_till_failure(self):
         """ Run n iterations of the simulator.
 
         :return: Boolean - indicating if the system is still running.
         """
-        system_ok = self._integrator.do_n_steps()
+        system_ok = self._integrator.step_till_failure()
         self._timesteps = self._integrator.timesteps
 
         return system_ok
@@ -104,7 +104,7 @@ class Simulator(AbsSimulator):
         :return: integer - timesteps till failure of the design point
         """
         while True:
-            if not self.do_n_steps():
+            if not self.step_till_failure():
                 break
 
         ts = self._timesteps

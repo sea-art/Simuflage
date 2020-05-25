@@ -42,7 +42,7 @@ class DesignPoint:
 
         :return: string - representation of this Component
         """
-        return "DesignPoint:\n" + str(self._application_map) + "\npolicy: " + self.policy
+        return "DesignPoint ({}): {} \npolicy: {}\n".format(len(self._components), self._application_map, self.policy)
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):
@@ -155,6 +155,18 @@ class DesignPoint:
 
         return grid
 
+    def calc_grid_size(self):
+        """ Get the actual size of the grid that is being used.
+
+        Will calculate the size as if the components are translated to the origin.
+        NOTE: Current usage for this function is to define size of grid in genetic algorithm.
+
+        :return: int (the size of the grid)
+        """
+        return \
+            (np.max(self._comp_loc_map['y']) - np.min(self._comp_loc_map['y'])) * \
+            (np.max(self._comp_loc_map['x']) - np.min(self._comp_loc_map['x']))
+
     def to_numpy(self):
         """Return the components of a designpoint as numpy arrays.
 
@@ -164,8 +176,8 @@ class DesignPoint:
                     numpy 2D float array - capacities
                     numpy 2D float array - power_usage
                     numpy 2D float array - self_temperatures (max temperature each component can generate)
-                    numpy 2D structured array [(component_index, app_power_req] - application mapping
                     numpy 2D structured array [(component_index, x, y)] - component to pos mapping
+                    numpy 2D structured array [(component_index, app_power_req] - application mapping
                 )
         """
         capacities = self._create_capacity_grid()

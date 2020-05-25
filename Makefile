@@ -11,7 +11,7 @@ setup:
 	bash -c 'source ./venv/bin/activate && pip install -r requirements.txt && deactivate'
 
 test:
-	bash -c 'source ./venv/bin/activate && CODECOV_TOKEN="22f55b2c-7d73-4540-915a-7e6b61567e46" PYTHONPATH="./src/" coverage run -m pytest && deactivate'
+	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" coverage run -m pytest && deactivate'
 
 check-pep8:
 	bash -c 'source ./venv/bin/activate && pycodestyle --ignore E501 ./src/ && deactivate'

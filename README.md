@@ -38,6 +38,7 @@ Which currently outputs the MTTF of an arbitrary 2x2 heterogeneous design point 
 ## Libraries used
 - [Numpy](https://numpy.org/) - efficient multi-dimensional container of generic data 
 - [Scipy](https://scipy.org/) - library used for scientific and technical computing
+- [DEAP](https://deap.readthedocs.io/en/master/) - evolutionary computation framework
 
 ## Quickstart
 - [Designing an embedded system](src/design/README.md)

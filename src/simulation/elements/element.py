@@ -14,7 +14,7 @@ class SimulatorElement(ABC):
         pass
 
     @abstractmethod
-    def do_n_steps(self, *args):
+    def step_till_failure(self, n, *args):
         pass
 
     @abstractmethod

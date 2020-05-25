@@ -41,7 +41,7 @@ class Integrator(AbsSimulator):
         """ Integrator is used to change/add functionality to the simulator.
 
         All elements of the simulator are required to work together, this class achieves this collaboration between
-        simulator classes. More information is given at the CONTRIBUTING.md file.
+        simulator classes.
 
         :param design_point: DesignPoint object representing a system to evaluate.
         """
@@ -76,7 +76,6 @@ class Integrator(AbsSimulator):
 
         This function contains all integration aspects regarding the functionality per timestep of the simulator.
         Since these applications are ought to use variables from each other, this collaboration is implemented here.
-        For more information, see CONTRIBUTING.md.
 
         :return: Boolean indicating if a core has failed this iteration.
         """
@@ -92,7 +91,7 @@ class Integrator(AbsSimulator):
 
         return system_ok
 
-    def do_n_steps(self):
+    def step_till_failure(self):
         """ Will skip all intermediate steps and will directly go to the timestep that an event occurs (e.g. failure).
 
         :return:
@@ -101,9 +100,9 @@ class Integrator(AbsSimulator):
                                                  self._thermals.temps,
                                                  self._timesteps)
 
-        self._agings.do_n_steps(n, self._components.alive_components, self._thermals.temps)
-        system_ok = self._components.do_n_steps(n, self._agings.cur_agings)
-        self._thermals.do_n_steps(n, self._components.workload)
+        self._agings.step_till_failure(n, self._components.alive_components, self._thermals.temps)
+        system_ok = self._components.step_till_failure(n, self._agings.cur_agings)
+        self._thermals.step_till_failure(n, self._components.workload)
 
         self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
 

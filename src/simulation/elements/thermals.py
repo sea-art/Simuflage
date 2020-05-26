@@ -14,7 +14,8 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 ENV_TEMP = 20
-IDLE_TEMP = ENV_TEMP + 10
+IDLE_TEMP = ENV_TEMP + 5
+
 
 class Thermals(SimulatorElement):
     """ Contains all logical operators based on the thermals of components."""

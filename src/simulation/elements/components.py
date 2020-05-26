@@ -16,6 +16,7 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 class Components(SimulatorElement):
     """ Contains all logical operations that are required for the components in a simulation."""
+
     def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy='random'):
         """ Initializes the components for the simulator.
 
@@ -27,6 +28,7 @@ class Components(SimulatorElement):
         self._capacities = capacities
         self._power_uses = power_uses
         self._alive_components = capacities > 0
+        self.policy = policy
 
         self._reset_values = (np.array(capacities, copy=True),
                               np.array(power_uses, copy=True),
@@ -44,9 +46,6 @@ class Components(SimulatorElement):
         # Miscellaneous variables
         self._nr_applications = np.count_nonzero(self._app_mapping)
         self._nr_components = np.count_nonzero(self._capacities)
-
-        # self._adjust_power_uses()
-        self.policy = policy
 
     def __repr__(self):
         """ Representation of an Components object.

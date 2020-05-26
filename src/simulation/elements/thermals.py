@@ -14,7 +14,7 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 ENV_TEMP = 20
-
+IDLE_TEMP = ENV_TEMP + 10
 
 class Thermals(SimulatorElement):
     """ Contains all logical operators based on the thermals of components."""
@@ -55,7 +55,13 @@ class Thermals(SimulatorElement):
         :param fluc: float representing the max uniformly fluctuation of temperature.
         :return: None
         """
+        # Assign temperatures to components based on workload, max_temps and environmental temperature.
         temperatures = ENV_TEMP + workload * self._max_temps
+
+        # Assigns the idle temperature to alive_components that have no workload.
+        temperatures[self._alive_components] = np.where(workload == 0., IDLE_TEMP, temperatures)[self._alive_components]
+
+        # Increases the heat of components based on other adjacent component thermals.
         neighbour_thermals = self._neighbour_thermal_influences(temperatures)
 
         return neighbour_thermals

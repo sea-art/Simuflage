@@ -101,6 +101,7 @@ class Thermals(SimulatorElement):
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
         :return: None
         """
+
         self.step(workload, fluctuate=fluctuate)
 
     def reset(self, workload, alive_components):
@@ -109,5 +110,5 @@ class Thermals(SimulatorElement):
         :return: None
         """
         self._temps = np.zeros(workload.shape)
-        self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]
         self._alive_components = alive_components
+        self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]

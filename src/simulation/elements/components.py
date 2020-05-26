@@ -279,5 +279,5 @@ class Components(SimulatorElement):
         self._capacities = np.array(capacities, copy=True)
         self._power_uses = np.array(power_uses, copy=True)
         self._app_mapping = np.array(app_map, copy=True)
-        self._alive_components = capacities > 0
+        self._alive_components = self._capacities > 0
         self._adjust_power_uses()

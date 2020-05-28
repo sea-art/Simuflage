@@ -22,10 +22,7 @@ class Simulator(AbsSimulator):
 
         :param design_point: DesignPoint object representing a system to evaluate.
         """
-        dp_data = design_point.to_numpy()
-        policy = design_point.policy
-
-        self._integrator = Integrator(design_point, policy)
+        self._integrator = Integrator(design_point)
         self._timesteps = 0
 
     @property
@@ -107,7 +104,9 @@ class Simulator(AbsSimulator):
             if not self.step_till_failure():
                 break
 
+        avg_watt_used = self._integrator.total_watt_used / self._timesteps
+
         ts = self._timesteps
         self.reset()
 
-        return ts
+        return {'ttf': ts, 'watt_usage': avg_watt_used}

@@ -13,6 +13,8 @@ from .element import SimulatorElement
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
+IDLE_WATT_USE = 20
+
 
 class Components(SimulatorElement):
     """ Contains all logical operations that are required for the components in a simulation."""
@@ -105,6 +107,19 @@ class Components(SimulatorElement):
             workload[np.isnan(workload)] = 0
 
         return workload
+
+    @property
+    def idle_components(self):
+        """ Return a mask of the idle components on the grid.
+
+        :return: 2D numpy Boolean array where True indicates an idle component on that position.
+        """
+        return np.logical_and(self._alive_components, self.workload == 0.)
+
+    @property
+    def watt_usage(self):
+        return np.sum(self.alive_components) * IDLE_WATT_USE + \
+               np.sum((self.workload * self.capacities)[self._alive_components])
 
     def _index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.

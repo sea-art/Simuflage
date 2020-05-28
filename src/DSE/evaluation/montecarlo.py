@@ -29,7 +29,7 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs):
     sim = Simulator(designpoint)
 
     for i in range(iterations):
-        TTFs.append(sim.run_optimized())
+        TTFs.append(sim.run_optimized()['ttf'])
 
     outputs[dp_name] = sum(TTFs) / len(TTFs)
 
@@ -49,7 +49,7 @@ def monte_carlo_iterative(designpoints, iterations):
 
     for a in range(iterations):
         i = random.randint(0, len(designpoints) - 1)
-        TTFs[i].append(sims[i].run_optimized())
+        TTFs[i].append(sims[i].run_optimized()['ttf'])
 
     for i in range(len(TTFs)):
         TTFs[i] = sum(TTFs[i]) / len(TTFs[i])

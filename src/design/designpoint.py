@@ -168,17 +168,18 @@ class DesignPoint:
             (np.max(self._comp_loc_map['x']) - np.min(self._comp_loc_map['x']))
 
     def to_numpy(self):
-        """Return the components of a designpoint as numpy arrays.
+        """Return the elements of a designpoint as numpy arrays.
 
         With this data, components (and their corresponding values) are all based on index.
 
-        :return: (
+        :return: {
                     numpy 2D float array - capacities
                     numpy 2D float array - power_usage
-                    numpy 2D float array - self_temperatures (max temperature each component can generate)
-                    numpy 2D structured array [(component_index, x, y)] - component to pos mapping
-                    numpy 2D structured array [(component_index, app_power_req] - application mapping
-                )
+                    numpy 2D float array - self_temps (max temperature each component can generate)
+                    numpy 2D structured array [(component_index, x, y)] - comp_loc_map (component to pos mapping)
+                    numpy 2D structured array [(component_index, app_power_req] - app_map (application mapping)
+                    string - policy ('random', 'least' or 'most') indicating the policy of this design point
+                }
         """
         capacities = self._create_capacity_grid()
         power_usage = self._calc_power_usage_per_component()
@@ -186,9 +187,10 @@ class DesignPoint:
 
         assert np.any(capacities >= power_usage), "Components have higher workload than capacity"
 
-        return                          \
-            capacities,                 \
-            power_usage,                \
-            self_temps,                 \
-            self._comp_loc_map,         \
-            application_mapping(self._components, self._application_map)
+        return {'capacities': capacities,
+                'power_usage': power_usage,
+                'self_temps': self_temps,
+                'comp_loc_map': self._comp_loc_map,
+                'app_map': application_mapping(self._components, self._application_map),
+                'policy': self.policy
+                }

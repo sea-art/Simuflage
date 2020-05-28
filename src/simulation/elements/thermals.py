@@ -14,7 +14,7 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 ENV_TEMP = 20
-IDLE_TEMP = ENV_TEMP + 5
+IDLE_TEMP = ENV_TEMP + 10
 
 
 class Thermals(SimulatorElement):

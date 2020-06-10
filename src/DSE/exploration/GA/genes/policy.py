@@ -13,3 +13,7 @@ class Policy:
 
     def mutate(self, search_space):
         self.policy = np.random.choice(search_space.policies[search_space.policies != self.policy])
+
+    @staticmethod
+    def mate(parent1, parent2):
+        return Policy(parent1.policy), Policy(parent2.policy)

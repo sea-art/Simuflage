@@ -4,6 +4,7 @@ from .genes import Components, FloorPlan, AppMapping, Policy
 import numpy as np
 import random
 
+
 class Chromosome:
     def __init__(self, caps, locs, apps, maps, policy, search_space):
         self.genes = [Components(caps), FloorPlan(locs), AppMapping(maps), Policy(policy)]
@@ -48,3 +49,9 @@ class Chromosome:
 
         for cluster in clusters_to_mutate:
             cluster.mutate(self.search_space)
+
+    @staticmethod
+    def mate(parent1, parent2):
+        Components.mate(parent1.genes[0], parent2.genes[0])
+        # FloorPlan.mate(parent1.genes[1], parent2.genes[1])
+

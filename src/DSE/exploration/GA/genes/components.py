@@ -1,5 +1,8 @@
+from copy import copy, deepcopy
+
 import numpy as np
-from deap.tools import cxOnePoint
+
+from DSE.exploration.GA.operators import one_point_crossover
 
 
 class Components:
@@ -22,10 +25,6 @@ class Components:
 
     @staticmethod
     def mate(parent1, parent2):
-        print(parent1.values)
-        print(parent2.values)
-
-        # TODO: unequal length
-        c1, c2 = cxOnePoint(parent1.values, parent2.values)
+        c1, c2 = one_point_crossover(parent1.values, parent2.values)
 
         return Components(c1), Components(c2)

@@ -52,6 +52,6 @@ class Chromosome:
 
     @staticmethod
     def mate(parent1, parent2):
-        Components.mate(parent1.genes[0], parent2.genes[0])
-        # FloorPlan.mate(parent1.genes[1], parent2.genes[1])
+        x1, x2 = Components.mate(parent1.genes[0], parent2.genes[0])
+        f1, f2 = FloorPlan.mate(parent1.genes[1], parent2.genes[1])
 

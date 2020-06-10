@@ -1,3 +1,5 @@
+import numpy as np
+
 class Policy:
     def __init__(self, policy):
         """
@@ -5,3 +7,9 @@ class Policy:
         :param policy: TODO: either integer representing index of list of possible policies or string that represents it
         """
         self.policy = policy
+
+    def __repr__(self):
+        return self.policy
+
+    def mutate(self, search_space):
+        self.policy = np.random.choice(search_space.policies[search_space.policies != self.policy])

@@ -1,12 +1,36 @@
+#!/usr/bin/env python
+
+""" Complete chromosome representation of a design point.
+Contains all aspects of a designpoint, i.e.:
+- Component capacities
+- Component locations
+- Application mapping
+- Policy
+
+Provides GA methods for chromosomes (e.g. mutation, crossover, selection)
+"""
+
 from design import DesignPoint
 from .genes import Components, FloorPlan, AppMapping, Policy
 
 import numpy as np
 import random
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
 
 class Chromosome:
     def __init__(self, caps, locs, apps, maps, policy, search_space):
+        """ Initialization of a design point chromosome.
+
+        :param caps: integer list - capacities
+        :param locs: tuple list [(x, y)] - location of components
+        :param apps: integer list - list of applications that have to be executed
+        :param maps: tuple list [(c, a)] - mapping of components to applications
+        :param policy: string - policy of use
+        :param search_space: SearchSpace object.
+        """
         self.genes = [Components(caps), FloorPlan(locs), AppMapping(maps), Policy(policy)]
         self.search_space = search_space
 
@@ -14,15 +38,22 @@ class Chromosome:
         self.dp = DesignPoint.create(caps, locs, apps, maps, policy=policy)
 
     def __repr__(self):
+        """ String representation of a Chromosome.
+
+        :return: string - representation of this object.
+        """
         return "gene1: {}\ngene2: {}\ngene3: {}\ngene4: '{}'"\
             .format(self.genes[0], self.genes[1], self.genes[2], self.genes[3])
 
     @classmethod
     def create_random(cls, search_space):
-        """
+        """ Randomly creates a Chromosome (and thus design point).
+
+        Randomly selects n components with random capacities and locations.
+        Selects a random policy and randomly maps applications to the components.
 
         :param search_space: SearchSpace object providing the degrees of freedom
-        :return:
+        :return: Chromosome object.
         """
         n_components = np.random.randint(1, search_space.max_components + 1)
 
@@ -37,10 +68,9 @@ class Chromosome:
         return Chromosome(caps, locs, search_space.applications, maps, policy, search_space)
 
     def mutate(self):
-        """ Defines the
+        """ Mutates this Chromosome object.
 
-        :param c2:
-        :return:
+        :return: None
         """
 
         # defines randomly how many and which clusters will be mutated
@@ -52,6 +82,13 @@ class Chromosome:
 
     @staticmethod
     def mate(parent1, parent2):
-        x1, x2 = Components.mate(parent1.genes[0], parent2.genes[0])
-        f1, f2 = FloorPlan.mate(parent1.genes[1], parent2.genes[1])
+        """ Crossover between two given parent (Chromosomes).
 
+        :param parent1: Chromosome object
+        :param parent2: Chromosome object
+        :return: tuple of Chromosome objects - child1, child2
+        """
+        c1, c2 = Components.mate(parent1.genes[0], parent2.genes[0])
+        f1, f2 = FloorPlan.mate(parent1.genes[1], parent2.genes[1])
+        a1, a2 = AppMapping.mate(parent1.genes[2], parent2.genes[2])
+        p1, p2 = Policy.mate(parent1.genes[3], parent2.genes[3])

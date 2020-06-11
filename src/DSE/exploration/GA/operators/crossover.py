@@ -1,7 +1,25 @@
+#!/usr/bin/env python
+
+""" Provides helper functions required for crossover functionality within the genetic algorithm.
+"""
+
 import numpy as np
 import random
 
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
+
 def one_point_crossover(parent1, parent2):
+    """ One point crossover functionality between two parents.
+
+    Randomly selects a single point and will do a one point crossover between the two parents.
+    Does NOT modify parents in place.
+
+    :param parent1: iterable individual.
+    :param parent2: iterable individual.
+    :return: tuple - child1, child2
+    """
     max_idx = min(len(parent1), len(parent2))
     try:
         point = np.random.randint(1, max_idx)
@@ -13,6 +31,15 @@ def one_point_crossover(parent1, parent2):
 
 
 def two_point_crossover(parent1, parent2):
+    """ Two point crossover functionality between two parents.
+
+    Randomly selects two points and will do a two point crossover between the two parents.
+    Does NOT modify parents in place.
+
+    :param parent1: iterable individual.
+    :param parent2: iterable individual.
+    :return: tuple - child1, child2
+    """
     max_idx = min(len(parent1), len(parent2))
 
     point1 = np.random.randint(1, max_idx)
@@ -61,17 +88,14 @@ def one_point_swapover(parent1, parent2):
     # Determine randomly the amount of locations to swap.
     k1, k2 = 0, 0
     if len(possible_locs1) > 0:
-        k1 = random.randint(1, len(possible_locs1) - 1)
+        k1 = random.randint(1, min(len(parent1), len(possible_locs1)))
     if len(possible_locs2) > 0:
-        k2 = random.randint(1, len(possible_locs2) - 1)
-
-    print("Swapping", k1, k2)
+        k2 = random.randint(1, min(len(parent2), len(possible_locs2)))
 
     # Indices that will be swapped
-    indices1 = np.random.choice(range(len(s1)), k1, replace=False)
-    indices2 = np.random.choice(range(len(s2)), k2, replace=False)
+    indices1 = np.random.choice(range(len(parent1)), k1, replace=False)
+    indices2 = np.random.choice(range(len(parent2)), k2, replace=False)
     child1, child2 = parent1[:], parent2[:]
 
     return swap_elements(child1, indices1, possible_locs1), \
         swap_elements(child2, indices2, possible_locs2)
-

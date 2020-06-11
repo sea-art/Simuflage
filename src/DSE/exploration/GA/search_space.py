@@ -1,9 +1,18 @@
+#!/usr/bin/env python
+
+""" SearchSpace object will provide the degrees of freedom required for the GA to get the
+context of what to explore.
+"""
+
 from design.mapping import all_possible_pos_mappings
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class SearchSpace:
     def __init__(self, capacities, applications, max_components, policies):
-        """ Describes the search space by describing all possible dimensions of freedom within the search space.
+        """ Defines the search space by describing all possible dimensions of freedom within the search space.
         The given values will be stored in this object to be easily utilize the degrees of freedom.
 
         :param capacities: list of floats - possible capacities for components

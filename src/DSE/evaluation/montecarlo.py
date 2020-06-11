@@ -26,12 +26,16 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs):
     :return: None
     """
     TTFs = []
+    consumptions = []
+
     sim = Simulator(designpoint)
 
     for i in range(iterations):
-        TTFs.append(sim.run_optimized()['ttf'])
+        ttf, consum = sim.run_optimized()
+        TTFs.append(ttf)
+        consumptions.append(consum)
 
-    outputs[dp_name] = sum(TTFs) / len(TTFs)
+    outputs[dp_name] = sum(TTFs) / len(TTFs), sum(consumptions) / len(consumptions)
 
 
 def monte_carlo_iterative(designpoints, iterations):
@@ -83,16 +87,16 @@ def monte_carlo_parallelized(designpoints, iterations):
     for j in jobs:
         j.join()
 
-    return dict(return_dict)
+    return return_dict
 
 
-def monte_carlo(designpoints, iterations=10000, parallelized=True):
+def monte_carlo(designpoints, iterations=1000, parallelized=True):
     """ Evaluation of the given design points via a Monte Carlo Simulation
 
     :param designpoints: [DesignPoint object] - List of designpoint objects (the candidates).
     :param iterations: number of MC iterations to run
     :param parallelized: Boolean - indicating if the results so be calculated in parallel
-    :return: Dict of MTTF data
+    :return: Dict mapping index of designpoint with corresponding evaluated values (as tuple)
     """
     if parallelized:
         return collections.OrderedDict(sorted(monte_carlo_parallelized(designpoints, iterations).items()))

@@ -26,8 +26,8 @@ def one_point_crossover(parent1, parent2):
     except ValueError:  # error thrown when max_idx = 1, solved by setting manually.
         point = 1
 
-    return np.append(parent1[:point], parent2[point:]), \
-        np.append(parent2[:point], parent1[point:])
+    return np.append(parent2[:point], parent1[point:]),\
+        np.append(parent1[:point], parent2[point:])
 
 
 def two_point_crossover(parent1, parent2):

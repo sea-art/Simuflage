@@ -109,4 +109,4 @@ class Simulator(AbsSimulator):
         ts = self._timesteps
         self.reset()
 
-        return {'ttf': ts, 'watt_usage': avg_watt_used}
+        return ts, avg_watt_used

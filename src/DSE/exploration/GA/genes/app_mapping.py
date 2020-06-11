@@ -13,9 +13,14 @@ class AppMapping:
         return str(self.app_mapping)
 
     def mutate(self, search_space):
-        idx = np.random.randint(len(self.app_mapping))
+        pass
+        # idx = np.random.randint(len(self.app_mapping))
+        #
+        # possible_comps = np.arange(len(search_space.capacities))
+        # possible_comps = possible_comps[possible_comps != self.app_mapping[idx][0]]
+        #
+        # self.app_mapping[idx] = (np.random.choice(possible_comps), self.app_mapping[idx][1])
 
-        possible_comps = np.arange(len(search_space.capacities))
-        possible_comps = possible_comps[possible_comps != self.app_mapping[idx][0]]
-
-        self.app_mapping[idx] = (np.random.choice(possible_comps), self.app_mapping[idx][1])
+    @staticmethod
+    def mate(parent1, parent2):
+        return parent1, parent2

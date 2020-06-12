@@ -49,16 +49,33 @@ def monte_carlo_iterative(designpoints, iterations):
                   "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
 
     TTFs = {i: [] for i in range(len(designpoints))}
+    consumptions = {i: [] for i in range(len(designpoints))}
+
     sims = [Simulator(d) for d in designpoints]
 
-    for a in range(iterations):
-        i = random.randint(0, len(designpoints) - 1)
-        TTFs[i].append(sims[i].run_optimized()['ttf'])
+    i_per_dp = iterations // len(designpoints)
+
+    print("total", iterations)
+    print("per", i_per_dp)
+    print("amount", len(designpoints))
+
+    for i in range(len(designpoints)):
+        for _ in range(i_per_dp):
+            i = random.randint(0, len(designpoints) - 1)
+            ttf, consum = sims[i].run_optimized()
+            TTFs[i].append(ttf)
+            consumptions[i].append(consum)
 
     for i in range(len(TTFs)):
         TTFs[i] = sum(TTFs[i]) / len(TTFs[i])
+        consumptions[i] = sum(consumptions[i]) / len(consumptions[i])
 
-    return TTFs
+    output = {i: [] for i in range(len(designpoints))}
+
+    for i in TTFs:
+        output[i] = (TTFs[i], consumptions[i])
+
+    return output
 
 
 def monte_carlo_parallelized(designpoints, iterations):

@@ -33,16 +33,6 @@ class Chromosome:
         self.genes = [components, floor_plan, app_mapping, policy]
         self.search_space = search_space
 
-        self.values = None
-
-    @property
-    def valid(self):
-        """ Verifies if the evaluation values of this Chromsome are valid
-
-        :return: Boolean - indicating if this chromosome has to be evaluated.
-        """
-        return self.values is not None
-
     def __repr__(self):
         """ String representation of a Chromosome.
 
@@ -51,13 +41,14 @@ class Chromosome:
         return "gene1: {}\ngene2: {}\ngene3: {}\ngene4: '{}'\n"\
             .format(self.genes[0], self.genes[1], self.genes[2], self.genes[3])
 
-    @classmethod
-    def create_random(cls, search_space):
+    @staticmethod
+    def create_random(container, search_space):
         """ Randomly creates a Chromosome (and thus design point).
 
         Randomly selects n components with random capacities and locations.
         Selects a random policy and randomly maps applications to the components.
 
+        :param container: Chromosome object or wrapper object
         :param search_space: SearchSpace object providing the degrees of freedom
         :return: Chromosome object.
         """
@@ -71,7 +62,7 @@ class Chromosome:
         # TODO: a) repair   b) death-penalty    c) other
         maps = [(np.random.randint(n_components), a) for a in range(search_space.n_apps)]
 
-        return Chromosome(Components(caps), FloorPlan(locs), AppMapping(maps), Policy(policy), search_space)
+        return container(Components(caps), FloorPlan(locs), AppMapping(maps), Policy(policy), search_space)
 
     def mutate(self):
         """ Mutate this Chromosome object.
@@ -90,7 +81,7 @@ class Chromosome:
             cluster.mutate(self.search_space)
 
     @staticmethod
-    def mate(parent1, parent2, search_space):
+    def mate(parent1, parent2, sesp):
         """ Crossover between two given parent (Chromosomes).
 
         :param parent1: Chromosome object
@@ -103,7 +94,9 @@ class Chromosome:
         a1, a2 = AppMapping.mate(parent1.genes[2], parent2.genes[2])
         p1, p2 = Policy.mate(parent1.genes[3], parent2.genes[3])
 
-        return Chromosome(c1, f1, a1, p1, search_space), Chromosome(c2, f2, a2, p2, search_space)
+        typ = type(parent1)
+
+        return typ(c1, f1, a1, p1, sesp), typ(c2, f2, a2, p2, sesp)
 
     def to_numpy(self):
         """ Create a DesignPoint object of this Chromosome and call the respective to_numpy function.

@@ -98,6 +98,12 @@ class Chromosome:
 
         return typ(c1, f1, a1, p1, sesp), typ(c2, f2, a2, p2, sesp)
 
+    def evaluate_size(self):
+        locs = self.genes[1].locations
+
+        return (max(locs, key=lambda t: t[1])[1] - min(locs, key=lambda t: t[1])[1] + 1) * \
+               (max(locs, key=lambda t: t[0])[0] - min(locs, key=lambda t: t[0])[0] + 1)
+
     def to_numpy(self):
         """ Create a DesignPoint object of this Chromosome and call the respective to_numpy function.
 

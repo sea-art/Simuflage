@@ -5,6 +5,7 @@
 import random
 import numpy as np
 from deap import creator, base, tools, algorithms
+from deap.tools import selBest
 
 from DSE.evaluation import monte_carlo
 from DSE.exploration.GA import Chromosome, SearchSpace
@@ -15,9 +16,9 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 CXPB = 0.5  # crossover probability
 MUTPB = 0.3  # mutation probability
 
-n_pop = 40
+n_pop = 100
 
-ref_points = tools.uniform_reference_points(2, n_pop)
+ref_points = tools.uniform_reference_points(3)
 
 
 class GA:
@@ -42,16 +43,17 @@ class GA:
 
         :return: ToolBox object
         """
-        creator.create("FitnessDSE", base.Fitness, weights=(1.0, -1.0,))
+        # weights indicates whether to maximize or minimize the objectives.
+        # Objectives are currently (MTTF, energy-consumption, size)
+        # So weights right now indicate: maximize MTTF, minimize consumption+size.
+        creator.create("FitnessDSE", base.Fitness, weights=(1.0, -1.0, -1.0))
         creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
 
         toolbox = base.Toolbox()
         toolbox.register("individual", Chromosome.create_random, creator.Individual, self.sesp)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        # toolbox.register("mate", Chromosome.mate)
-        # toolbox.register("mutate", Chromosome.mutate)
-        toolbox.register("select", tools.selNSGA3, ref_points=ref_points)
+        toolbox.register("select", tools.selNSGA3WithMemory(ref_points))
         toolbox.register("evaluate", self.evaluate)
 
         return toolbox
@@ -72,7 +74,7 @@ class GA:
 
         # results is a dict mapping index to tuple of n-values
         # e.g. {1: (102.7, 30.4), 2: (92,8, 60,2), ...}
-        results = monte_carlo(to_evaluate, iterations=200, parallelized=False)
+        results = monte_carlo(to_evaluate, iterations=500, parallelized=False)
 
         for i in results:
             to_evaluate[i].fitness.values = results[i]
@@ -96,10 +98,13 @@ class GA:
         :return: None
         """
         for c in offspring:
-            if random.random() < MUTPB:
-                c.mutate()
+            c.mutate()
 
     def select(self):
+        """ Selects the best individuals of a population + offspring via NSGA-3.
+
+        :return: population
+        """
         self.pop = self.tb.select(self.pop, n_pop)
 
     def next_generation(self):
@@ -127,7 +132,7 @@ def initialize_sesp():
     """
     capacities = np.array([40, 80, 150])
     applications = [5, 5, 10, 10]
-    max_components = 5
+    max_components = 10
     policies = np.array(['most', 'least', 'random'])
 
     return SearchSpace(capacities, applications, max_components, policies)
@@ -140,4 +145,11 @@ if __name__ == "__main__":
     for _ in range(30):
         ga.next_generation()
 
-        print(ga.pop)
+        print(ga.generation)
+
+    for c in ga.pop:
+        print(c, c.fitness.values)
+
+
+    # print(best)
+    # print(ga.pop)

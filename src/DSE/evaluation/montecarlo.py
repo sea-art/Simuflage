@@ -35,7 +35,7 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs):
         TTFs.append(ttf)
         consumptions.append(consum)
 
-    outputs[dp_name] = sum(TTFs) / len(TTFs), sum(consumptions) / len(consumptions)
+    outputs[dp_name] = sum(TTFs) / len(TTFs), sum(consumptions) / len(consumptions), designpoint.evaluate_size
 
 
 def monte_carlo_iterative(designpoints, iterations):
@@ -45,9 +45,6 @@ def monte_carlo_iterative(designpoints, iterations):
     :param iterations: number of MC iterations to run
     :return: [float] - List of MTTF corresponding indexwise to the design points.
     """
-    warnings.warn("Using the non-parallelized Monte Carlo evaluation. "
-                  "NOTE: it is advised use monte_carlo() with parallelized=True for significant better performance.")
-
     TTFs = {i: [] for i in range(len(designpoints))}
     consumptions = {i: [] for i in range(len(designpoints))}
 
@@ -55,13 +52,8 @@ def monte_carlo_iterative(designpoints, iterations):
 
     i_per_dp = iterations // len(designpoints)
 
-    print("total", iterations)
-    print("per", i_per_dp)
-    print("amount", len(designpoints))
-
     for i in range(len(designpoints)):
         for _ in range(i_per_dp):
-            i = random.randint(0, len(designpoints) - 1)
             ttf, consum = sims[i].run_optimized()
             TTFs[i].append(ttf)
             consumptions[i].append(consum)
@@ -73,7 +65,7 @@ def monte_carlo_iterative(designpoints, iterations):
     output = {i: [] for i in range(len(designpoints))}
 
     for i in TTFs:
-        output[i] = (TTFs[i], consumptions[i])
+        output[i] = (TTFs[i], consumptions[i], designpoints[i].evaluate_size())
 
     return output
 

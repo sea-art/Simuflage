@@ -21,7 +21,7 @@ class SearchSpace:
         :param policies - list of strings defining the possible policies
         """
         self.capacities = capacities
-        self.loc_choices = list(map(tuple, all_possible_pos_mappings(max_components)))
+        self.loc_choices = list(map(tuple, all_possible_pos_mappings(26)))
         self.max_components = max_components
 
         self.applications = applications

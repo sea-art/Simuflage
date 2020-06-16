@@ -148,7 +148,7 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
 
 
 def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
-    """ Single-objective MAB Gap-based Exploration with Variance.
+    """ Single-objective MAB Gap-based Exploration with Variance (GapE-V).
 
     :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
     :param a: degree of exploration (TODO: ?)
@@ -170,19 +170,19 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
     for t in range(len(simulators), nr_samples):
         sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True)]
 
-        i_star_up = sorted_indices[0]
+        i_star_up = sorted_indices[m]
         i_star_down = sorted_indices[m + 1]
 
         for i in sorted_indices[:m]:
             gap_d[i] = ui[i][1] - ui[i_star_down][1]
 
         for i in sorted_indices[m:]:
-            gap_d[i] = ui[i][1] - ui[i_star_up][1]
+            gap_d[i] = ui[i_star_up][1] - ui[i][1]
 
         for i in sorted_indices:
             indices[i] = -gap_d[i] + math.sqrt((2 * a * oi[i]) / T[i]) + (7 * a * b) / (3 * T[i])
 
-        j = indices.index(min(indices))
+        j = indices.index(max(indices))
         new_sample = simulators[j].run_optimized()[idx]
         prev_ui = ui[j][1]  # stores the current empiric mean
         ui[j] = (j, ui[j][1] + (new_sample - ui[j][1]) / T[j])
@@ -193,8 +193,57 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
     return list(zip([x[1] for x in ui], T))
 
 
-def mab_so_sar():
-    pass
+def n_k(k, n, D, log_d):
+    if k == 0:
+        return 0
+
+    return math.ceil((1 / log_d) * ((n - D) / (D + 1 - k)))
+
+
+def mab_so_sar(designpoints, m, nr_samples=1000, idx=0):
+    """ Single-objective MAB evaluation via Successive Accept Reject (SAR).
+
+    :return:
+    """
+    simulators = [Simulator(d) for d in designpoints]
+    D = len(designpoints)
+    A = [i for i in range(D)]
+    N = [0 for _ in range(D)]
+    ui = [(i, 0) for i in range(len(simulators))]  # empirical means
+    S = set()
+
+    LOG_D = 1 / 2 + sum([1 / i for i in range(2, D + 1)])
+    m_o = m
+
+    for k in range(1, D):
+        samples = int(n_k(k, nr_samples, D, LOG_D) - n_k(k-1, nr_samples, D, LOG_D))
+        for i in A:
+            for _ in range(samples):
+                new_sample = simulators[i].run_optimized()[idx]
+                N[i] += 1
+                ui[i] = (i, ui[i][1] + (new_sample - ui[i][1]) / N[i])
+
+        sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True) if i in A]
+
+        i_star_up = sorted_indices[m_o]
+        i_star_down = sorted_indices[m_o + 1]
+        gap_d = [0 for _ in range(D)]
+
+        for i in sorted_indices[:m_o]:
+            gap_d[i] = ui[i][1] - ui[i_star_down][1]
+
+        for i in sorted_indices[m_o:]:
+            gap_d[i] = ui[i_star_up][1] - ui[i][1]
+
+        j = gap_d.index(max(gap_d))
+
+        if j == sorted_indices[0]:
+            S.add(j)
+            m_o -= 1
+
+        A = [i for i in A if i != j]
+
+    return list(zip([x[1] for x in ui], N))
 
 
 def compare_mabs(designpoints, nr_samples=1000, idx=0, func=max):
@@ -202,12 +251,13 @@ def compare_mabs(designpoints, nr_samples=1000, idx=0, func=max):
                    mab_so_epsilon_greedy(designpoints, 0.1, nr_samples=nr_samples, idx=idx, func=func),
                    mab_so_ucb(designpoints, 1, nr_samples=nr_samples, idx=idx, func=func),
                    mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
-                   mab_so_gape_v(designpoints, 0.0000000000001, 1000000, 5, nr_samples=nr_samples, idx=idx),
+                   mab_so_gape_v(designpoints, 0.08, 1000000, 5, nr_samples=nr_samples, idx=idx),
+                   mab_so_sar(designpoints, 5, nr_samples=nr_samples, idx=idx),
                    [(x[0], nr_samples // len(designpoints)) for x in
                     monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()],
                    ))
 
-    labels = ["e-greedy:\t", "UCB:\t\t", "gradient:\t", "GapE-v\t\t", "MCS:\t\t"]
+    labels = ["e-greedy:\t", "UCB:\t\t", "gradient:\t", "GapE-v:\t\t", "SAR:\t\t", "MCS:\t\t"]
 
     for u in values:
         for i in range(len(labels)):

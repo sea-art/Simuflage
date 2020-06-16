@@ -108,6 +108,7 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
     variable can be used to specify which value should be used by the MAB (default=TTF).
 
     :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
+    :param step_size: step size of the algorithm TODO
     :param nr_samples: number of samples
     :param idx: index of simulator return value to use as objective
     :param func: function to select the best DesignPoint (should be max or min).
@@ -125,7 +126,6 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
     avg_reward = 0
 
     for t in range(1, nr_samples + 1):
-        # print(P)
         A = np.random.choice(k, 1, p=P)[0]
         N[A] += 1
         R = simulators[A].run_optimized()[idx]
@@ -141,11 +141,90 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
             if a != A:
                 H[a] -= step_size * (R - baseline) * P[a]
 
-        # print(H)
         aux_exp = np.exp(H)
         P = aux_exp / np.sum(aux_exp)
 
     return list(zip(qt, N))
+
+
+def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
+    """ Single-objective MAB Gap-based Exploration with Variance.
+
+    :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
+    :param a: degree of exploration (TODO: ?)
+    :param b: float - maximum expected value from samples
+    :param m: amount of designs to select
+    :param nr_samples: number of samples
+    :param idx: index of simulator return value to use as objective
+    :return: [(mean of samples, nr_samples)] - will return the mean of the sampled values
+                                               and the amount of samples taken for this dp.
+    """
+    simulators = [Simulator(dp) for dp in designpoints]
+    ui = [(i, simulators[i].run_optimized()[idx]) for i in range(len(simulators))]  # empirical means
+    oi = [0 for _ in range(len(simulators))]
+    T = [1 for _ in range(len(designpoints))]
+
+    gap_d = [0 for _ in range(len(designpoints))]
+    indices = [0 for _ in range(len(designpoints))]
+
+    for t in range(len(simulators), nr_samples):
+        sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True)]
+
+        i_star_up = sorted_indices[0]
+        i_star_down = sorted_indices[m + 1]
+
+        for i in sorted_indices[:m]:
+            gap_d[i] = ui[i][1] - ui[i_star_down][1]
+
+        for i in sorted_indices[m:]:
+            gap_d[i] = ui[i][1] - ui[i_star_up][1]
+
+        for i in sorted_indices:
+            indices[i] = -gap_d[i] + math.sqrt((2 * a * oi[i]) / T[i]) + (7 * a * b) / (3 * T[i])
+
+        j = indices.index(min(indices))
+        new_sample = simulators[j].run_optimized()[idx]
+        prev_ui = ui[j][1]  # stores the current empiric mean
+        ui[j] = (j, ui[j][1] + (new_sample - ui[j][1]) / T[j])
+        # iterative variance calculation for o_i
+        oi[j] += ((new_sample - prev_ui) * (new_sample - ui[j][1]) - oi[j]) / T[j]
+        T[j] += 1
+
+    return list(zip([x[1] for x in ui], T))
+
+
+def mab_so_sar():
+    pass
+
+
+def compare_mabs(designpoints, nr_samples=1000, idx=0, func=max):
+    values = list(zip(
+                   mab_so_epsilon_greedy(designpoints, 0.1, nr_samples=nr_samples, idx=idx, func=func),
+                   mab_so_ucb(designpoints, 1, nr_samples=nr_samples, idx=idx, func=func),
+                   mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
+                   mab_so_gape_v(designpoints, 0.0000000000001, 1000000, 5, nr_samples=nr_samples, idx=idx),
+                   [(x[0], nr_samples // len(designpoints)) for x in
+                    monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()],
+                   ))
+
+    labels = ["e-greedy:\t", "UCB:\t\t", "gradient:\t", "GapE-v\t\t", "MCS:\t\t"]
+
+    for u in values:
+        for i in range(len(labels)):
+            print(labels[i], round(u[i][0] / 100000, 2), int(u[i][1]))
+
+        print("")
+
+    vals = [[] for _ in labels]
+
+    for res in values:
+        for i in range(len(res)):
+            vals[i].append(res[i][0] * res[i][1])
+
+    for i in range(len(vals)):
+        vals[i] = sum(vals[i]) / 100000000
+
+    print(vals)
 
 ###################
 # MULTI OBJECTIVE #

@@ -6,6 +6,7 @@
 
 import random
 import math
+import numpy as np
 
 # from DSE import monte_carlo
 from src.DSE import monte_carlo
@@ -98,6 +99,53 @@ def mab_so_ucb(designpoints, c, nr_samples=10000, idx=0, func=max):
 
     return list(zip(qt, samples))
 
+
+def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
+    """ Single objective gradient bandits algorithm.
+
+    Will first explore all design points once and then only take Upper-Confidence-Bound actions.
+    Since the output of the simulator will have multiple values (multi-objective), the idx
+    variable can be used to specify which value should be used by the MAB (default=TTF).
+
+    :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
+    :param nr_samples: number of samples
+    :param idx: index of simulator return value to use as objective
+    :param func: function to select the best DesignPoint (should be max or min).
+    :return: [(mean of samples, nr_samples)] - will return the mean of the sampled values
+                                               and the amount of samples taken for this dp.
+    """
+    simulators = [Simulator(dp) for dp in designpoints]
+
+    k = len(designpoints)  # total amount of bandits
+    H = np.zeros(k)  # H from formula
+    P = np.ones(k) / k  # probability per index
+    N = np.zeros(k)  # amount of samples per index?
+    qt = np.zeros(k)
+
+    avg_reward = 0
+
+    for t in range(1, nr_samples + 1):
+        # print(P)
+        A = np.random.choice(k, 1, p=P)[0]
+        N[A] += 1
+        R = simulators[A].run_optimized()[idx]
+        qt[A] += (R - qt[A]) / N[A]
+        R /= 100000
+
+        avg_reward += (R - avg_reward) / t
+        baseline = avg_reward
+
+        H[A] += step_size * (R - baseline) * (1 - P[A])
+
+        for a in range(k):
+            if a != A:
+                H[a] -= step_size * (R - baseline) * P[a]
+
+        # print(H)
+        aux_exp = np.exp(H)
+        P = aux_exp / np.sum(aux_exp)
+
+    return list(zip(qt, N))
 
 ###################
 # MULTI OBJECTIVE #

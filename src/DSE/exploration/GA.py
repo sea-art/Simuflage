@@ -1,6 +1,19 @@
 #!/usr/bin/env python
 
-""" Contains methods to explore the design space exploration with genetic algrorithms."""
+""" Contains methods to explore the design space exploration with genetic algrorithms.
+
+TODO:
+maybe its possible to separate all the inputs for a design point and create GA methods/operators for each individual
+part. E.g.:
+    - application mapping can be a "sample" of the predefined list of possible application mappings maps with constraints (with Tool Decoration)
+    - capacities can be random selection of predefined list
+    - position can also be random selection of predefined list of all possible locations
+    - amount of components (maybe mutation might be to either add or remove 1 component ?)
+
+Functions can also call each other, so the latest "individual" function, can just call all other functions and create dp with data
+
+
+"""
 
 import random
 from copy import deepcopy, copy
@@ -169,7 +182,7 @@ def print_status(pop):
     print("  Std \t| %s \t| %s\n" % (int(std), std2))
 
 
-creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
+creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0, -1.0))
 creator.create("DesignPoint", DesignPoint, fitness=creator.FitnessMulti)
 
 toolbox = base.Toolbox()

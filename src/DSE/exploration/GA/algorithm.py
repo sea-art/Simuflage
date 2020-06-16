@@ -4,8 +4,8 @@
 
 import random
 import numpy as np
-from deap import creator, base, tools, algorithms
-from deap.tools import selBest
+from deap import creator, base, tools
+from deap.tools import selNSGA3
 
 from DSE.evaluation import monte_carlo
 from DSE.exploration.GA import Chromosome, SearchSpace
@@ -15,10 +15,9 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 CXPB = 0.5  # crossover probability
 MUTPB = 0.3  # mutation probability
+N_POP = 200
 
-n_pop = 100
-
-ref_points = tools.uniform_reference_points(3)
+REF_POINTS = tools.uniform_reference_points(3)
 
 
 class GA:
@@ -31,7 +30,7 @@ class GA:
         self.sesp = search_space
         self.tb = self._init_toolbox()
 
-        self.pop = self.tb.population(n_pop)
+        self.pop = self.tb.population(N_POP)
 
         self.generation = 0
 
@@ -53,7 +52,7 @@ class GA:
         toolbox.register("individual", Chromosome.create_random, creator.Individual, self.sesp)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        toolbox.register("select", tools.selNSGA3WithMemory(ref_points))
+        toolbox.register("select", tools.selNSGA3WithMemory(REF_POINTS))
         toolbox.register("evaluate", self.evaluate)
 
         return toolbox
@@ -74,7 +73,7 @@ class GA:
 
         # results is a dict mapping index to tuple of n-values
         # e.g. {1: (102.7, 30.4), 2: (92,8, 60,2), ...}
-        results = monte_carlo(to_evaluate, iterations=500, parallelized=False)
+        results = monte_carlo(to_evaluate, iterations=600, parallelized=False)
 
         for i in results:
             to_evaluate[i].fitness.values = results[i]
@@ -105,7 +104,7 @@ class GA:
 
         :return: population
         """
-        self.pop = self.tb.select(self.pop, n_pop)
+        self.pop = self.tb.select(self.pop, N_POP)
 
     def next_generation(self):
         """ Main loop per generation.
@@ -132,7 +131,7 @@ def initialize_sesp():
     """
     capacities = np.array([40, 80, 150])
     applications = [5, 5, 10, 10]
-    max_components = 10
+    max_components = 20
     policies = np.array(['most', 'least', 'random'])
 
     return SearchSpace(capacities, applications, max_components, policies)
@@ -140,16 +139,14 @@ def initialize_sesp():
 
 if __name__ == "__main__":
     sesp = initialize_sesp()
-    ga = GA(n_pop, sesp)
+    ga = GA(N_POP, sesp)
 
-    for _ in range(30):
+    for _ in range(100):
         ga.next_generation()
 
-        print(ga.generation)
+        print("Generation:", ga.generation)
 
-    for c in ga.pop:
-        print(c, c.fitness.values)
+    for x in selNSGA3(ga.pop, 5, REF_POINTS):
+        print(x, x.fitness.values)
 
-
-    # print(best)
-    # print(ga.pop)
+    # for c in ga.pop:)

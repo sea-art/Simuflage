@@ -17,6 +17,8 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 
+TOP_CANDIDATES = 5
+
 ####################
 # SINGLE OBJECTIVE #
 ####################
@@ -68,6 +70,8 @@ def mab_so_epsilon_greedy(designpoints, e, nr_samples=10000, idx=0, func=max):
         # Incremental implementation of MAB [Sutton & Barto(2011)].
         qt[a] += (new_sample - qt[a]) / samples[a]
 
+    print("Best e-greedy candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(len(qt)), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
+
     return list(zip(qt, samples))
 
 
@@ -96,6 +100,8 @@ def mab_so_ucb(designpoints, c, nr_samples=10000, idx=0, func=max):
         samples[a] += 1
         new_sample = simulators[a].run_optimized()[idx]
         qt[a] += (new_sample - qt[a]) / samples[a]
+
+    print("Best UCB candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(len(qt)), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
 
     return list(zip(qt, samples))
 
@@ -144,6 +150,8 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
         aux_exp = np.exp(H)
         P = aux_exp / np.sum(aux_exp)
 
+    print("Best Gradient candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(qt.size), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
+
     return list(zip(qt, N))
 
 
@@ -189,6 +197,8 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
         # iterative variance calculation for o_i
         oi[j] += ((new_sample - prev_ui) * (new_sample - ui[j][1]) - oi[j]) / T[j]
         T[j] += 1
+
+    print("Best GapE-V candidates:", sorted(set([i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
 
     return list(zip([x[1] for x in ui], T))
 
@@ -243,23 +253,31 @@ def mab_so_sar(designpoints, m, nr_samples=1000, idx=0):
 
         A = [i for i in A if i != j]
 
+    print("Best SAR candidates", sorted(S))
+
     return list(zip([x[1] for x in ui], N))
 
 
-def compare_mabs(designpoints, nr_samples=1000, idx=0, func=max):
+def compare_mabs(designpoints, nr_samples=2000, idx=0, func=max):
+
+    qt = monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()
+
     values = list(zip(
                    mab_so_epsilon_greedy(designpoints, 0.1, nr_samples=nr_samples, idx=idx, func=func),
-                   mab_so_ucb(designpoints, 1, nr_samples=nr_samples, idx=idx, func=func),
+                   mab_so_ucb(designpoints, 3, nr_samples=nr_samples, idx=idx, func=func),
                    mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
-                   mab_so_gape_v(designpoints, 0.08, 1000000, 5, nr_samples=nr_samples, idx=idx),
-                   mab_so_sar(designpoints, 5, nr_samples=nr_samples, idx=idx),
-                   [(x[0], nr_samples // len(designpoints)) for x in
-                    monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()],
+                   mab_so_gape_v(designpoints, 0.08, 1000000, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
+                   mab_so_sar(designpoints, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
+                   [(x[0], nr_samples // len(designpoints)) for x in qt],
                    ))
+
+    qt = monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()
+    print("Best MCS candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(len(qt)), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
 
     labels = ["e-greedy:\t", "UCB:\t\t", "gradient:\t", "GapE-v:\t\t", "SAR:\t\t", "MCS:\t\t"]
 
-    for u in values:
+    for i, u in enumerate(values):
+        print("Design point", i)
         for i in range(len(labels)):
             print(labels[i], round(u[i][0] / 100000, 2), int(u[i][1]))
 

@@ -119,7 +119,7 @@ class Components(SimulatorElement):
     @property
     def watt_usage(self):
         return np.sum(self.alive_components) * IDLE_WATT_USE + \
-               np.sum((self.workload * self.capacities)[self._alive_components])
+            np.sum((self.workload * self.capacities)[self._alive_components])
 
     def _index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.
@@ -171,14 +171,6 @@ class Components(SimulatorElement):
         self._alive_components[failed_components] = False
         self._capacities[failed_components] = 0
         self._power_uses[failed_components] = 0
-
-    # def _clean_app_map(self, failed_indices):
-    #     print("FAILED INDICES", failed_indices)
-    #     failed_coordinates = [z for z in map(self._index_to_pos, failed_indices)]
-    #
-    #     for y, x in failed_coordinates:
-    #         self._capacities[y, x] = 0
-    #         self._power_uses[y, x] = 0
 
     def _adjust_app_mapping(self, failed_indices):
         """ Removes all applications that are mapped to failed components and remaps them.

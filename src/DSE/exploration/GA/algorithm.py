@@ -175,7 +175,7 @@ def initialize_sesp():
 
 
 def main():
-    print("Starting GA with\npopulation:\t\t{}\ngenerations:\t{}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
+    print("Starting GA with\npopulation:\t{}\ngenerations:\t{}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
 
     sesp = initialize_sesp()
     ga = GA(N_POP, sesp, scalarized=SCALARIZED)

@@ -219,13 +219,12 @@ def compare_mabs(designpoints, nr_samples=2000, idx=0, func=max):
     qt = monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()
 
     values = list(zip(
-                   mab_so_epsilon_greedy(designpoints, 0.1, nr_samples=nr_samples, idx=idx, func=func),
-                   mab_so_ucb(designpoints, 3, nr_samples=nr_samples, idx=idx, func=func),
-                   mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
-                   mab_so_gape_v(designpoints, 0.08, 1000000, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
-                   mab_sar(designpoints, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
-                   [(x[0], nr_samples // len(designpoints)) for x in qt],
-                   ))
+                  mab_so_epsilon_greedy(designpoints, 0.1, nr_samples=nr_samples, idx=idx, func=func),
+                  mab_so_ucb(designpoints, 3, nr_samples=nr_samples, idx=idx, func=func),
+                  mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
+                  mab_so_gape_v(designpoints, 0.08, 1000000, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
+                  mab_sar(designpoints, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
+                  [(x[0], nr_samples // len(designpoints)) for x in qt]))
 
     qt = monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()
     print("Best MCS candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(len(qt)), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
@@ -347,7 +346,7 @@ def mab_sar(individuals, m, nr_samples=1000):
     m_o = m
 
     for k in range(1, D):
-        samples = int(n_k(k, nr_samples, D, LOG_D) - n_k(k-1, nr_samples, D, LOG_D))
+        samples = int(n_k(k, nr_samples, D, LOG_D) - n_k(k - 1, nr_samples, D, LOG_D))
         for i in A:
             for _ in range(samples):
                 new_sample = l_scale(list(simulators[i].run_optimized()) + [individuals[i].evaluate_size()],

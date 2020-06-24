@@ -4,7 +4,7 @@
 context of what to explore.
 """
 
-from design.mapping import all_possible_pos_mappings
+from design.mapping import all_possible_pos_mappings, first_fit, next_fit, best_fit, worst_fit
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
@@ -26,5 +26,6 @@ class SearchSpace:
 
         self.applications = applications
         self.n_apps = len(applications)
+        self.map_strats = [first_fit, next_fit, best_fit, worst_fit]
 
         self.policies = policies

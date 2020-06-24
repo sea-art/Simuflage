@@ -67,8 +67,13 @@ def application_mapping(components, tuple_mapping):
 # BIN-PACKING ALGORITHMS #
 ##########################
 class InvalidMappingError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+    def __init__(self, func_name):
+        """ Error/exception to be thrown when the algorithms can not fit
+        the given applications towards the given capacities.
+
+        :param func_name: str - function name to display within error
+        """
+        super().__init__("Applications can not be mapped via {} algorithm.".format(func_name))
 
 
 def next_fit(capacities, applications):
@@ -82,12 +87,13 @@ def next_fit(capacities, applications):
     :param applications: [float] - list of power requirements for applications.
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
-    bins = capacities[:]
+    bins = np.copy(capacities)
+
     active_bin = 0
     tup_mapping = []
 
     for i, app in enumerate(applications):
-        while active_bin < len(capacities):
+        while active_bin < len(bins):
             if app <= bins[active_bin]:
                 tup_mapping.append((active_bin, i))
                 bins[active_bin] -= app
@@ -96,7 +102,7 @@ def next_fit(capacities, applications):
             active_bin += 1
 
     if len(tup_mapping) != len(applications):
-        raise InvalidMappingError("Applications can not be mapped via {} algorithm.".format("next_fit"))
+        raise InvalidMappingError("next_fit")
 
     return tup_mapping
 
@@ -110,7 +116,7 @@ def first_fit(capacities, applications):
     :param applications: [float] - list of power requirements for applications.
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
-    bins = capacities[:]
+    bins = np.copy(capacities)
     tup_mapping = []
 
     for i, app in enumerate(applications):
@@ -121,12 +127,19 @@ def first_fit(capacities, applications):
                 break
 
     if len(tup_mapping) != len(applications):
-        raise InvalidMappingError("Applications can not be mapped via {} algorithm.".format("first_fit"))
+        raise InvalidMappingError("first_fit")
 
     return tup_mapping
 
 
-def _get_highest_idx(capacities, min_val, invert=False):
+def _get_highest_idx(bins, min_val, invert=False):
+    """ Find the index of the bin with the highest available capacity.
+
+    :param bins: [float] - list of float capacities
+    :param min_val: float - minimum required value for bin
+    :param invert: Will change function to finding the lowest idx.
+    :return: int - index
+    """
     best_i = sys.maxsize
 
     if not invert:
@@ -136,7 +149,7 @@ def _get_highest_idx(capacities, min_val, invert=False):
         base = sys.maxsize
         opp = operator.lt
 
-    for i, cap in enumerate(capacities):
+    for i, cap in enumerate(bins):
         if opp(cap, base) and cap >= min_val:
             base = cap
             best_i = i
@@ -154,7 +167,7 @@ def best_fit(capacities, applications, invert=False):
     :param invert: Changes best_fit algorithm to worst_fit
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
-    bins = capacities[:]
+    bins = np.copy(capacities)
     tup_mapping = []
 
     for i, app in enumerate(applications):
@@ -167,7 +180,7 @@ def best_fit(capacities, applications, invert=False):
         except IndexError:
             break
     if len(tup_mapping) != len(applications):
-        raise InvalidMappingError("Applications can not be mapped via {} algorithm.".format("best_fit"))
+        raise InvalidMappingError("best_fit")
 
     return tup_mapping
 
@@ -184,4 +197,4 @@ def worst_fit(capacities, applications):
     try:
         return best_fit(capacities, applications, invert=True)
     except InvalidMappingError:
-        raise InvalidMappingError("Applications can not be mapped via {} algorithm.".format("worst_fit"))
+        raise InvalidMappingError("worst_fit")

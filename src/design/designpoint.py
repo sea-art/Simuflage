@@ -7,13 +7,14 @@ A design point for an adaptive embedded system consists of:
 - A mapping indicating which Application is being executed by which Component
 - An adaptive policy on the occurrence of a Component failure.
 """
+from copy import deepcopy, copy
 
 import numpy as np
 import random
 
 from design import Application
 from design import Component
-from design.mapping import comp_to_loc_mapping, application_mapping, all_possible_pos_mappings
+from design.mapping import *
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
@@ -82,10 +83,11 @@ class DesignPoint:
         :return: DesignPoint object
         """
         choices = list(map(tuple, all_possible_pos_mappings(n)))
-        caps = np.random.randint(61, 200, n)
+        caps = list(np.random.randint(61, 200, n))
         locs = random.sample(choices, n)
-        apps = np.random.randint(10, 60, n)
-        maps = [(a, a) for a in range(n)]
+        apps = list(np.random.randint(10, 60, n))
+        map_func = random.choice([best_fit, worst_fit, first_fit, next_fit])
+        maps = map_func(caps, apps)
 
         policy = np.random.choice(["random", "most", "least"])
 
@@ -155,7 +157,7 @@ class DesignPoint:
 
         return grid
 
-    def calc_grid_size(self):
+    def evaluate_size(self):
         """ Get the actual size of the grid that is being used.
 
         Will calculate the size as if the components are translated to the origin.

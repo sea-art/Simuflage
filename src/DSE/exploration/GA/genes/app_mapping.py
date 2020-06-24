@@ -1,26 +1,58 @@
-import numpy as np
+#!/usr/bin/env python
+
+""" Provides all functionality of the chromosome aspects regarding the application mapping
+of a design point.
+
+Consists of a application mapping function, which will be used to actually create the app_mapping.
+"""
+
+import random
+
+__licence__ = "GPL-3.0-or-later"
+__copyright__ = "Copyright 2020 Siard Keulen"
+
+from design.mapping import InvalidMappingError
 
 
 class AppMapping:
-    def __init__(self, app_mapping):
+    def __init__(self, map_func):
+        """ Initialization of a genetic AppMapping object.
+
+        :param map_func: mapping function to be used to create the
+                         initial application mapping
         """
-        TODO: might change this list of tuples to actual string where index i means app i and value is comp_value.
-        :param app_mapping: list of tuples mapping components to applications based on index [(comp, app)]
-        """
-        self.app_mapping = app_mapping
+        self.map_func = map_func
 
     def __repr__(self):
-        return str(self.app_mapping)
+        """ String representation of a AppMapping object.
+
+        :return: string - representation of this object.
+        """
+        return str(self.map_func.__name__)
+
+    def is_valid(self, caps, apps):
+        try:
+            self.map_func(caps, apps)
+            return True
+        except InvalidMappingError:
+            return False
 
     def mutate(self, search_space):
-        pass
-        # idx = np.random.randint(len(self.app_mapping))
-        #
-        # possible_comps = np.arange(len(search_space.capacities))
-        # possible_comps = possible_comps[possible_comps != self.app_mapping[idx][0]]
-        #
-        # self.app_mapping[idx] = (np.random.choice(possible_comps), self.app_mapping[idx][1])
+        """ Mutate this AppMapping by altering its mapping strategy by replacing it
+        with a random other application mapping algorithm (as defined in the search_space).
+
+        :param search_space: SearchSpace object.
+        :return: None
+        """
+        self.map_func = random.choice(search_space.map_strats)
 
     @staticmethod
     def mate(parent1, parent2):
+        """ Uses the parents application mapping to determine the AppMapping
+        gene for the children
+
+        :param parent1: AppMapping (genetic) object
+        :param parent2: AppMapping (genetic) object
+        :return: AppMapping (genetic) child1, child2
+        """
         return parent1, parent2

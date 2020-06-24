@@ -11,6 +11,7 @@ Provides GA methods for chromosomes (e.g. mutation, crossover, selection)
 """
 
 from design import DesignPoint
+from design.mapping import InvalidMappingError
 from .genes import Components, FloorPlan, AppMapping, Policy
 
 import numpy as np
@@ -41,6 +42,17 @@ class Chromosome:
         return "gene1: {}\ngene2: {}\ngene3: {}\ngene4: '{}'\n"\
             .format(self.genes[0], self.genes[1], self.genes[2], self.genes[3])
 
+    def is_valid(self):
+        """ Determines whether this chromosome is valid.
+
+        Validation is determined via the capability of running
+        the applications on the components via the given app_mapping
+        algorithm.
+
+        :return: Boolean - indicating validity of Chromosome
+        """
+        return self.genes[2].is_valid(self.genes[0].values, self.search_space.applications)
+
     @staticmethod
     def create_random(container, search_space):
         """ Randomly creates a Chromosome (and thus design point).
@@ -48,21 +60,21 @@ class Chromosome:
         Randomly selects n components with random capacities and locations.
         Selects a random policy and randomly maps applications to the components.
 
-        :param container: Chromosome object or wrapper object
+        :param container: Chromosome object or wrapper object (required for DEAP)
         :param search_space: SearchSpace object providing the degrees of freedom
         :return: Chromosome object.
         """
-        n_components = np.random.randint(1, search_space.max_components + 1)
+        n_components = np.random.randint(2, search_space.max_components + 1)
 
         caps = np.random.choice(search_space.capacities, n_components)
         locs = random.sample(search_space.loc_choices, n_components)
         policy = np.random.choice(search_space.policies)
 
-        # TODO: Needs verification if maps is correct (and act upon invalid solutions)
-        # TODO: a) repair   b) death-penalty    c) other
-        maps = [(np.random.randint(n_components), a) for a in range(search_space.n_apps)]
+        mapping = random.choice(search_space.map_strats)
 
-        return container(Components(caps), FloorPlan(locs), AppMapping(maps), Policy(policy), search_space)
+        return container(Components(caps), FloorPlan(locs),
+                         AppMapping(mapping),
+                         Policy(policy), search_space)
 
     def mutate(self):
         """ Mutate this Chromosome object.
@@ -94,6 +106,8 @@ class Chromosome:
         a1, a2 = AppMapping.mate(parent1.genes[2], parent2.genes[2])
         p1, p2 = Policy.mate(parent1.genes[3], parent2.genes[3])
 
+        # Since DEAP uses wrapper objects, the children need to be
+        # of the same type.
         typ = type(parent1)
 
         return typ(c1, f1, a1, p1, sesp), typ(c2, f2, a2, p2, sesp)
@@ -112,7 +126,11 @@ class Chromosome:
         caps = self.genes[0].values
         locs = self.genes[1].locations
         apps = self.search_space.applications
-        maps = self.genes[2].app_mapping
+        try:
+            map_func = self.genes[2].map_func
+            app_map = map_func(caps, self.search_space.applications)
+        except InvalidMappingError:
+            raise InvalidMappingError("to_numpy")
         policy = self.genes[3].policy
 
-        return DesignPoint.create(caps, locs, apps, maps, policy=policy).to_numpy()
+        return DesignPoint.create(caps, locs, apps, app_map, policy=policy).to_numpy()

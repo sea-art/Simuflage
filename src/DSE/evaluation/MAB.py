@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 """ Contains all evaluation methods regarding the k-armed bandit problem.
 """
 
@@ -8,10 +7,9 @@ import random
 import math
 import numpy as np
 
-# from DSE import monte_carlo
 from deap.tools import sortNondominated
 
-from src.DSE import monte_carlo
+from DSE.evaluation import monte_carlo
 from simulation import Simulator
 
 
@@ -207,62 +205,17 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
     return list(zip([x[1] for x in ui], T))
 
 
-def n_k(k, n, D, log_d):
-    if k == 0:
-        return 0
-
-    return math.ceil((1 / log_d) * ((n - D) / (D + 1 - k)))
-
-
-def mab_so_sar(designpoints, m, nr_samples=1000, idx=0):
-    """ Single-objective MAB evaluation via Successive Accept Reject (SAR).
-
-    :return:
-    """
-    simulators = [Simulator(d) for d in designpoints]
-    D = len(designpoints)
-    A = [i for i in range(D)]
-    N = [0 for _ in range(D)]
-    ui = [(i, 0) for i in range(len(simulators))]  # empirical means
-    S = set()
-
-    LOG_D = 1 / 2 + sum([1 / i for i in range(2, D + 1)])
-    m_o = m
-
-    for k in range(1, D):
-        samples = int(n_k(k, nr_samples, D, LOG_D) - n_k(k-1, nr_samples, D, LOG_D))
-        for i in A:
-            for _ in range(samples):
-                new_sample = simulators[i].run_optimized()[idx]
-                N[i] += 1
-                ui[i] = (i, ui[i][1] + (new_sample - ui[i][1]) / N[i])
-
-        sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True) if i in A]
-
-        i_star_up = sorted_indices[m_o]
-        i_star_down = sorted_indices[m_o + 1]
-        gap_d = [0 for _ in range(D)]
-
-        for i in sorted_indices[:m_o]:
-            gap_d[i] = ui[i][1] - ui[i_star_down][1]
-
-        for i in sorted_indices[m_o:]:
-            gap_d[i] = ui[i_star_up][1] - ui[i][1]
-
-        j = gap_d.index(max(gap_d))
-
-        if j == sorted_indices[0]:
-            S.add(j)
-            m_o -= 1
-
-        A = [i for i in A if i != j]
-
-    print("Best SAR candidates", sorted(S))
-
-    return list(zip([x[1] for x in ui], N))
-
-
 def compare_mabs(designpoints, nr_samples=2000, idx=0, func=max):
+    """ Comparison function between different mab algorithms.
+
+    NOTE: for testing purposes only
+
+    :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
+    :param nr_samples: number of samples
+    :param idx: index of simulator return value to use as objective
+    :param func: function to select the best DesignPoint (should be max or min).
+    :return: None
+    """
     qt = monte_carlo(designpoints, iterations=nr_samples, parallelized=False).values()
 
     values = list(zip(
@@ -270,7 +223,7 @@ def compare_mabs(designpoints, nr_samples=2000, idx=0, func=max):
                    mab_so_ucb(designpoints, 3, nr_samples=nr_samples, idx=idx, func=func),
                    mab_so_gradient(designpoints, 0.1, nr_samples=nr_samples, idx=idx),
                    mab_so_gape_v(designpoints, 0.08, 1000000, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
-                   mab_so_sar(designpoints, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
+                   mab_sar(designpoints, TOP_CANDIDATES, nr_samples=nr_samples, idx=idx),
                    [(x[0], nr_samples // len(designpoints)) for x in qt],
                    ))
 
@@ -306,6 +259,14 @@ NR_OBJECTIVES = 3
 
 
 def add_confidence_interval(individuals, N, A_star_len, subtract=False):
+    """ Adds a confidence interval to the current fitness values of individuals
+
+    :param individuals: Individual (DEAP) object
+    :param N: {individual: sample_nr} - determines how many samples have been spent towards a individual
+    :param A_star_len: int - length of A_star as in Pareto_UCB1 algorithm
+    :param subtract: Boolean - reverses this function to subtract rather than add.
+    :return: None
+    """
     n = len(individuals)
     ci = [math.sqrt(2 * math.log(n * (NR_OBJECTIVES * A_star_len) ** (1 / 4)) / N[i]) for i in range(n)]
 
@@ -318,14 +279,13 @@ def add_confidence_interval(individuals, N, A_star_len, subtract=False):
 
 
 def pareto_ucb1(individuals, k, nr_samples=500):
-    """ Implementation of the pareto UCB1 pseudocode [Drugan&Nowe(2013)]
+    """ Implementation of the pareto Upper-Confidence-Bound1 (pareto UCB1) pseudocode [Drugan&Nowe(2013)]
 
     :param individuals: individuals provided by the ga (must have fitness attributes)
     :param k: The number of individuals to select.
     :return: [(mean of samples, nr_samples)] - will return the mean of the sampled values
                                                and the amount of samples taken for this dp.
-
-    :return:
+    :return: [(idx, sampled_value)]
     """
     n = len(individuals)
     simulators = {individuals[i]: Simulator(individuals[i]) for i in range(n)}
@@ -359,3 +319,77 @@ def pareto_ucb1(individuals, k, nr_samples=500):
                             old_size)
 
     return list(zip([i.fitness.values for i in individuals], list(N.values())))
+
+
+def n_k(k, n, D, log_d):
+    if k == 0:
+        return 0
+
+    return math.ceil((1 / log_d) * ((n - D) / (D + 1 - k)))
+
+
+def mab_sar(individuals, m, nr_samples=1000):
+    """ Scalarized multi-objective MAB evaluation via Successive Accept Reject (SAR).
+
+    :param individuals: individuals provided by the ga (must have fitness attributes)
+    :param m: int - length of best-arm set
+    :param nr_samples: int - amount of samples
+    :return: [(idx, sampled_value)]
+    """
+    simulators = [Simulator(d) for d in individuals]
+    D = len(individuals)
+    A = [i for i in range(D)]
+    N = [0 for _ in range(D)]
+    ui = [(i, 0) for i in range(len(simulators))]  # empirical means
+    S = set()
+
+    LOG_D = 1 / 2 + sum([1 / i for i in range(2, D + 1)])
+    m_o = m
+
+    for k in range(1, D):
+        samples = int(n_k(k, nr_samples, D, LOG_D) - n_k(k-1, nr_samples, D, LOG_D))
+        for i in A:
+            for _ in range(samples):
+                new_sample = l_scale(list(simulators[i].run_optimized()) + [individuals[i].evaluate_size()],
+                                     weights=(1, -1, -1))
+                N[i] += 1
+                ui[i] = (i, ui[i][1] + (new_sample - ui[i][1]) / N[i])
+
+        sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True) if i in A]
+
+        i_star_up = sorted_indices[m_o]
+        i_star_down = sorted_indices[m_o + 1]
+        gap_d = [0 for _ in range(D)]
+
+        for i in sorted_indices[:m_o]:
+            gap_d[i] = ui[i][1] - ui[i_star_down][1]
+
+        for i in sorted_indices[m_o:]:
+            gap_d[i] = ui[i_star_up][1] - ui[i][1]
+
+        j = gap_d.index(max(gap_d))
+
+        if j == sorted_indices[0]:
+            S.add(j)
+            m_o -= 1
+
+        A = [i for i in A if i != j]
+
+    return ui
+
+
+def l_scale(values, weights):
+    """ Lineairly scalarizes the evaluation of a design point
+
+    :param values: tuple of 3 elements (floats)
+    :param weights: [float] - weights used for the scalarization
+    :return: float - transferred multi-objective sampled values to a single value
+    """
+    mttf, usage, size = tuple(values)
+
+    # Normalization by dividing via the mean (of 50000 random design points)
+    mttf /= 429320.87498
+    usage /= 235.9094298110201
+    size /= 30.2112
+
+    return mttf * weights[0] + usage * weights[1] + size * weights[2]

@@ -35,7 +35,7 @@ class Component:
 
         :return: string - representation of this Component object
         """
-        return "comp: " + str(self._capacity) + "->" + str(self._loc)
+        return "comp: " + str(self._capacity)
 
     @property
     def max_temp(self):

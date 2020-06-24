@@ -10,6 +10,7 @@ such as
 - selection
 """
 
+import random
 import numpy as np
 
 from DSE.exploration.GA.operators import one_point_crossover
@@ -22,7 +23,7 @@ class Components:
     def __init__(self, capacities):
         """ Initialization of a genetic component capacity object.
 
-        :param capacities: list of integers representing the capacities of components/
+        :param capacities: int numpy array representing the capacities of components
         """
         self.values = capacities
 
@@ -33,20 +34,35 @@ class Components:
         """
         return str(self.values)
 
+    def __len__(self):
+        return len(self.values)
+
     def mutate(self, search_space):
         """ Mutate this Components genetic object.
 
-        Will randomly replace the capacity of a single component with a different capacity
+        Will do either one of two things:
+        1) remove or add a random component
+        2) Will randomly replace the capacity of a single component with a different capacity
         out of all possible capacities from the search space.
 
         :param search_space: SearchSpace object
         :return: None
         """
-        # This index (idx) will be mutated by randomly selecting another component
-        idx = np.random.randint(len(self.values))
+        add_or_change = bool(random.getrandbits(1))
 
-        possible_values = search_space.capacities[search_space.capacities != self.values[idx]]
-        self.values[idx] = np.random.choice(possible_values)
+        if add_or_change:  # will add/remove component
+            add_component = bool(random.getrandbits(1))
+
+            if add_component or len(self.values) == 1:
+                self.values = np.append(self.values, np.random.choice(search_space.capacities))
+            else:
+                self.values = np.delete(self.values, np.random.randint(0, len(self.values)))
+
+        else:  # will change the capacity of a component
+            idx = np.random.randint(0, len(self.values))
+
+            possible_values = search_space.capacities[search_space.capacities != self.values[idx]]
+            self.values[idx] = np.random.choice(possible_values)
 
     @staticmethod
     def mate(parent1, parent2):

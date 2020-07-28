@@ -95,10 +95,17 @@ def update_empirical_mean(vector, ui, N):
 
 
 def esSR(individuals, S, n):
-    """
+    """ Efficient Scalarized Succesive Reject multi-armed bandit algorithm.
+    Algorithm2 as presented in [Drugan & Nowe (2014)].
+
+    Samples a list of individual design points in phases and will reject a design point
+    per phase with multiple scalarization functions (S).
+    At the end only one design point will remain, which is considered the best arm.
+
     :param individuals: list of design points
     :param S: list of scalarized functions
     :param n: total number of samples
+    :return:
     """
     K = len(individuals)
     A = [i for i in range(K)]  # Contains all active bandits
@@ -131,6 +138,23 @@ def esSR(individuals, S, n):
 
     print("Accepted:", A)
     return list(zip(ui, N))
+
+
+def sSAR(individuals, p, S, n):
+    """
+
+    :param individuals: list of design points
+    :param p: number of individuals to select
+    :param S: list of scalarized functions
+    :param n: total number of samples
+    :return:
+    """
+    K = len(individuals)
+    sims = [Simulator(i) for i in individuals]
+    A_all = [[i for i in range(K)] for _ in range(len(S))]  # Contains bandits for each scalarization function
+    A = [i for i in range(K)]  # Contains all active bandits
+    N = [0 for _ in range(K)]  # Number of samples per bandit
+    ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector
 
 
 def linear_scalarize(vector, weights):

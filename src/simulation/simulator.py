@@ -109,4 +109,5 @@ class Simulator(AbsSimulator):
         ts = self._timesteps
         self.reset()
 
-        return ts, avg_watt_used
+
+        return ts, avg_watt_used, self._integrator.grid_size

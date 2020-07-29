@@ -47,6 +47,7 @@ class Integrator(AbsSimulator):
         """
         data = design_point.to_numpy()
 
+        self.grid_size = design_point.evaluate_size()
         self._total_watt_used = 0
 
         # Simulation variables

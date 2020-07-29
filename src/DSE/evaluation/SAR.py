@@ -3,10 +3,10 @@ import math
 from design import DesignPoint
 from simulation import Simulator
 
-NR_OBJECTIVES = 2
+NR_OBJECTIVES = 3
 
 
-def l_scale(values, weights=(1, 1)):
+def normalize(values):
     """ Lineairly scalarizes the evaluation of a design point
 
     :param values: tuple of 3 elements (floats)
@@ -20,7 +20,7 @@ def l_scale(values, weights=(1, 1)):
     usage /= 235.9094298110201
     size /= 30.2112
 
-    return mttf * weights[0] + usage * weights[1] + size * weights[2]
+    return mttf, usage, size
 
 
 def f_n_k(k, n, D):
@@ -151,46 +151,42 @@ def sSAR(individuals, p, S, n):
     :param n: total number of samples
     :return:
     """
-    accepted_arms = set()
-    K = len(individuals)
-    sims = [Simulator(i) for i in individuals]
+    accepted_arms = [set() for _ in range(len(S))]
+    K = len(individuals)  # Number of rounds
+    sims = [Simulator(i) for i in individuals]  # Simulators per individual
     A_all = [[i for i in range(K)] for _ in range(len(S))]  # Contains bandits for each scalarization function
-    A = [i for i in range(K)]
+    A = [i for i in range(K)]  # Total active arms
+    P_i = [p for _ in range(len(S))]
 
-    N = [0 for _ in range(K)]  # Number of samples per bandit
+    N = [0 for _ in range(K)]  # Number of samples per individual
     ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector
 
     n_k = 0
     LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
 
     for k in range(1, K):
+        print("PHASE", k)
         n_k_prev = n_k
         n_k = math.ceil(1 / LOG_K * (n - K) / (K + 1 - k))
-        samples = int(n_k - n_k_prev)  # Number of samples per phase
+        samples = int(n_k - n_k_prev)  # Number of samples per individual in this phase
 
         for i in A:  # for all active bandits
             for _ in range(samples):  # Sample each bandit and update empirical vector
                 N[i] += 1
-                ui[i] = update_empirical_mean(sims[i].run_optimized(), ui[i], N[i])
-
-        temp_accepted_arms = set()
+                reward_vector = sims[i].run_optimized()
+                ui[i] = update_empirical_mean(normalize(reward_vector), ui[i], N[i])
 
         for i in range(len(S)):
-            max_gap_idx, accepted = delta_pk_ij(ui, A, S[i], p - len(accepted_arms))
+            max_gap_idx, accepted = delta_pk_ij(ui, A_all[i], S[i], P_i[i] - len(accepted_arms[i]))
             A_all[i].remove(max_gap_idx)
 
             if accepted:  # Store the arms that are accepted by a function for this round
-                temp_accepted_arms.add(max_gap_idx)
-
-        for a in temp_accepted_arms:  # Accept the accepted arms
-            # accepted_arms.add(individuals[a])
-            accepted_arms.add(a)
-            A.remove(a)
+                accepted_arms[i].add(max_gap_idx)
 
         # Updates A to only include any arm that has not yet been removed by an F_j
-        A = list(set(A).intersection(set().union(*A_all)))
+        A = set().union(*A_all)
 
-    return accepted_arms, list(zip(ui, N))
+    return accepted_arms, list(zip(N, ui))
 
 
 def delta_pk_ij(ui, A, f_p, p):
@@ -226,12 +222,12 @@ def linear_scalarize(vector, weights):
 
 
 if __name__ == "__main__":
-    individuals = [DesignPoint.create_random(2) for _ in range(10)]
+    individuals = [DesignPoint.create_random(3) for _ in range(10)]
 
-    S = [lambda vec: linear_scalarize(vec, weights=(0.5, 0.5)),
-         lambda vec: linear_scalarize(vec, weights=(0.25, 0.75)),
-         lambda vec: linear_scalarize(vec, weights=(0.75, 0.25))]
+    S = [lambda vec: linear_scalarize(vec, weights=(0.333, 0.333, 0.333)),
+         lambda vec: linear_scalarize(vec, weights=(0.25, 0.50, 0.25)),
+         lambda vec: linear_scalarize(vec, weights=(0.1, 0.1, 0.8))]
 
     ui = sSAR(individuals, 5, S, 1000)
 
-    print(ui[0],"\n",ui[1])
+    print(ui[0], "\n", ui[1])

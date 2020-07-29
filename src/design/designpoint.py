@@ -166,8 +166,8 @@ class DesignPoint:
         :return: int (the size of the grid)
         """
         return \
-            (np.max(self._comp_loc_map['y']) - np.min(self._comp_loc_map['y'])) * \
-            (np.max(self._comp_loc_map['x']) - np.min(self._comp_loc_map['x']))
+            (np.max(self._comp_loc_map['y']) - np.min(self._comp_loc_map['y']) + 1) * \
+            (np.max(self._comp_loc_map['x']) - np.min(self._comp_loc_map['x']) + 1)
 
     def to_numpy(self):
         """Return the elements of a designpoint as numpy arrays.

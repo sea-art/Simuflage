@@ -1,8 +1,9 @@
 
-from deap.tools import sortNondominated
+from deap.tools import sortNondominated, selNSGA2
 import math
 import numpy as np
 
+from DSE.evaluation.SAR import normalize
 from simulation import Simulator
 
 NR_OBJECTIVES = 3
@@ -18,7 +19,8 @@ def add_confidence_interval(individuals, N, A_star_len, subtract=False):
     :return: None
     """
     n = len(individuals)
-    ci = [math.sqrt(2 * math.log(n * (NR_OBJECTIVES * A_star_len) ** (1 / 4)) / N[i]) for i in range(n)]
+    ci = [math.sqrt(2 * math.log(sum(N) * (NR_OBJECTIVES * A_star_len) ** (1 / 4)) / N[i]) for i in range(n)]
+    print("ci", list(zip(range(1, len(individuals)), ci)))
 
     for i in range(n):
         a, b, c = individuals[i].fitness.values
@@ -43,17 +45,22 @@ def pareto_ucb1(individuals, k, nr_samples=500):
 
     # individual fitness values are empirical means
     for i, indiv in enumerate(individuals):
-        mttf, pow_usage = simulators[indiv].run_optimized()
-        size = individuals[i].evaluate_size()
+        mttf, pow_usage, size = normalize(simulators[indiv].run_optimized())
+        # size = individuals[i].evaluate_size()
         individuals[i].fitness.values = (mttf, pow_usage, size)
 
     samples = len(individuals)
 
     while samples < nr_samples:
+        # print("samples", samples)
         A_star = sortNondominated(individuals, k, first_front_only=True)[0]
+        # A_star = selNSGA2(individuals, k)
         add_confidence_interval(individuals, list(N.values()), len(A_star))
 
         A_p = sortNondominated(individuals, k, first_front_only=True)[0]
+        # A_p = selNSGA2(individuals, k)
+        print(len(A_star), len(A_p))
+
         add_confidence_interval(individuals, list(N.values()), len(A_star), subtract=True)
 
         a = np.random.choice(A_p)
@@ -62,10 +69,10 @@ def pareto_ucb1(individuals, k, nr_samples=500):
         samples += 1
 
         old_mttf, old_usage, old_size = a.fitness.values
-        mttf, usage = simulators[a].run_optimized()
+        mttf, usage, size = normalize(simulators[a].run_optimized())
 
         a.fitness.values = (old_mttf + (mttf - old_mttf) / N[a],
                             old_usage + (usage - old_usage) / N[a],
-                            old_size)
+                            size)
 
-    return list(zip([i.fitness.values for i in individuals], list(N.values())))
+    return list(zip(range(1, len(individuals) + 1), [i.fitness.values for i in individuals], list(N.values())))

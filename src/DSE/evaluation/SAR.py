@@ -1,5 +1,7 @@
 import math
 
+from deap.tools import sortNondominated
+
 from design import DesignPoint
 from simulation import Simulator
 
@@ -142,51 +144,8 @@ def esSR(individuals, S, n):
     return list(zip(ui, N))
 
 
-def sSAR(individuals, p, S, n):
-    """
-
-    :param individuals: list of design points
-    :param p: number of individuals to select
-    :param S: list of scalarized functions
-    :param n: total number of samples
-    :return:
-    """
-    accepted_arms = [set() for _ in range(len(S))]
-    K = len(individuals)  # Number of rounds
-    sims = [Simulator(i) for i in individuals]  # Simulators per individual
-    A_all = [[i for i in range(K)] for _ in range(len(S))]  # Contains bandits for each scalarization function
-    A = [i for i in range(K)]  # Total active arms
-    P_i = [p for _ in range(len(S))]
-
-    N = [0 for _ in range(K)]  # Number of samples per individual
-    ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector
-
-    n_k = 0
-    LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
-
-    for k in range(1, K):
-        print("PHASE", k)
-        n_k_prev = n_k
-        n_k = math.ceil(1 / LOG_K * (n - K) / (K + 1 - k))
-        samples = int(n_k - n_k_prev)  # Number of samples per individual in this phase
-
-        for i in A:  # for all active bandits
-            for _ in range(samples):  # Sample each bandit and update empirical vector
-                N[i] += 1
-                reward_vector = sims[i].run_optimized()
-                ui[i] = update_empirical_mean(normalize(reward_vector), ui[i], N[i])
-
-        for i in range(len(S)):
-            max_gap_idx, accepted = delta_pk_ij(ui, A_all[i], S[i], P_i[i] - len(accepted_arms[i]))
-            A_all[i].remove(max_gap_idx)
-
-            if accepted:  # Store the arms that are accepted by a function for this round
-                accepted_arms[i].add(max_gap_idx)
-
-        # Updates A to only include any arm that has not yet been removed by an F_j
-        A = set().union(*A_all)
-
-    return accepted_arms, list(zip(N, ui))
+def linear_scalarize(vector, weights):
+    return sum([vector[i] * weights[i] for i in range(len(vector))])
 
 
 def delta_pk_ij(ui, A, f_p, p):
@@ -217,8 +176,50 @@ def delta_pk_ij(ui, A, f_p, p):
     return j, j == sorted_indices[0]
 
 
-def linear_scalarize(vector, weights):
-    return sum([vector[i] * weights[i] for i in range(len(vector))])
+def sSAR(individuals, p, S, n):
+    """
+
+    :param individuals: list of design points
+    :param p: number of individuals to select
+    :param S: list of scalarized functions
+    :param n: total number of samples
+    :return:
+    """
+    accepted_arms = [set() for _ in range(len(S))]
+    K = len(individuals)  # Number of rounds
+    sims = [Simulator(i) for i in individuals]  # Simulators per individual
+    A_all = [[i for i in range(K)] for _ in range(len(S))]  # Contains bandits for each scalarization function
+    A = [i for i in range(K)]  # Total active arms
+    P_i = [p for _ in range(len(S))]
+
+    N = [0 for _ in range(K)]  # Number of samples per individual
+    ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector
+
+    n_k = 0
+    LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
+
+    for k in range(1, K):
+        n_k_prev = n_k
+        n_k = math.ceil(1 / LOG_K * (n - K) / (K + 1 - k))
+        samples = int(n_k - n_k_prev)  # Number of samples per individual in this phase
+
+        for i in A:  # for all active bandits
+            for _ in range(samples):  # Sample each bandit and update empirical vector
+                N[i] += 1
+                reward_vector = sims[i].run_optimized()
+                ui[i] = update_empirical_mean(normalize(reward_vector), ui[i], N[i])
+
+        for i in range(len(S)):
+            max_gap_idx, accepted = delta_pk_ij(ui, A_all[i], S[i], P_i[i] - len(accepted_arms[i]))
+            A_all[i].remove(max_gap_idx)
+
+            if accepted:  # Store the arms that are accepted by a function for this round
+                accepted_arms[i].add(max_gap_idx)
+
+        # Updates A to only include any arm that has not yet been removed by an F_j
+        A = set().union(*A_all)
+
+    return set.union(*accepted_arms), list(zip(N, ui))
 
 
 if __name__ == "__main__":
@@ -228,6 +229,6 @@ if __name__ == "__main__":
          lambda vec: linear_scalarize(vec, weights=(0.25, 0.50, 0.25)),
          lambda vec: linear_scalarize(vec, weights=(0.1, 0.1, 0.8))]
 
-    ui = sSAR(individuals, 5, S, 1000)
+    accepted_arms, ui = sSAR(individuals, 5, S, 1000)
 
-    print(ui[0], "\n", ui[1])
+    print(accepted_arms, "\n", ui)

@@ -8,7 +8,7 @@ from simulation import Simulator
 NR_OBJECTIVES = 3
 
 
-def normalize(values):
+def normalize(values, invert=False):
     """ Lineairly scalarizes the evaluation of a design point
 
     :param values: tuple of 3 elements (floats)
@@ -17,10 +17,15 @@ def normalize(values):
     """
     mttf, usage, size = tuple(values)
 
+    if not invert:
     # Normalization by dividing via the mean (of 50000 random design points)
-    mttf /= 429320.87498
-    usage /= 235.9094298110201
-    size /= 30.2112
+        mttf /= 429320.87498
+        usage /= 235.9094298110201
+        size /= 30.2112
+    else:
+        mttf *= 429320.87498
+        usage *= 235.9094298110201
+        size *= 30.2112
 
     return mttf, usage, size
 
@@ -177,13 +182,13 @@ def delta_pk_ij(ui, A, f_p, p):
 
 
 def sSAR(individuals, p, S, n):
-    """
+    """ Scalarized SAR implementation as presented in algorithm 3 of [Drugan&Nowe2014]
 
     :param individuals: list of design points
     :param p: number of individuals to select
     :param S: list of scalarized functions
     :param n: total number of samples
-    :return:
+    :return: Set of selected candidates
     """
     accepted_arms = [set() for _ in range(len(S))]
     K = len(individuals)  # Number of rounds
@@ -219,7 +224,7 @@ def sSAR(individuals, p, S, n):
         # Updates A to only include any arm that has not yet been removed by an F_j
         A = set().union(*A_all)
 
-    return set.union(*accepted_arms), list(zip(N, ui))
+    return set.union(*accepted_arms), ui, N
 
 
 if __name__ == "__main__":
@@ -229,6 +234,6 @@ if __name__ == "__main__":
          lambda vec: linear_scalarize(vec, weights=(0.25, 0.50, 0.25)),
          lambda vec: linear_scalarize(vec, weights=(0.1, 0.1, 0.8))]
 
-    accepted_arms, ui = sSAR(individuals, 5, S, 1000)
+    accepted_arms, ui, N = sSAR(individuals, 5, S, 1000)
 
     print(accepted_arms, "\n", ui)

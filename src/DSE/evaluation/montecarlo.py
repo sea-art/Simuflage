@@ -31,11 +31,11 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs):
     sim = Simulator(designpoint)
 
     for i in range(iterations):
-        ttf, consum = sim.run_optimized()
+        ttf, consum, size = sim.run_optimized()
         TTFs.append(ttf)
         consumptions.append(consum)
 
-    outputs[dp_name] = sum(TTFs) / len(TTFs), sum(consumptions) / len(consumptions), designpoint.evaluate_size
+    outputs[dp_name] = sum(TTFs) / len(TTFs), sum(consumptions) / len(consumptions), size
 
 
 def monte_carlo_iterative(designpoints, iterations):
@@ -54,7 +54,7 @@ def monte_carlo_iterative(designpoints, iterations):
 
     for i in range(len(designpoints)):
         for _ in range(i_per_dp):
-            ttf, consum = sims[i].run_optimized()
+            ttf, consum, size = sims[i].run_optimized()
             TTFs[i].append(ttf)
             consumptions[i].append(consum)
 

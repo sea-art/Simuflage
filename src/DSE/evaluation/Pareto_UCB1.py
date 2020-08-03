@@ -3,7 +3,7 @@ from deap.tools import sortNondominated, selNSGA2
 import math
 import numpy as np
 
-from DSE.evaluation.SAR import normalize
+from DSE.evaluation.SAR import normalize, update_empirical_mean
 from simulation import Simulator
 
 NR_OBJECTIVES = 3
@@ -20,7 +20,6 @@ def add_confidence_interval(individuals, N, A_star_len, subtract=False):
     """
     n = len(individuals)
     ci = [math.sqrt(2 * math.log(sum(N) * (NR_OBJECTIVES * A_star_len) ** (1 / 4)) / N[i]) for i in range(n)]
-    print("ci", list(zip(range(1, len(individuals)), ci)))
 
     for i in range(n):
         a, b, c = individuals[i].fitness.values
@@ -41,26 +40,27 @@ def pareto_ucb1(individuals, k, nr_samples=500):
     """
     n = len(individuals)
     simulators = {individuals[i]: Simulator(individuals[i]) for i in range(n)}
+
+    # Samples per individual
     N = {individuals[i]: 1 for i in range(n)}
+
+    # Empirical mean vector per individual
+    ui = {individuals[i]: list(normalize(simulators[individuals[i]].run_optimized())) for i in range(n)}
 
     # individual fitness values are empirical means
     for i, indiv in enumerate(individuals):
         mttf, pow_usage, size = normalize(simulators[indiv].run_optimized())
-        # size = individuals[i].evaluate_size()
         individuals[i].fitness.values = (mttf, pow_usage, size)
 
     samples = len(individuals)
 
     while samples < nr_samples:
-        # print("samples", samples)
         A_star = sortNondominated(individuals, k, first_front_only=True)[0]
-        # A_star = selNSGA2(individuals, k)
+        # Adds confidence interval
         add_confidence_interval(individuals, list(N.values()), len(A_star))
 
         A_p = sortNondominated(individuals, k, first_front_only=True)[0]
-        # A_p = selNSGA2(individuals, k)
-        print(len(A_star), len(A_p))
-
+        # Removes confidence interval
         add_confidence_interval(individuals, list(N.values()), len(A_star), subtract=True)
 
         a = np.random.choice(A_p)
@@ -68,11 +68,6 @@ def pareto_ucb1(individuals, k, nr_samples=500):
         N[a] += 1
         samples += 1
 
-        old_mttf, old_usage, old_size = a.fitness.values
-        mttf, usage, size = normalize(simulators[a].run_optimized())
+        ui[a] = update_empirical_mean(simulators[a].run_optimized(), ui[a], N[a])
 
-        a.fitness.values = (old_mttf + (mttf - old_mttf) / N[a],
-                            old_usage + (usage - old_usage) / N[a],
-                            size)
-
-    return list(zip(range(1, len(individuals) + 1), [i.fitness.values for i in individuals], list(N.values())))
+    return [ui[individuals[i]] for i in range(n)], [N[individuals[i]] for i in range(n)]

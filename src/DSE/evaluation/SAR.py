@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 from deap.tools import sortNondominated
 
 from design import DesignPoint
@@ -129,6 +129,7 @@ def esSR(individuals, S, n):
     for k in range(1, K):
         n_k_prev = n_k
         n_k = math.ceil(1 / LOG_K * (n - K) / (K + 1 - k))
+
         samples = int(n_k - n_k_prev)  # Number of samples per phase
 
         for i in A:  # for all active bandits
@@ -162,18 +163,20 @@ def delta_pk_ij(ui, A, f_p, p):
     @param p: how many arms to still accept
     @return:
     """
-    ui = [(i, f_p(ui[i])) for i in range(len(ui))]
-    sorted_indices = [i for (i, val) in sorted(ui, key=lambda x: x[1], reverse=True) if i in A]
+    t_ui = [(i, f_p(ui[i])) for i in range(len(ui))]
+    sorted_indices = [i for (i, val) in sorted(t_ui, key=lambda x: x[1], reverse=True) if i in A]
 
     i_star_up = sorted_indices[p]
     i_star_down = sorted_indices[p + 1]
-    gaps = [0 for _ in range(len(ui))]
+    gaps = [0 for _ in range(len(t_ui))]
 
     for i in sorted_indices[:p]:
-        gaps[i] = ui[i][1] - ui[i_star_down][1]
+        gaps[i] = t_ui[i][1] - t_ui[i_star_down][1]
 
     for i in sorted_indices[p:]:
-        gaps[i] = ui[i_star_up][1] - ui[i][1]
+        gaps[i] = t_ui[i_star_up][1] - t_ui[i][1]
+
+    assert np.any(np.array(gaps) > 0.0), (p, sorted_indices, gaps)
 
     # return the index of the maximum gap and if this arm should be accepted
     j = gaps.index(max(gaps))
@@ -205,7 +208,7 @@ def sSAR(individuals, p, S, n):
 
     for k in range(1, K):
         n_k_prev = n_k
-        n_k = math.ceil(1 / LOG_K * (n - K) / (K + 1 - k))
+        n_k = math.ceil((1 / LOG_K) * ((n - K) / (K + 1 - k)))
         samples = int(n_k - n_k_prev)  # Number of samples per individual in this phase
 
         for i in A:  # for all active bandits
@@ -225,15 +228,3 @@ def sSAR(individuals, p, S, n):
         A = set().union(*A_all)
 
     return set.union(*accepted_arms), ui, N
-
-
-if __name__ == "__main__":
-    individuals = [DesignPoint.create_random(3) for _ in range(10)]
-
-    S = [lambda vec: linear_scalarize(vec, weights=(0.333, 0.333, 0.333)),
-         lambda vec: linear_scalarize(vec, weights=(0.25, 0.50, 0.25)),
-         lambda vec: linear_scalarize(vec, weights=(0.1, 0.1, 0.8))]
-
-    accepted_arms, ui, N = sSAR(individuals, 5, S, 1000)
-
-    print(accepted_arms, "\n", ui)

@@ -24,7 +24,7 @@ def get_all_weights(steps=10):
     rng = list(range(values + 1)) * boxes
     ans = sorted(set(i for i in itertools.permutations(rng, boxes) if sum(i) == values))
 
-    return list(map(lambda tup: (tup[0]/steps, tup[1]/steps, tup[2]/steps), ans))
+    return list(map(lambda tup: (tup[0]/steps, -tup[1]/steps, -tup[2]/steps), ans))
 
 
 def get_best_arms(individuals, m, samples_per_dp):
@@ -41,11 +41,14 @@ def get_best_arms(individuals, m, samples_per_dp):
         ga.pop[i].fitness.values = ui[i]
 
     # Best arms are determined via NSGA2
-    best_arms = selNSGA2(ga.pop, m)
-
+    best_arms = list(itertools.chain(*sortNondominated(individuals, m)))
     top_m_indices = sorted([individuals.index(indiv) for indiv in best_arms])
 
     return ui.values(), top_m_indices
+
+
+def scalarized_lambda(w):
+    return lambda vec: linear_scalarize(vec, w)
 
 
 def get_output_algorithms(individuals, m, nr_samples):
@@ -56,11 +59,19 @@ def get_output_algorithms(individuals, m, nr_samples):
     :param nr_samples: integer representing the total amount of samples
     :return: tuple of 7 elements
     """
-    # Running all the evaluation algorithms
-    ucb_ui, ucb_N = pareto_ucb1(individuals, m, nr_samples)
-    sar_selection, sar_ui, sar_N = sSAR(individuals, m, S, nr_samples)
+    # Scalarization functions for SAR
+    S = [scalarized_lambda(w) for w in get_all_weights() if w != (0, 0, -1)]
 
-    mcs_results = monte_carlo(individuals, nr_samples, parallelized=True)
+    print("|S|:", len(S))
+
+    # Running all the evaluation algorithms
+    sar_selection, sar_ui, sar_N = sSAR(individuals, m, S, nr_samples)
+    actual_nr_sar_samples = sum(sar_N)  # SAR has a dynamic sample usage, it is not consistent
+
+    print("Using:", actual_nr_sar_samples, "samples")
+    ucb_ui, ucb_N = pareto_ucb1(individuals, m, actual_nr_sar_samples)
+
+    mcs_results = monte_carlo(individuals, actual_nr_sar_samples, parallelized=True)
     mcs_ui, mcs_N = list(mcs_results.values()), \
                     [int(math.ceil(nr_samples / len(individuals))) for _ in range(len(individuals))]
 
@@ -160,11 +171,11 @@ def accuracy_selected_individuals(individuals, m, nr_samples):
 
     determined_best_arms = []
 
-    for results in [ucb_ui, mcs_ui]:
+    for results in [ucb_ui, mcs_ui, sar_ui]:
         set_fitness_values(individuals, results)
         determined_best_arms.append(sorted([individuals.index(i) for i in selNSGA2(individuals, m)]))
 
-    determined_best_arms.insert(1, list(sar_selection))
+    determined_best_arms.append(list(sar_selection))
     correct_selected = [[selected[i] for i in range(m) if selected[i] in top_m_indices]
                         for selected in determined_best_arms]
 
@@ -178,32 +189,27 @@ def accuracy_selected_individuals(individuals, m, nr_samples):
         for j in range(len(z[i])):
             rank_index[individuals.index(z[i][j])] = i
 
-    print("ucb", correct_selected[0], len(correct_selected[0]) / m)
-    print("sar", correct_selected[1], len(correct_selected[1]) / m)
-    print("mcs", correct_selected[2], len(correct_selected[2]) / m)
+    print("ucb", len(correct_selected[0]), len(correct_selected[0]) / m, "% correct")
+    print("mcs", len(correct_selected[1]), len(correct_selected[1]) / m, "% correct")
+    print("sar NSGA2", len(correct_selected[2]), len(correct_selected[2]) / m, "% correct")
 
-    print("\ncorrect", top_m_indices)
-    print("sar", sar_selection, "\n")
-
-    # Will print each individual of the population with several information
-    # (e.g. if it was selected by sSAR or MCS etc)
-    for i in range(len(individuals)):
-        print("\nInvidiual:", i)
-        print("Rank:", rank_index[i])
-        print("------------------------------------------------")
-        print(" MCS:", list(actual_means)[i])
-        print("sSAR:", tuple(list(normalize(sar_ui[i], invert=True))))
-        print("   N:", sar_N[i])
-        print("------------------------------------------------")
-        print(" MCS sel:", i in top_m_indices, "\n")
-        print("sSAR sel:", i in sar_selection)
+    # # Will print each individual of the population with several information
+    # # (e.g. if it was selected by sSAR or MCS etc)
+    # for i in range(len(individuals)):
+    #     print("\nInvidiual:", i)
+    #     print("Rank:", rank_index[i])
+    #     print("------------------------------------------------")
+    #     print(" MCS:", list(actual_means)[i])
+    #     print("sSAR:", tuple(list(normalize(sar_ui[i], invert=True))))
+    #     print("   N:", sar_N[i])
+    #     print("------------------------------------------------")
+    #     print(" MCS sel:", i in top_m_indices, "\n")
+    #     print("sSAR sel:", i in sar_selection)
 
 
 if __name__ == "__main__":
-    n = 50
+    n = 200
 
-    # Scalarization functions for SAR
-    S = [lambda vec: linear_scalarize(vec, weights=w) for w in get_all_weights()]
 
     # Creates the search space
     sesp = initialize_sesp()
@@ -213,11 +219,11 @@ if __name__ == "__main__":
 
     print("~Starting of test~\n")
 
-    print("~Test 1~")
-    percentage_samples_best_arms(ga.pop, n // 2, 1500)
+    # print("~Test 1~")
+    # percentage_samples_best_arms(ga.pop, n // 2, 1500)
 
-    print("~Test 2~")
-    execution_times_algorithms(ga.pop, n // 2, 1500, 2)
+    # print("~Test 2~")
+    # execution_times_algorithms(ga.pop, n // 2, 5000, 2)
 
     print("~Test 3~")
-    accuracy_selected_individuals(ga.pop, n // 2, 1500)
+    accuracy_selected_individuals(ga.pop, n // 2, 400)

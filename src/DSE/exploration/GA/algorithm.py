@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-"Contains all overarching functionality regarding the genetic algorithm of the DSE."
-import collections
+""" Contains all overarching functionality regarding the genetic algorithm of the DSE.
+"""
+
 import random
 import numpy as np
 from deap import creator, base, tools
 from deap.tools import selNSGA3
 
-from DSE.evaluation import monte_carlo, mab_sar
+from DSE.evaluation import monte_carlo
+from DSE.evaluation.Pareto_UCB1 import pareto_ucb1
+from DSE.evaluation.SAR import sSAR, linear_scalarize
 from DSE.exploration.GA import Chromosome, SearchSpace
 
 __licence__ = "GPL-3.0-or-later"
@@ -15,20 +18,20 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 
 CXPB = 0.5  # crossover probability
 MUTPB = 0.3  # mutation probability
-N_POP = 40
-N_GENS = 50
-SCALARIZED = False
+N_POP = 20
+N_GENS = 10
+SCALARIZED = True
 REF_POINTS = tools.uniform_reference_points(3)
 
 
 class GA:
-    def __init__(self, n, search_space, scalarized=False):
+    def __init__(self, n, search_space, scalarized=True):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
         :param n: integer - population size
         :param search_space: SearchSpace object
         """
-        print("~~~~ Initializing ~~~~")
+        # print("~~~~ Initializing ~~~~")
         self.sesp = search_space
         self.scalarized = scalarized
 
@@ -36,20 +39,19 @@ class GA:
 
         self.pop = self.tb.population(n)
 
+        self.S = [lambda vec: linear_scalarize(vec, weights=(0.05, 0.05, 0.9)),
+                  lambda vec: linear_scalarize(vec, weights=(0.9, 0.05, 0.05)),
+                  lambda vec: linear_scalarize(vec, weights=(0.05, 0.9, 0.05))]
+
         self.generation = 0
 
-        # Evaluates the initial population.
-        self.evaluate()
 
     def _init_toolbox(self):
         """ Initialization of the DEAP toolbox containing all GA functions.
 
         :return: ToolBox object
         """
-        if self.scalarized:
-            weights = (1.0,)
-        else:
-            weights = (1.0, -1.0, -1.0)
+        weights = (1.0, -1.0, -1.0)
 
         # weights indicates whether to maximize or minimize the objectives.
         # Objectives are currently (MTTF, energy-consumption, size)
@@ -84,21 +86,16 @@ class GA:
         if len(to_evaluate) == 0:
             return
 
-        # results is a dict mapping index to tuple of n-values
-        # e.g. {1: (102.7, 30.4, ...), 2: (92,8, 60,2, ...), ...}
         if self.scalarized:
-            results = collections.OrderedDict(mab_sar(to_evaluate, len(to_evaluate) - 2))
+            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, self.S, 800)
+            # results, _ = pareto_ucb1(to_evaluate, 800)
         else:
             # Parallelized could be set to True when defining DEAP creator globally
             # https://stackoverflow.com/a/61082335
             results = monte_carlo(to_evaluate, iterations=800, parallelized=False)
 
-        for i in results:
-            if self.scalarized:
-                # fitness values must be a tuple
-                to_evaluate[i].fitness.values = (results[i],)
-            else:
-                to_evaluate[i].fitness.values = results[i]
+        for i in range(len(results)):
+            to_evaluate[i].fitness.values = tuple(results[i])
 
     def crossover(self):
         """ Separates the population in two and crosses the individuals based on probability.

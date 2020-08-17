@@ -5,10 +5,10 @@ import time
 from deap.tools import sortNondominated, selNSGA2
 
 from DSE.evaluation import monte_carlo, sSAR, pareto_ucb1
-from DSE.evaluation.SAR import linear_scalarize, normalize
-from DSE.exploration.GA.algorithm import GA, initialize_sesp
+from DSE.evaluation.SAR import linear_scalarize
 
 # Number of MCS to determine the mean value to be used as reference
+
 NR_SAMPLES_REFERENCE = 300
 
 
@@ -24,7 +24,7 @@ def get_all_weights(steps=10):
     rng = list(range(values + 1)) * boxes
     ans = sorted(set(i for i in itertools.permutations(rng, boxes) if sum(i) == values))
 
-    return list(map(lambda tup: (tup[0]/steps, -tup[1]/steps, -tup[2]/steps), ans))
+    return list(map(lambda tup: (tup[0]/steps, tup[1]/steps, tup[2]/steps), ans))
 
 
 def get_best_arms(individuals, m, samples_per_dp):
@@ -207,23 +207,3 @@ def accuracy_selected_individuals(individuals, m, nr_samples):
     #     print("sSAR sel:", i in sar_selection)
 
 
-if __name__ == "__main__":
-    n = 200
-
-
-    # Creates the search space
-    sesp = initialize_sesp()
-
-    # Creates a GA object (only used for its initial population)
-    ga = GA(n, sesp)
-
-    print("~Starting of test~\n")
-
-    # print("~Test 1~")
-    # percentage_samples_best_arms(ga.pop, n // 2, 1500)
-
-    # print("~Test 2~")
-    # execution_times_algorithms(ga.pop, n // 2, 5000, 2)
-
-    print("~Test 3~")
-    accuracy_selected_individuals(ga.pop, n // 2, 400)

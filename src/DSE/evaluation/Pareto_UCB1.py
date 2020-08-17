@@ -48,9 +48,9 @@ def pareto_ucb1(individuals, k, nr_samples=500):
     ui = {individuals[i]: list(normalize(simulators[individuals[i]].run_optimized())) for i in range(n)}
 
     # individual fitness values are empirical means
-    for i, indiv in enumerate(individuals):
-        mttf, pow_usage, size = normalize(simulators[indiv].run_optimized())
-        individuals[i].fitness.values = (mttf, pow_usage, size)
+    for i in individuals:
+        mttf, pow_usage, size = ui[i]
+        i.fitness.values = (mttf, pow_usage, size)
 
     samples = len(individuals)
 
@@ -68,6 +68,7 @@ def pareto_ucb1(individuals, k, nr_samples=500):
         N[a] += 1
         samples += 1
 
-        ui[a] = update_empirical_mean(simulators[a].run_optimized(), ui[a], N[a])
+        ui[a] = update_empirical_mean(normalize(simulators[a].run_optimized()), ui[a], N[a])
+        a.fitness.values = ui[a]
 
-    return [ui[individuals[i]] for i in range(n)], [N[individuals[i]] for i in range(n)]
+    return [normalize(ui[individuals[i]], invert=True) for i in range(n)], [N[individuals[i]] for i in range(n)]

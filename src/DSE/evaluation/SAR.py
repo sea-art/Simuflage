@@ -227,4 +227,7 @@ def sSAR(individuals, p, S, n):
         # Updates A to only include any arm that has not yet been removed by an F_j
         A = set().union(*A_all)
 
+    # invert normalization of mean values
+    ui = [normalize(i, invert=True) for i in ui]
+
     return set.union(*accepted_arms), ui, N

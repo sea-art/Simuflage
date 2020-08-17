@@ -103,7 +103,7 @@ class Agings(SimulatorElement):
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
-        assert n > 1, "Incrementing with 0 timesteps\n" + str(self._wear)
+        assert n > 0, "Incrementing with 0 timesteps\n" + str(self._wear)
 
         self._wear[alive_components] += n * self._lambdas[alive_components]
 

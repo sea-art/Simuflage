@@ -2,71 +2,74 @@
 
 """ Contains all overarching functionality regarding the genetic algorithm of the DSE.
 """
-
+import logging
 import random
+
 import numpy as np
 from deap import creator, base, tools
-from deap.tools import selNSGA3
 
 from DSE.evaluation import monte_carlo
 from DSE.evaluation.Pareto_UCB1 import pareto_ucb1
-from DSE.evaluation.SAR import sSAR, linear_scalarize
+from DSE.evaluation.SAR import sSAR
+from DSE.evaluation.evaluation_tests import scalarized_lambda, get_all_weights
 from DSE.exploration.GA import Chromosome, SearchSpace
 
 __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
+from DSE.exploration.GA.ga_logger import LoggerGA
+
 CXPB = 0.5  # crossover probability
 MUTPB = 0.3  # mutation probability
-N_POP = 20
-N_GENS = 10
-SCALARIZED = True
+N_POP = 100
+N_GENS = 40
 REF_POINTS = tools.uniform_reference_points(3)
 
 
+# Has to be defined globally
+# https://stackoverflow.com/a/61082335
+weights = (1.0, -1.0, -1.0)
+creator.create("FitnessDSE", base.Fitness, weights=weights)
+creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
+
+
 class GA:
-    def __init__(self, n, search_space, scalarized=True):
+    def __init__(self, n_pop, n_gens, nr_samples, search_space, eval_method='mcs', log_filename="out/default_log.csv"):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
+        :param eval_method: choice of ['mcs', 'ssar', 'pucb']
         :param n: integer - population size
         :param search_space: SearchSpace object
         """
         # print("~~~~ Initializing ~~~~")
         self.sesp = search_space
-        self.scalarized = scalarized
+        self.eval_method = eval_method
+        self.nr_samples = nr_samples
+
+        self.logger = LoggerGA(log_filename, log_filename, logging.DEBUG)
 
         self.tb = self._init_toolbox()
+        self.pop = self.tb.population(n_pop)
+        self.n_gens = n_gens
 
-        self.pop = self.tb.population(n)
-
-        self.S = [lambda vec: linear_scalarize(vec, weights=(0.05, 0.05, 0.9)),
-                  lambda vec: linear_scalarize(vec, weights=(0.9, 0.05, 0.05)),
-                  lambda vec: linear_scalarize(vec, weights=(0.05, 0.9, 0.05))]
+        self.S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
 
         self.generation = 0
-
 
     def _init_toolbox(self):
         """ Initialization of the DEAP toolbox containing all GA functions.
 
         :return: ToolBox object
         """
-        weights = (1.0, -1.0, -1.0)
-
         # weights indicates whether to maximize or minimize the objectives.
         # Objectives are currently (MTTF, energy-consumption, size)
         # So weights right now indicate: maximize MTTF, minimize consumption+size.
-        creator.create("FitnessDSE", base.Fitness, weights=weights)
-        creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
 
         toolbox = base.Toolbox()
         toolbox.register("individual", Chromosome.create_random, creator.Individual, self.sesp)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        if self.scalarized:
-            toolbox.register("select", tools.selBest)
-        else:
-            toolbox.register("select", tools.selNSGA3WithMemory(REF_POINTS))
+        toolbox.register("select", tools.selNSGA2)
         toolbox.register("evaluate", self.evaluate)
 
         return toolbox
@@ -86,13 +89,12 @@ class GA:
         if len(to_evaluate) == 0:
             return
 
-        if self.scalarized:
-            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, self.S, 800)
-            # results, _ = pareto_ucb1(to_evaluate, 800)
+        if self.eval_method == 'ssar':
+            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, self.S, self.nr_samples)
+        elif self.eval_method == 'pucb':
+            results, _ = pareto_ucb1(to_evaluate, self.nr_samples)
         else:
-            # Parallelized could be set to True when defining DEAP creator globally
-            # https://stackoverflow.com/a/61082335
-            results = monte_carlo(to_evaluate, iterations=800, parallelized=False)
+            results = monte_carlo(to_evaluate, iterations=self.nr_samples, parallelized=False)
 
         for i in range(len(results)):
             to_evaluate[i].fitness.values = tuple(results[i])
@@ -137,7 +139,26 @@ class GA:
 
         :return: population
         """
+        self.log_info()
         self.pop = self.tb.select(self.pop, N_POP)
+
+    def _log_get_values(self):
+        ttfs = []
+        pes = []
+        sizes = []
+
+        for individual in self.pop:
+            ttf, pe, size = individual.fitness.values
+
+            ttfs.append(ttf)
+            pes.append(pe)
+            sizes.append(size)
+
+        return ttfs, pes, sizes
+
+    def log_info(self):
+        gen_values = self._log_get_values()
+        self.logger.log(self.generation, gen_values)
 
     def next_generation(self):
         """ Main loop per generation.
@@ -157,6 +178,10 @@ class GA:
         self.evaluate()
         self.select()
 
+    def run(self):
+        for _ in range(self.n_gens):
+            self.next_generation()
+
 
 def initialize_sesp():
     """ Initializes a SearchSpace based on hardcoded values.
@@ -172,22 +197,13 @@ def initialize_sesp():
 
 
 def main():
-    print("Starting GA with\npopulation:\t{}\ngenerations:\t{}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
+    print("Starting GA with\npopulation: \t{}\ngenerations:\t {}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
 
     sesp = initialize_sesp()
-    ga = GA(N_POP, sesp, scalarized=SCALARIZED)
+    ga = GA(N_POP, N_GENS, 1000, sesp, eval_method='mcs', log_filename="out/test.csv")
 
     for _ in range(N_GENS):
         ga.next_generation()
-
-    print("~~~~ Finding best candidates ~~~~")
-
-    if ga.scalarized:
-        for x in tools.selBest(ga.pop, N_POP):
-            print(x, x.fitness.values)
-    else:
-        for x in selNSGA3(ga.pop, N_POP, REF_POINTS):
-            print(x, x.fitness.values)
 
 
 if __name__ == "__main__":

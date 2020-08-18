@@ -7,6 +7,7 @@ import random
 
 import numpy as np
 from deap import creator, base, tools
+from deap.tools import sortNondominated
 
 from DSE.evaluation import monte_carlo
 from DSE.evaluation.Pareto_UCB1 import pareto_ucb1
@@ -21,8 +22,8 @@ from DSE.exploration.GA.ga_logger import LoggerGA
 
 CXPB = 0.5  # crossover probability
 MUTPB = 0.3  # mutation probability
-N_POP = 100
-N_GENS = 40
+N_POP = 30
+N_GENS = 50
 REF_POINTS = tools.uniform_reference_points(3)
 
 
@@ -32,11 +33,14 @@ weights = (1.0, -1.0, -1.0)
 creator.create("FitnessDSE", base.Fitness, weights=weights)
 creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
 
+S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
+
 
 class GA:
-    def __init__(self, n_pop, n_gens, nr_samples, search_space, eval_method='mcs', log_filename="out/default_log.csv"):
+    def __init__(self, n_pop, n_gens, nr_samples, search_space, init_pop=None, eval_method='mcs', log_info=False, log_filename="out/default_log.csv"):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
+        :param log_info: boolean to indicate if GA should log info
         :param eval_method: choice of ['mcs', 'ssar', 'pucb']
         :param n: integer - population size
         :param search_space: SearchSpace object
@@ -46,14 +50,18 @@ class GA:
         self.eval_method = eval_method
         self.nr_samples = nr_samples
 
-        self.logger = LoggerGA(log_filename, log_filename, logging.DEBUG)
+        self.logging = log_info
+
+        if self.logging:
+            self.logger = LoggerGA(log_filename, log_filename, logging.DEBUG)
 
         self.tb = self._init_toolbox()
-        self.pop = self.tb.population(n_pop)
+        if init_pop is None:
+            self.pop = self.tb.population(n_pop)
+        else:
+            self.pop = [creator.Individual(*chromosome.genes, search_space) for chromosome in init_pop]
+
         self.n_gens = n_gens
-
-        self.S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
-
         self.generation = 0
 
     def _init_toolbox(self):
@@ -90,7 +98,7 @@ class GA:
             return
 
         if self.eval_method == 'ssar':
-            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, self.S, self.nr_samples)
+            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, S, self.nr_samples)
         elif self.eval_method == 'pucb':
             results, _ = pareto_ucb1(to_evaluate, self.nr_samples)
         else:
@@ -139,7 +147,9 @@ class GA:
 
         :return: population
         """
-        self.log_info()
+        if self.logging:
+            self.log_info()
+
         self.pop = self.tb.select(self.pop, N_POP)
 
     def _log_get_values(self):
@@ -200,10 +210,12 @@ def main():
     print("Starting GA with\npopulation: \t{}\ngenerations:\t {}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
 
     sesp = initialize_sesp()
-    ga = GA(N_POP, N_GENS, 1000, sesp, eval_method='mcs', log_filename="out/test.csv")
+    # ga = GA(N_POP, N_GENS, 1000, sesp, eval_method='mcs', log_filename="out/test.csv")
+    init_pop = [Chromosome.create_random(Chromosome, sesp) for _ in range(5)]
 
-    for _ in range(N_GENS):
-        ga.next_generation()
+    ga1 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='mcs')
+    ga2 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='ssar')
+
 
 
 if __name__ == "__main__":

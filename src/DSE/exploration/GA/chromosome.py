@@ -76,6 +76,14 @@ class Chromosome:
                          AppMapping(mapping),
                          Policy(policy), search_space)
 
+    @staticmethod
+    def create(container, caps, locs, search_space):
+        mapping = random.choice(search_space.map_strats)
+        policy = np.random.choice(search_space.policies)
+        return container(Components(caps), FloorPlan(locs),
+                         AppMapping(mapping),
+                         Policy(policy), search_space)
+
     def mutate(self):
         """ Mutate this Chromosome object.
 

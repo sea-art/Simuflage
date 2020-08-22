@@ -14,7 +14,7 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 ENV_TEMP = 20
-IDLE_TEMP = ENV_TEMP + 10
+IDLE_TEMP = 15
 
 
 class Thermals(SimulatorElement):
@@ -75,7 +75,7 @@ class Thermals(SimulatorElement):
         :param kernel: 2D kernel which will be used for convolution
         :return: 2D numpy float array - grid thermals after neighbouring contributions
         """
-        ni = 0.01
+        ni = 0.1
 
         if not kernel:
             kernel = np.asarray([[ni, ni, ni],

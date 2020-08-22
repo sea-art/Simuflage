@@ -119,7 +119,7 @@ class Components(SimulatorElement):
     @property
     def watt_usage(self):
         return np.sum(self.alive_components) * IDLE_WATT_USE + \
-            np.sum((self.workload * self.capacities)[self._alive_components])
+            np.sum((self.workload * self.capacities ** 1.1)[self._alive_components])
 
     def _index_to_pos(self, index):
         """ Yield tuple (y, x) of the position of the index of a component.

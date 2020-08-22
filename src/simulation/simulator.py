@@ -104,10 +104,9 @@ class Simulator(AbsSimulator):
             if not self.step_till_failure():
                 break
 
-        avg_watt_used = self._integrator.total_watt_used / self._timesteps
+        avg_watt_used = self._integrator.total_watt_used / self._timesteps + self._integrator.grid_size
 
         ts = self._timesteps
         self.reset()
-
 
         return ts, avg_watt_used, self._integrator.grid_size

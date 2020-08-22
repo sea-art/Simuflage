@@ -16,7 +16,10 @@ test:
 check-pep8:
 	bash -c 'source ./venv/bin/activate && pycodestyle --ignore E501 ./src/ && deactivate'
 
-experiment:
+mcs-experiment:
+	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/experiments/MCS.py && deactivate'
+
+ga-experiment:
 	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/experiments/MCS.py && deactivate'
 
 run:

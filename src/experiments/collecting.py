@@ -79,10 +79,6 @@ if __name__ == "__main__":
     runner = CollectGA()
 
     results = runner.run_gas(5, 100, 5, 500)
-
-    print(type(results))
     p_results = dict(results)
-
-    print(type(p_results))
 
     pickle.dump(p_results, open("out/pickles/refga.p", "wb"))

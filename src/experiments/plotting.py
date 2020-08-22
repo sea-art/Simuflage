@@ -1,4 +1,5 @@
 from experiments import Analysis
+from mpl_toolkits.mplot3d import Axes3D
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +13,23 @@ class Plotting:
 
     def _scatter_plot(self, xss, yss, **kwargs):
         pass
+
+    def plot_objective_space_3d(self):
+        mean_data = np.asarray(list(self.analysis.means().values())).T
+        fronts = self.analysis.pareto_front()
+        fronts = np.array([i.fitness.values for i in fronts]).T
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        ax.scatter(mean_data[1][::5], mean_data[2][::5], mean_data[0][::5] / (24 * 365), c='blue')
+        ax.scatter(fronts[1], fronts[2], fronts[0] / (24 * 365), c='red')
+
+        ax.set_xlabel("energy consumption")
+        ax.set_ylabel("size")
+        ax.set_zlabel("MTTF in years")
+
+        plt.show()
 
     def objective_space_plots(self):
         mean_data = np.asarray(list(self.analysis.means().values()))
@@ -55,4 +73,4 @@ class Plotting:
 
 if __name__ == "__main__":
     plotting = Plotting()
-    plotting.objective_space_plots()
+    plotting.plot_objective_space_3d()

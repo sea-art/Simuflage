@@ -21,9 +21,9 @@ __copyright__ = "Copyright 2020 Siard Keulen"
 from DSE.exploration.GA.ga_logger import LoggerGA
 
 CXPB = 0.5  # crossover probability
-MUTPB = 0.3  # mutation probability
+# MUTPB = 0.3  # mutation probability
 N_POP = 30
-N_GENS = 50
+N_GENS = 20
 REF_POINTS = tools.uniform_reference_points(3)
 
 
@@ -37,7 +37,8 @@ S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
 
 
 class GA:
-    def __init__(self, n_pop, n_gens, nr_samples, search_space, init_pop=None, eval_method='mcs', log_info=False, log_filename="out/default_log.csv"):
+    def __init__(self, n_pop, n_gens, nr_samples, search_space, init_pop=None, eval_method='mcs', log_info=False,
+                 log_filename="out/default_log.csv", mutpb=0.2):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
         :param log_info: boolean to indicate if GA should log info
@@ -49,6 +50,7 @@ class GA:
         self.sesp = search_space
         self.eval_method = eval_method
         self.nr_samples = nr_samples
+        self.mutpb = mutpb
 
         self.logging = log_info
 
@@ -129,7 +131,7 @@ class GA:
         :return: None
         """
         for c in offspring:
-            if random.random() < MUTPB:
+            if random.random() < self.mutpb:
                 c.mutate()
 
             # Adding/removing components will result in incorrect location gene,
@@ -211,11 +213,14 @@ def main():
 
     sesp = initialize_sesp()
     # ga = GA(N_POP, N_GENS, 1000, sesp, eval_method='mcs', log_filename="out/test.csv")
-    init_pop = [Chromosome.create_random(Chromosome, sesp) for _ in range(5)]
+    init_pop = [Chromosome.create_random(Chromosome, sesp) for _ in range(50)]
 
     ga1 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='mcs')
-    ga2 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='ssar')
 
+    ga1.run()
+    print("best: ", sortNondominated(ga1.pop, 10, first_front_only=True)[0])
+
+    # ga2 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='ssar')
 
 
 if __name__ == "__main__":

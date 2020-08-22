@@ -16,7 +16,7 @@ creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
 
 if __name__ == "__main__":
     sesp = initialize_sesp()
-    data = [[Chromosome.create_random(creator.Individual_mcs, sesp) for _ in range(200)] for _ in range(5)]
+    data = [[Chromosome.create_random(creator.Individual_mcs, sesp) for _ in range(500)] for _ in range(20)]
 
     pickle.dump(data, open("out/pickles/dps3.p", "wb"))
     samples = []
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     for i, data_set in enumerate(data):
         print("iteration:", i)
         try:
-            res = monte_carlo(data_set, iterations=500 * len(data_set), parallelized=True, all_samples=True)
+            res = monte_carlo(data_set, iterations=1000 * len(data_set), parallelized=True, all_samples=True)
             samples.append(res)
         except:
             print("EXCEPTION")

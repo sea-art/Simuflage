@@ -1,13 +1,15 @@
-from experiments import Analysis
+from experiments import AnalysisMCS
 from mpl_toolkits.mplot3d import Axes3D
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from experiments.analysis import AnalysisGA
 
-class Plotting:
+
+class PlottingMCS:
     def __init__(self):
-        self.analysis = Analysis()
+        self.analysis = AnalysisMCS()
 
         self.fig = plt.figure()
 
@@ -71,6 +73,76 @@ class Plotting:
         fig.clear()
 
 
+class PlottingGA:
+    def __init__(self):
+        self.analysis = AnalysisGA()
+        self.analysis2 = AnalysisMCS()
+
+    def plot_pareto_front_mttf_pe(self):
+        front_values = self.analysis.pareto_front(use_objectives=[1.0, 1.0, 0.0])
+        front = np.array([i.fitness.values for i in front_values])
+        data = np.array(list(self.analysis.data.values()))
+
+        mean_data = np.asarray(list(self.analysis2.means().values()))
+
+        plt.scatter(mean_data.T[1], mean_data.T[0] / (24 * 365), marker='.', c='orange', label='random')
+        plt.scatter(data.T[1], data.T[0] / (24 * 365), marker='^', c='blue', label='ga output')
+        plt.scatter(front.T[1], front.T[0] / (24 * 365), marker='o', c='red', label="pareto optimal")
+
+        plt.xlabel("energy consumption")
+        plt.ylabel("MTTF in years")
+
+        plt.legend()
+        plt.show()
+
+    def plot_pareto_front_mttf_size(self):
+        front_values = self.analysis.pareto_front(use_objectives=[1.0, 0.0, 1.0])
+        front = np.array([i.fitness.values for i in front_values])
+        data = np.array(list(self.analysis.data.values()))
+
+        mean_data = np.asarray(list(self.analysis2.means().values()))
+
+        plt.scatter(mean_data.T[2], mean_data.T[0] / (24 * 365), marker='.', c='orange', label='random')
+        plt.scatter(data.T[2], data.T[0] / (24 * 365), marker='^', c='blue', label='ga output')
+        plt.scatter(front.T[2], front.T[0] / (24 * 365), marker='o', c='red', label="pareto optimal")
+
+        plt.xlabel("size")
+        plt.ylabel("MTTF in years")
+
+        plt.legend()
+        plt.show()
+
+    def plot_pareto_front_pe_size(self):
+        front_values = self.analysis.pareto_front(use_objectives=[0.0, 1.0, 1.0])
+        front = np.array([i.fitness.values for i in front_values])
+        data = np.array(list(self.analysis.data.values()))
+
+        mean_data = np.asarray(list(self.analysis2.means().values()))
+
+        plt.scatter(mean_data.T[1], mean_data.T[2], marker='.', c='orange', label='random')
+        plt.scatter(data.T[1], data.T[2], marker='^', c='blue', label='ga output')
+        plt.scatter(front.T[1], front.T[2], marker='o', c='red', label="pareto optimal")
+
+        plt.xlabel("energy consumption")
+        plt.ylabel("size")
+
+        plt.legend()
+        plt.show()
+
+
+def obtain_all_plots():
+    plottingMCS = PlottingMCS()
+    plottingGA = PlottingGA()
+
+    plottingMCS.objective_space_plots()
+    plottingGA.plot_pareto_front_mttf_pe()
+    plottingGA.plot_pareto_front_mttf_size()
+    plottingGA.plot_pareto_front_pe_size()
+
+
 if __name__ == "__main__":
-    plotting = Plotting()
-    plotting.plot_objective_space_3d()
+    obtain_all_plots()
+    # plotting = PlottingGA()
+    # plotting.plot_pareto_front_mttf_pe()
+    # plotting.plot_pareto_front_mttf_size()
+    # plotting.plot_pareto_front_pe_size()

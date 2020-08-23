@@ -6,12 +6,13 @@ import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
+
+
 from deap import creator, base
 from deap.tools import sortNondominated
 
 from DSE.exploration.GA import Chromosome
-
-
+from DSE.exploration.GA.algorithm import GA
 
 weights = (1.0, -1.0, -1.0)
 
@@ -19,13 +20,13 @@ creator.create("FitnessDSE_mcs", base.Fitness, weights=weights)
 creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
 
 
-class Analysis:
+class AnalysisMCS:
     def __init__(self):
         print("Reading data")
-        dps = pickle.load(open("out/pickles/dps3.p", "rb"))
-        samples = pickle.load(open("out/pickles/samples3.p", "rb"))
+        dps = pickle.load(open("out/pickles/dps2.p", "rb"))
+        samples = pickle.load(open("out/pickles/samples2.p", "rb"))
 
-        print("Adjusting data")
+        print("Formatting data")
         self.data = {}
 
         self.mean_data = None
@@ -87,22 +88,30 @@ class Analysis:
         return front
 
 
+class AnalysisGA:
+    def __init__(self):
+        print("Reading data")
+        loaded_data = pickle.load(open("out/pickles/refga.p", "rb"))
+
+        self.data = {}
+
+        self.pareto_front_data = None
+
+        for run in list(loaded_data.values()):
+            for k, v in run.items():
+                self.data[k] = v
+
+    def pareto_front(self, use_objectives=np.array([1.0, 1.0, 1.0])):
+        for k, v in self.data.items():
+            k.fitness.values = tuple(v * use_objectives)
+
+        front = sortNondominated(self.data.keys(), 100, first_front_only=True)[0]
+        self.pareto_front_data = front
+
+        return front
+
+
 if __name__ == "__main__":
-    analysis = Analysis()
+    analysis = AnalysisMCS()
 
-    print("Obtaining mean_data")
-    mean_data = np.asarray(list(analysis.means().values()))
-
-    print("Obtaining Pareto front")
-    front = np.array([individual.fitness.values for individual in analysis.pareto_front])
-    front_data = front.T[:3]
-    print(front_data)
-
-    mean_data.delete(front)
-
-
-    # print("get_front")
-    # pareto_front = analysis.get_pareto_front()
-    #
-    # print("second time mean")
-    # data = analysis.get_mean()
+    print(analysis.data)

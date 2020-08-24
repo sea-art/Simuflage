@@ -116,16 +116,16 @@ class CollectEval:
 
         dps_sets = np.array_split(np.array(self.dps), 100)
         ref_sets = [self.get_references_selection(individuals) for individuals in dps_sets]
-        sample_sets = list(range(50, 401, 50))
+        sample_sets = list(range(10, 221, 30))
 
         jobs = []
 
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
 
-        for j in range(1, 50):
+        for j in range(1, 10):
             for samples in sample_sets:
-                for idx in range(len(dps_sets)):
+                for idx in range(len(dps_sets[::2])):
                     print(samples, idx, j, 'mcs')
                     jobs.append(multiprocessing.Process(target=evaluate_and_select,
                                                         args=(return_dict, (samples, idx, j, 'mcs'), dps_sets[idx],
@@ -139,18 +139,19 @@ class CollectEval:
         for j in jobs:
             j.join()
 
+        print(return_dict)
         pickle.dump(dict(return_dict), open("out/pickles/evals.p", "wb"))
 
-    def get_references_selection(self, dps):
-        means = self.analysis.means()
-
-        for dp in dps:
-            dp.fitness.values = tuple(means[dp])
-
-        selected = list(itertools.chain(*sortNondominated(dps, len(dps)//2)))
-        selected_idx = [list(dps).index(dp) for dp in selected]
-
-        return selected_idx
+    # def get_references_selection(self, dps):
+    #     means = self.analysis.means()
+    #
+    #     for dp in dps:
+    #         dp.fitness.values = tuple(means[dp])
+    #
+    #     selected = list(itertools.chain(*sortNondominated(dps, len(dps)//2)))
+    #     selected_idx = [list(dps).index(dp) for dp in selected]
+    #
+    #     return selected_idx
 
 
 if __name__ == "__main__":

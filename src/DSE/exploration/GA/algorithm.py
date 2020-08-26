@@ -158,8 +158,6 @@ class GA:
         """
         offspring = []
 
-        print(len(self.pop))
-
         for parent1, parent2 in zip(self.pop[::2], self.pop[1::2]):
             offspring += list(Chromosome.mate(parent1, parent2, self.sesp))
 

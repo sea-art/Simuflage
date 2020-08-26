@@ -4,10 +4,13 @@
 """
 import logging
 import random
+from copy import copy
 
 import numpy as np
+import scipy.stats as st
+from scipy.spatial import distance
 from deap import creator, base, tools
-from deap.tools import sortNondominated
+from deap.tools import sortNondominated, Statistics
 
 from DSE.evaluation import monte_carlo
 from DSE.evaluation.Pareto_UCB1 import pareto_ucb1
@@ -19,11 +22,8 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 from DSE.exploration.GA.ga_logger import LoggerGA
+from experiments import AnalysisGA
 
-CXPB = 0.5  # crossover probability
-# MUTPB = 0.3  # mutation probability
-N_POP = 30
-N_GENS = 20
 REF_POINTS = tools.uniform_reference_points(3)
 
 
@@ -37,8 +37,8 @@ S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
 
 
 class GA:
-    def __init__(self, n_pop, n_gens, nr_samples, search_space, init_pop=None, eval_method='mcs', log_info=False,
-                 log_filename="out/default_log.csv", mutpb=0.2):
+    def __init__(self, n_pop, n_gens, samples_per_dp, search_space, init_pop=None, eval_method='mcs', mutpb=0.3,
+                 ref_set=None):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
         :param log_info: boolean to indicate if GA should log info
@@ -47,21 +47,31 @@ class GA:
         :param search_space: SearchSpace object
         """
         # print("~~~~ Initializing ~~~~")
+        self.n_pop = n_pop
         self.sesp = search_space
         self.eval_method = eval_method
-        self.nr_samples = nr_samples
+        self.samples_per_dp = samples_per_dp
         self.mutpb = mutpb
 
-        self.logging = log_info
+        if ref_set is not None:
+            self.ref_set = ref_set
+        else:
+            self.ref_set = None
 
-        if self.logging:
-            self.logger = LoggerGA(log_filename, log_filename, logging.DEBUG)
+        self._nr_mutations = 0  # Used to log how many mutations occurred information
+        self._death_penalty = 0  # Used to log how mutations resulted in death penalty
+        self._nr_offspring = 0  # Used to log how many offspring was created
 
         self.tb = self._init_toolbox()
+        self.stats = self._init_statistics()
+        self.logbook = tools.Logbook()
+
         if init_pop is None:
             self.pop = self.tb.population(n_pop)
         else:
             self.pop = [creator.Individual(*chromosome.genes, search_space) for chromosome in init_pop]
+
+        self.prev_pop = copy(self.pop)
 
         self.n_gens = n_gens
         self.generation = 0
@@ -84,6 +94,36 @@ class GA:
 
         return toolbox
 
+    def _init_statistics(self):
+        stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+        stats.register("mean", np.mean, axis=0)
+        stats.register("std", np.std, axis=0)
+        stats.register("best", lambda ind: np.array((np.max(ind, axis=0)[0],
+                                                     np.min(ind, axis=0)[1],
+                                                     np.min(ind, axis=0)[2])))
+        stats.register("median", np.median, axis=0)
+        stats.register("skew", st.skew, axis=0)
+
+        return stats
+
+    def _calc_distance(self):
+        aprox_front = sortNondominated(self.pop, 10, first_front_only=True)[0]
+        front_vals = np.array([a.fitness.values for a in aprox_front])
+
+        return np.mean(np.min(distance.cdist(self.ref_set, front_vals), axis=0))
+
+    def log(self):
+        record_stats = self.stats.compile(self.pop)
+        operator_stats = {'mutations': self._nr_mutations,
+                          'death_penalty': self._death_penalty,
+                          'offspring': self._nr_offspring,
+                          'elitism': len((set(self.pop) & set(self.prev_pop)))}
+
+        if self.ref_set is not None:
+            operator_stats['distance'] = self._calc_distance()
+
+        self.logbook.record(gen=self.generation, **record_stats, **operator_stats)
+
     def evaluate(self):
         """ Evaluate the current generation (self._generation) via monte carlo simulation.
 
@@ -99,12 +139,14 @@ class GA:
         if len(to_evaluate) == 0:
             return
 
+        samples = self.samples_per_dp * len(to_evaluate)
+
         if self.eval_method == 'ssar':
-            _, results, _ = sSAR(to_evaluate, len(to_evaluate) // 2, S, self.nr_samples)
+            _, results, _ = sSAR(to_evaluate, samples // 2, S, self.samples_per_dp)
         elif self.eval_method == 'pucb':
-            results, _ = pareto_ucb1(to_evaluate, self.nr_samples)
+            results, _ = pareto_ucb1(to_evaluate, samples)
         else:
-            results = monte_carlo(to_evaluate, iterations=self.nr_samples, parallelized=False)
+            results = monte_carlo(to_evaluate, iterations=samples, parallelized=False)
 
         for i in range(len(results)):
             to_evaluate[i].fitness.values = tuple(results[i])
@@ -116,12 +158,20 @@ class GA:
         """
         offspring = []
 
+        print(len(self.pop))
+
         for parent1, parent2 in zip(self.pop[::2], self.pop[1::2]):
-            if random.random() < CXPB:
-                offspring += list(Chromosome.mate(parent1, parent2, self.sesp))
+            offspring += list(Chromosome.mate(parent1, parent2, self.sesp))
+
+        self._death_penalty += len(offspring)
+
+        assert (len(offspring) == self.n_pop)
 
         # Checks if invalid individuals were created.
         offspring = [o for o in offspring if o.is_valid()]
+
+        self._death_penalty -= len(offspring)
+        self._nr_offspring = len(offspring)
 
         return offspring
 
@@ -132,6 +182,7 @@ class GA:
         """
         for c in offspring:
             if random.random() < self.mutpb:
+                self._nr_mutations += 1
                 c.mutate()
 
             # Adding/removing components will result in incorrect location gene,
@@ -139,8 +190,10 @@ class GA:
             if len(c.genes[0]) != len(c.genes[1]):
                 c.genes[1].repair(c.genes[0], self.sesp)
 
+        self._death_penalty += len(offspring)
         # Checks if mutated individuals are still valid.
         offspring = [o for o in offspring if o.is_valid()]
+        self._death_penalty -= len(offspring)
 
         return offspring
 
@@ -149,28 +202,23 @@ class GA:
 
         :return: population
         """
-        if self.logging:
-            self.log_info()
+        self.pop = self.tb.select(self.pop, self.n_pop)
+        self.log()
 
-        self.pop = self.tb.select(self.pop, N_POP)
+    # def _log_get_values(self):
+    #     ttfs = []
+    #     pes = []
+    #     sizes = []
+    #
+    #     for individual in self.pop:
+    #         ttf, pe, size = individual.fitness.values
+    #
+    #         ttfs.append(ttf)
+    #         pes.append(pe)
+    #         sizes.append(size)
+    #
+    #     return ttfs, pes, sizes
 
-    def _log_get_values(self):
-        ttfs = []
-        pes = []
-        sizes = []
-
-        for individual in self.pop:
-            ttf, pe, size = individual.fitness.values
-
-            ttfs.append(ttf)
-            pes.append(pe)
-            sizes.append(size)
-
-        return ttfs, pes, sizes
-
-    def log_info(self):
-        gen_values = self._log_get_values()
-        self.logger.log(self.generation, gen_values)
 
     def next_generation(self):
         """ Main loop per generation.
@@ -180,6 +228,11 @@ class GA:
 
         :return: None
         """
+        self.prev_pop = self.pop[:]
+        self._nr_mutations = 0
+        self._death_penalty = 0
+        self._nr_offspring = 0
+
         self.generation += 1
         print("Generation:", self.generation)
 

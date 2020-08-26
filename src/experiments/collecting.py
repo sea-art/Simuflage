@@ -45,31 +45,40 @@ class CollectMCS:
         pickle.dump(samples, open("out/pickles/samples3.p", "wb"))
 
 
-def run_ga(output, ga_i, pop_size, n_gens, nr_samples,  eval_method='mcs'):
-    sesp = initialize_sesp()
-
-    ga = GA(pop_size, n_gens, nr_samples, sesp, eval_method=eval_method)
-    ga.run()
-
-    final_pop = ga.pop
-    best_candidates = sortNondominated(final_pop, 10, first_front_only=True)[0]
-
-    output[ga_i] = {ind: np.array(ind.fitness.values) for ind in best_candidates}
-
-
 class CollectGA:
     def __init__(self):
-        pass
+        print("STARTING")
 
-    def run_gas(self, nr_gas, pop_size, nr_gens, nr_samples):
+        self.sesp = initialize_sesp()
+
+        logbooks, best_cands = self.run_gas(12, 100, 50, 500)
+
+        for book in logbooks.values():
+            print(book)
+
+        pickle.dump(logbooks, open("out/pickles/logbooks.p", "wb"))
+        pickle.dump(best_cands, open("out/pickles/bestcands.p", "wb"))
+
+    def _run_ga(self, logbooks, best_cands, ga_i, pop_size, n_gens, samples_per_dp, eval_method='mcs'):
+        ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, eval_method=eval_method)
+        ga.run()
+
+        final_pop = ga.pop
+        best_candidates = sortNondominated(final_pop, 10, first_front_only=True)[0]
+
+        logbooks[ga_i] = ga.logbook
+        best_cands[ga_i] = {ind: np.array(ind.fitness.values) for ind in best_candidates}
+
+    def run_gas(self, nr_gas, pop_size, nr_gens, samples_per_dp):
         jobs = []
 
         manager = multiprocessing.Manager()
-        return_dict = manager.dict()
+        logbooks = manager.dict()
+        best_cands = manager.dict()
 
         for i in range(nr_gas):
-            jobs.append(multiprocessing.Process(target=run_ga,
-                                                args=(return_dict, i, pop_size, nr_gens, nr_samples)))
+            jobs.append(multiprocessing.Process(target=self._run_ga,
+                                                args=(logbooks, best_cands, i, pop_size, nr_gens, samples_per_dp)))
 
         for j in jobs:
             j.start()
@@ -77,7 +86,7 @@ class CollectGA:
         for j in jobs:
             j.join()
 
-        return return_dict
+        return logbooks, best_cands
 
 
 def evaluate_and_select(return_dict, identifier, dps, ref_set, nr_samples, eval_method):
@@ -142,17 +151,17 @@ class CollectEval:
         print(return_dict)
         pickle.dump(dict(return_dict), open("out/pickles/evals.p", "wb"))
 
-    # def get_references_selection(self, dps):
-    #     means = self.analysis.means()
-    #
-    #     for dp in dps:
-    #         dp.fitness.values = tuple(means[dp])
-    #
-    #     selected = list(itertools.chain(*sortNondominated(dps, len(dps)//2)))
-    #     selected_idx = [list(dps).index(dp) for dp in selected]
-    #
-    #     return selected_idx
+    def get_references_selection(self, dps):
+        means = self.analysis.means()
+
+        for dp in dps:
+            dp.fitness.values = tuple(means[dp])
+
+        selected = list(itertools.chain(*sortNondominated(dps, len(dps)//2)))
+        selected_idx = [list(dps).index(dp) for dp in selected]
+
+        return selected_idx
 
 
 if __name__ == "__main__":
-    CollectEval()
+    CollectGA()

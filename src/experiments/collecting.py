@@ -51,7 +51,7 @@ class CollectGA:
 
         self.sesp = initialize_sesp()
 
-        logbooks, best_cands = self.run_gas(12, 100, 50, 500)
+        logbooks, best_cands = self.run_gas(120, 100, 50, 500)
 
         for book in logbooks.values():
             print(book)

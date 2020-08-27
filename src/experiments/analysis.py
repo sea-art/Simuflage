@@ -6,26 +6,22 @@ from random import shuffle
 import itertools
 import math
 
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-
-
 
 from deap import creator, base
 from deap.tools import sortNondominated, selNSGA2
 
 from DSE.exploration.GA import Chromosome
-from DSE.exploration.GA.algorithm import GA
+# from DSE.exploration.algorithm import *
 
 weights = (1.0, -1.0, -1.0)
 
-creator.create("FitnessDSE_mcs", base.Fitness, weights=weights)
-creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
+# creator.create("FitnessDSE_mcs", base.Fitness, weights=weights)
+# creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
 
 
 class AnalysisMCS:
-    def __init__(self, dps_file_names=np.array(["dps2.p", "dps3.p", "dps4.p"]),
-                       samples_file_names=np.array(["samples2.p", "samples3.p", "samples4.p"])):
+    def __init__(self, dps_file_names=np.array(["dps2.p"]),
+                       samples_file_names=np.array(["samples2.p"])):
         self.data = {}
 
         for idx in range(len(dps_file_names)):
@@ -95,13 +91,14 @@ class AnalysisMCS:
 class AnalysisGA:
     def __init__(self):
         print("Reading data")
-        loaded_data = pickle.load(open("out/pickles/refga.p", "rb"))
+        loaded_data = pickle.load(open("out/pickles/bestcands_ds1.p", "rb"))
 
         self.data = {}
 
         self.pareto_front_data = None
 
-        for run in list(loaded_data.values()):
+        print("Formatting data")
+        for run in loaded_data:
             for k, v in run.items():
                 self.data[k] = v
 
@@ -109,7 +106,7 @@ class AnalysisGA:
         for k, v in self.data.items():
             k.fitness.values = tuple(v * use_objectives)
 
-        front = sortNondominated(self.data.keys(), 100, first_front_only=True)[0]
+        front = selNSGA2(self.data.keys(), 100)
         self.pareto_front_data = front
 
         return front
@@ -213,9 +210,9 @@ class Dps:
     def normalize(self, sample, invert=False):
         return sample * self.norm_vals if invert else sample / self.norm_vals
 
-    def mcs(self, nr_samples):
+    def mcs(self, nr_samples, average=True):
         nr_samples = nr_samples // len(self.individuals)
-        return np.array([i.mcs(nr_samples) for i in self.individuals])
+        return np.array([i.mcs(nr_samples, average=average) for i in self.individuals])
 
     def ssar(self, S, nr_samples):
         accepted_arms = [set() for _ in range(len(S))]
@@ -368,7 +365,11 @@ def wrong_sel_ssar(output, identifier, dps, samples):
 S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0][::2]
 
 
-if __name__ == "__main__":
+def create_dps_set():
+    """
+    Usefull to obtain dictionary of 700 sets of 100 individuals with each 10.000 samples.
+    :return:
+    """
     dps_names = np.array(["dps2.p", "dps3.p", "dps4.p"])
     samples_names = np.array(["samples2.p", "samples3.p", "samples4.p"])
 
@@ -381,44 +382,49 @@ if __name__ == "__main__":
 
     print("Storing", len(keys), "in", len(keys) // pop_size, "chunks")
 
-    dps = [Dps(keys[i:i+pop_size], values[i:i+pop_size]) for i in
+    dps = [Dps(keys[i:i + pop_size], values[i:i + pop_size]) for i in
            range(0, len(analysis.data.keys()) - pop_size + 1, pop_size)]
 
-    print("PICKLING")
+    print("Pickling data")
     pickle.dump(dps, open("out/pickles/working_dps.p", "wb"))
-    print("FINISHED")
+
+    return dps
+
+if __name__ == "__main__":
+    analysis = AnalysisGA()
+    print(analysis.data)
 
     # print("Loading")
     # dps = pickle.load(open("out/pickles/working_dps.p", "rb"))
-
-    wrong_sel = {}
-
-    for i, sa in zip(range(26, 502, 25), [32, 55, 77, 100, 123, 145, 169, 190, 214, 236, 260, 281, 303, 328, 351, 374, 398, 418, 440, 466]):
-        print("Finding wrong selected with", i, "samples per dp")
-        with open("out/logs/ssar_wrong_selected1.csv", "a") as myfile:
-            jobs = []
-
-            manager = multiprocessing.Manager()
-            return_dict = manager.dict()
-
-            for j in range(20):
-                jobs.append(multiprocessing.Process(target=wrong_sel_ssar,
-                                                    args=(return_dict, j, dps, sa)))
-
-            for j in jobs:
-                j.start()
-
-            for j in jobs:
-                j.join()
-
-            print(return_dict)
-
-            total_incorrect = sum(list(return_dict.values()))
-            wrong_sel[i] = total_incorrect
-            myfile.write(str(i) + "," + str(wrong_sel[i]) + "\n")
-            print("finished", i, ":", total_incorrect)
-
-    print(wrong_sel)
-
-    for k, v in wrong_sel.items():
-        print(k, v)
+    #
+    # wrong_sel = {}
+    #
+    # for i, sa in zip(range(26, 502, 25), [32, 55, 77, 100, 123, 145, 169, 190, 214, 236, 260, 281, 303, 328, 351, 374, 398, 418, 440, 466]):
+    #     print("Finding wrong selected with", i, "samples per dp")
+    #     with open("out/logs/ssar_wrong_selected1.csv", "a") as myfile:
+    #         jobs = []
+    #
+    #         manager = multiprocessing.Manager()
+    #         return_dict = manager.dict()
+    #
+    #         for j in range(20):
+    #             jobs.append(multiprocessing.Process(target=wrong_sel_ssar,
+    #                                                 args=(return_dict, j, dps, sa)))
+    #
+    #         for j in jobs:
+    #             j.start()
+    #
+    #         for j in jobs:
+    #             j.join()
+    #
+    #         print(return_dict)
+    #
+    #         total_incorrect = sum(list(return_dict.values()))
+    #         wrong_sel[i] = total_incorrect
+    #         myfile.write(str(i) + "," + str(wrong_sel[i]) + "\n")
+    #         print("finished", i, ":", total_incorrect)
+    #
+    # print(wrong_sel)
+    #
+    # for k, v in wrong_sel.items():
+    #     print(k, v)

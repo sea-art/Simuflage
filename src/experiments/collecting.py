@@ -10,7 +10,7 @@ from deap.tools import sortNondominated, selNSGA2
 from DSE import monte_carlo
 from DSE.evaluation import sSAR, pareto_ucb1
 from DSE.evaluation.evaluation_tests import scalarized_lambda, get_all_weights
-from DSE.exploration.GA import Chromosome
+from DSE.exploration.GA import Chromosome, AnalysisGA
 from DSE.exploration.GA.algorithm import initialize_sesp, GA
 from experiments import AnalysisMCS
 
@@ -49,18 +49,20 @@ class CollectGA:
     def __init__(self):
         print("STARTING")
 
-        self.sesp = initialize_sesp()
+        analysis = AnalysisGA()
+        self.ref_set = np.array([ind.fitness.values for ind in analysis.pareto_front()])
 
-        logbooks, best_cands = self.run_gas(100, 100, 50, 100)
+        self.sesp = initialize_sesp()
+        logbooks, best_cands = self.run_gas(100, 100, 50, 50)
 
         for book in logbooks.values():
             print(book)
 
-        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks.p", "wb"))
-        pickle.dump(list(best_cands.values()), open("out/pickles/bestcands.p", "wb"))
+        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks_dp3.p", "wb"))
+        # pickle.dump(list(best_cands.values()), open("out/pickles/bestcands_ds1.p", "wb"))
 
     def _run_ga(self, logbooks, best_cands, ga_i, pop_size, n_gens, samples_per_dp, eval_method='mcs'):
-        ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, eval_method=eval_method)
+        ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, ref_set=self.ref_set, eval_method=eval_method)
         ga.run()
 
         final_pop = ga.pop

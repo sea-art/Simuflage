@@ -168,15 +168,12 @@ class GA:
             to_evaluate[i].fitness.values = tuple(results[i])
 
     def _mcs(self):
-        print("Running _MCS")
         self._ref_nr_samples = 100
 
         results = list(monte_carlo(self.pop, iterations=self._ref_nr_samples * len(self.pop),
                                    parallelized=False).values())
 
         return results
-
-
 
     def crossover(self):
         """ Separates the population in two and crosses the individuals based on probability.

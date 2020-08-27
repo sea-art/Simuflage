@@ -58,7 +58,7 @@ class CollectGA:
         for book in logbooks.values():
             print(book)
 
-        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks_dp3.p", "wb"))
+        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks_50.p", "wb"))
         # pickle.dump(list(best_cands.values()), open("out/pickles/bestcands_ds1.p", "wb"))
 
     def _run_ga(self, logbooks, best_cands, ga_i, pop_size, n_gens, samples_per_dp, eval_method='mcs'):
@@ -151,7 +151,7 @@ class CollectEval:
             j.join()
 
         print(return_dict)
-        pickle.dump(dict(return_dict), open("out/pickles/evals.p", "wb"))
+        pickle.dump(dict(return_dict), open("out/pickles/temp.p", "wb"))
 
     def get_references_selection(self, dps):
         means = self.analysis.means()

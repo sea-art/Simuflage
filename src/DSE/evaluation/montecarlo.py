@@ -108,6 +108,7 @@ def monte_carlo(designpoints, iterations=1000, parallelized=True, all_samples=Fa
     :param designpoints: [DesignPoint object] - List of designpoint objects (the candidates).
     :param iterations: number of MC iterations to run
     :param parallelized: Boolean - indicating if the results so be calculated in parallel
+    :param all_samples: Boolean - indicating of all individuaL samples should be returned instead of mean.
     :return: Dict mapping index of designpoint with corresponding evaluated values (as tuple)
     """
     if parallelized:

@@ -46,7 +46,6 @@ class GA:
         :param n: integer - population size
         :param search_space: SearchSpace object
         """
-        # print("~~~~ Initializing ~~~~")
         self.n_pop = n_pop
         self.sesp = search_space
         self.eval_method = eval_method
@@ -95,7 +94,7 @@ class GA:
         return toolbox
 
     def _init_statistics(self):
-        stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+        stats = tools.Statistics()
         stats.register("mean", np.mean, axis=0)
         stats.register("std", np.std, axis=0)
         stats.register("best", lambda ind: np.array((np.max(ind, axis=0)[0],
@@ -106,6 +105,12 @@ class GA:
 
         return stats
 
+    def _set_fitness_values(self, values):
+        assert len(self.pop) == len(values)
+
+        for ind, rew in zip(self.pop, values):
+            ind.fitness.values = rew
+
     def _calc_distance(self):
         aprox_front = sortNondominated(self.pop, 10, first_front_only=True)[0]
         front_vals = np.array([a.fitness.values for a in aprox_front])
@@ -113,16 +118,27 @@ class GA:
         return np.mean(np.min(distance.cdist(self.ref_set, front_vals), axis=0))
 
     def log(self):
-        record_stats = self.stats.compile(self.pop)
+        real_data = np.array(self._mcs())
+
+        actual_record_stats = self.stats.compile(real_data)
+        own_record_stats = {'sampled_' + k: v for k, v in
+                            self.stats.compile(np.array([k.fitness.values for k in self.pop])).items()}
+
         operator_stats = {'mutations': self._nr_mutations,
                           'death_penalty': self._death_penalty,
                           'offspring': self._nr_offspring,
                           'elitism': len((set(self.pop) & set(self.prev_pop)))}
 
         if self.ref_set is not None:
-            operator_stats['distance'] = self._calc_distance()
+            operator_stats['sampleddistance'] = self._calc_distance()
 
-        self.logbook.record(gen=self.generation, **record_stats, **operator_stats)
+            sampled_fitness = [ind.fitness.values for ind in self.pop]
+            self._set_fitness_values(real_data)
+            operator_stats['distance'] = self._calc_distance()
+            self._set_fitness_values(sampled_fitness)
+
+        self.logbook.record(gen=self.generation, **actual_record_stats, **operator_stats, ** own_record_stats)
+
 
     def evaluate(self):
         """ Evaluate the current generation (self._generation) via monte carlo simulation.
@@ -150,6 +166,17 @@ class GA:
 
         for i in range(len(results)):
             to_evaluate[i].fitness.values = tuple(results[i])
+
+    def _mcs(self):
+        print("Running _MCS")
+        self._ref_nr_samples = 100
+
+        results = list(monte_carlo(self.pop, iterations=self._ref_nr_samples * len(self.pop),
+                                   parallelized=False).values())
+
+        return results
+
+
 
     def crossover(self):
         """ Separates the population in two and crosses the individuals based on probability.
@@ -203,21 +230,6 @@ class GA:
         self.pop = self.tb.select(self.pop, self.n_pop)
         self.log()
 
-    # def _log_get_values(self):
-    #     ttfs = []
-    #     pes = []
-    #     sizes = []
-    #
-    #     for individual in self.pop:
-    #         ttf, pe, size = individual.fitness.values
-    #
-    #         ttfs.append(ttf)
-    #         pes.append(pe)
-    #         sizes.append(size)
-    #
-    #     return ttfs, pes, sizes
-
-
     def next_generation(self):
         """ Main loop per generation.
 
@@ -260,18 +272,12 @@ def initialize_sesp():
 
 
 def main():
-    print("Starting GA with\npopulation: \t{}\ngenerations:\t {}\n~~~~~~~~~~~~~~~~~~~\n".format(N_POP, N_GENS))
-
     sesp = initialize_sesp()
-    # ga = GA(N_POP, N_GENS, 1000, sesp, eval_method='mcs', log_filename="out/test.csv")
-    init_pop = [Chromosome.create_random(Chromosome, sesp) for _ in range(50)]
 
-    ga1 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='mcs')
+    ga = GA(100, 5, 1, sesp)
+    ga.run()
 
-    ga1.run()
-    print("best: ", sortNondominated(ga1.pop, 10, first_front_only=True)[0])
-
-    # ga2 = GA(N_POP, N_GENS, 1000, sesp, init_pop=init_pop, eval_method='ssar')
+    print(ga.logbook)
 
 
 if __name__ == "__main__":

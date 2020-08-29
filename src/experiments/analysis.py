@@ -306,7 +306,6 @@ class Dps:
         if eval_method == 'pucb':
             samples = self.pucb(nr_samples)
         elif eval_method == 'ssar':
-            print("Using ssar:", nr_samples)
             samples, N = self.ssar(S, nr_samples)
         else:
             print("Using MCS")
@@ -369,7 +368,7 @@ def wrong_sel_ssar(output, identifier, dps, samples_per_dp):
     temp = {}
 
     for i, dp in enumerate(dps):
-        # print(str(i) + "/" + str(len(dps)), "done")
+        print(samples_per_dp, ":", str(i) + "/" + str(len(dps)), "done")
         dp.to_sel = len(dp.individuals) // 2
         nr_faults, N = dp.wrong_selected(samples_per_dp * len(dp.individuals), 'ssar', number=True)
         temp[N] = nr_faults
@@ -420,8 +419,8 @@ if __name__ == "__main__":
     to_samples = list(range(5, 200, 8)) + [250, 300, 400, 500]
 
     for s in to_samples:
-        jobs.append(multiprocessing.Process(target=wrong_sel_pucb,
-                                            args=(return_dict, dataset, s)))
+        jobs.append(multiprocessing.Process(target=wrong_sel_ssar,
+                                            args=(return_dict, s, dataset, s)))
 
     print("Starting processes")
 

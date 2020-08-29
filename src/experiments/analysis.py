@@ -239,7 +239,7 @@ class Dps:
             n_k = math.ceil((1 / LOG_K) * ((nr_samples - K) / (K + 1 - k)))
 
             samples = int(n_k - n_k_prev)
-            samples = int(np.round(samples * (K / len(A))))
+            # samples = int(np.round(samples * (K / len(A))))
 
             for i in A:
                 for _ in range(samples):
@@ -308,7 +308,6 @@ class Dps:
         elif eval_method == 'ssar':
             samples, N = self.ssar(S, nr_samples)
         else:
-            print("Using MCS")
             samples = self.mcs(nr_samples)
 
         for i, v in zip(self.dps, samples):
@@ -350,7 +349,21 @@ def scalarized_lambda(w):
     return lambda vec: linear_scalarize(vec, w)
 
 
-def wrong_sel_pucb(output, dps, samples_per_dp):
+def wrong_sel_mcs(output, identifier, dps, samples_per_dp):
+    temp = []
+
+    for z, dp in enumerate(dps):
+        print(samples_per_dp, ":", str(z) + "/" + str(len(dps)), "done")
+        dp.to_sel = len(dp.individuals) // 2
+        faults, _ = dp.wrong_selected(samples_per_dp * len(dp.individuals), 'mcs', number=True)
+        temp.append(faults)
+
+    print(temp)
+
+    output[(identifier, samples_per_dp)] = sum(temp)
+
+
+def wrong_sel_pucb(output, identifier, dps, samples_per_dp):
     temp = []
 
     for z, dp in enumerate(dps):
@@ -361,7 +374,7 @@ def wrong_sel_pucb(output, dps, samples_per_dp):
 
     print(temp)
 
-    output[samples_per_dp] = sum(temp)
+    output[(identifier, samples_per_dp)] = sum(temp)
 
 
 def wrong_sel_ssar(output, identifier, dps, samples_per_dp):
@@ -416,11 +429,12 @@ if __name__ == "__main__":
 
     print("Creating processes")
 
-    to_samples = list(range(5, 200, 8)) + [250, 300, 400, 500]
+    to_samples = list(range(5, 405, 5))
 
-    for s in to_samples:
-        jobs.append(multiprocessing.Process(target=wrong_sel_ssar,
-                                            args=(return_dict, s, dataset, s)))
+    for avg in range(10):
+        for s in to_samples:
+            jobs.append(multiprocessing.Process(target=wrong_sel_pucb,
+                                                args=(return_dict, avg, dataset, s)))
 
     print("Starting processes")
 
@@ -434,7 +448,7 @@ if __name__ == "__main__":
 
     print(return_dict)
 
-    pickle.dump(return_dict, open("out/pickles/pucb_outcome.p"))
+    pickle.dump(return_dict, open("out/pickles/mcs_outcome.p", "wb"))
 
     # wrong_sel = {}
     #

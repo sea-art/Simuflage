@@ -15,8 +15,8 @@ from DSE.exploration.GA import Chromosome
 
 weights = (1.0, -1.0, -1.0)
 
-# creator.create("FitnessDSE_mcs", base.Fitness, weights=weights)
-# creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
+creator.create("FitnessDSE_mcs", base.Fitness, weights=weights)
+creator.create("Individual_mcs", Chromosome, fitness=creator.FitnessDSE_mcs)
 
 
 class AnalysisMCS:
@@ -26,8 +26,8 @@ class AnalysisMCS:
 
         for idx in range(len(dps_file_names)):
             print("Reading data from", samples_file_names[idx])
-            dps = pickle.load(open("out/pickles/" + dps_file_names[idx], "rb"))
-            samples = pickle.load(open("out/pickles/" + samples_file_names[idx], "rb"))
+            dps = pickle.load(open("out/pickles/samples/" + dps_file_names[idx], "rb"))
+            samples = pickle.load(open("out/pickles/samples/" + samples_file_names[idx], "rb"))
 
             print("Formatting data from", samples_file_names[idx])
 
@@ -91,7 +91,7 @@ class AnalysisMCS:
 class AnalysisGA:
     def __init__(self):
         print("Reading data")
-        loaded_data = pickle.load(open("out/pickles/bestcands_ds1.p", "rb"))
+        loaded_data = pickle.load(open("out/pickles/logbooks/bestcands_ds1.p", "rb"))
 
         self.data = {}
 
@@ -222,18 +222,24 @@ class Dps:
         A = list(range(K))
         P_i = [self.to_sel for _ in range(len(S))]
 
+        nr_samples = nr_samples
+
         N = [0 for _ in range(K)]
         ui = [[0 for _ in range(3)] for _ in range(K)]
 
-        n_k = 0
+        n_k = 0  # NOTE: If n_k is set to negative number, that number will be spent towards initial sample
+                 #       which can be taken of the initial budget.
         LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
+
+        total_accepted = 0
+        total_rejected = 0
 
         for k in range(1, K):
             n_k_prev = n_k
-            n_k = math.ceil((1 / LOG_K) * (nr_samples - K) / (K + 1 - k))
+            n_k = math.ceil((1 / LOG_K) * ((nr_samples - K) / (K + 1 - k)))
 
             samples = int(n_k - n_k_prev)
-            samples = int(np.ceil((samples * K) / len(A)))
+            samples = int(np.round(samples * (K / len(A))))
 
             for i in A:
                 for _ in range(samples):
@@ -247,10 +253,20 @@ class Dps:
 
                 if accepted:  # Store the arms that are accepted by a function for this round
                     accepted_arms[i].add(max_gap_idx)
+                    total_accepted += 1
+                else:
+                    total_rejected += 1
 
             A = set().union(*A_all)  # Updates A to only include any arm that has not yet been removed by an F_j
 
         # print("n:", 6 * nr_samples, "actual:", sum(N))
+
+        # print("\n|S|:         \t", len(S))
+        # print("Budget SAR:  \t", nr_samples)
+        # print("Budget: sSAR \t", nr_samples * len(S))
+        # print("Spent:       \t", np.sum(N))
+        # print("total_accepted:\t", total_accepted)
+        # print("total_rejected:\t", total_rejected)
 
         return np.array([self.normalize(np.array(z), invert=True) for z in ui]), N
 
@@ -282,16 +298,15 @@ class Dps:
             ui[a] = update_empirical_mean(self.normalize(simulators[a].mcs(1)), ui[a], N[a])
             a.fitness.values = ui[a]
 
-        print("Total samples:", sum(list(N.values())))
+        # print("\nTotal samples:", sum(list(N.values())))
 
         return np.array([self.normalize(ui[self.dps[i]], invert=True) for i in range(n)])
 
     def wrong_selected(self, nr_samples, eval_method, number=False):
         if eval_method == 'pucb':
-            print("Using pucb")
             samples = self.pucb(nr_samples)
         elif eval_method == 'ssar':
-            print("Using ssar")
+            print("Using ssar:", nr_samples)
             samples, N = self.ssar(S, nr_samples)
         else:
             print("Using MCS")
@@ -336,33 +351,32 @@ def scalarized_lambda(w):
     return lambda vec: linear_scalarize(vec, w)
 
 
-def wrong_sel_pucb(output, identifier, dps, samples):
+def wrong_sel_pucb(output, dps, samples_per_dp):
     temp = []
 
-    for i, dp in enumerate(dps[::33]):
-        print(str(i) + "/100", "done")
-        faults, _ = dp.wrong_selected(samples * 100, 'pucb', number=True)
+    for z, dp in enumerate(dps):
+        print(samples_per_dp, ":", str(z) + "/" + str(len(dps)), "done")
+        dp.to_sel = len(dp.individuals) // 2
+        faults, _ = dp.wrong_selected(samples_per_dp * len(dp.individuals), 'pucb', number=True)
         temp.append(faults)
 
     print(temp)
 
-    output[(identifier, samples)] = sum(temp)
+    output[samples_per_dp] = sum(temp)
 
 
-def wrong_sel_ssar(output, identifier, dps, samples):
+def wrong_sel_ssar(output, identifier, dps, samples_per_dp):
     temp = {}
 
-    for i, dp in enumerate(dps[::250]):
-        print(str(i) + "/" + str(len(dps)), "done")
-        nr_faults, N = dp.wrong_selected((samples * 100) // 10, 'ssar', number=True)
+    for i, dp in enumerate(dps):
+        # print(str(i) + "/" + str(len(dps)), "done")
+        dp.to_sel = len(dp.individuals) // 2
+        nr_faults, N = dp.wrong_selected(samples_per_dp * len(dp.individuals), 'ssar', number=True)
         temp[N] = nr_faults
-
-    print(temp)
 
     output[(identifier, sum(list(temp.keys())) // len(temp.keys()))] = sum(list(temp.values()))
 
-
-S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0][::2]
+S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
 
 
 def create_dps_set():
@@ -375,7 +389,7 @@ def create_dps_set():
 
     analysis = AnalysisMCS(dps_names[:1], samples_names[:1])
 
-    pop_size = 100
+    pop_size = 50
 
     keys = list(analysis.data.keys())
     values = list(analysis.data.values())
@@ -390,13 +404,39 @@ def create_dps_set():
 
     return dps
 
-if __name__ == "__main__":
-    analysis = AnalysisGA()
-    print(analysis.data)
 
-    # print("Loading")
-    # dps = pickle.load(open("out/pickles/working_dps.p", "rb"))
-    #
+if __name__ == "__main__":
+    print("Pickling")
+    dataset = create_dps_set()[::2]
+    # dataset = pickle.load(open("out/pickles/working_dps.p", "rb"))[::2]
+
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+
+    jobs = []
+
+    print("Creating processes")
+
+    to_samples = list(range(5, 200, 8)) + [250, 300, 400, 500]
+
+    for s in to_samples:
+        jobs.append(multiprocessing.Process(target=wrong_sel_pucb,
+                                            args=(return_dict, dataset, s)))
+
+    print("Starting processes")
+
+    for j in jobs:
+        j.start()
+
+    print("All jobs have started")
+
+    for j in jobs:
+        j.join()
+
+    print(return_dict)
+
+    pickle.dump(return_dict, open("out/pickles/pucb_outcome.p"))
+
     # wrong_sel = {}
     #
     # for i, sa in zip(range(26, 502, 25), [32, 55, 77, 100, 123, 145, 169, 190, 214, 236, 260, 281, 303, 328, 351, 374, 398, 418, 440, 466]):

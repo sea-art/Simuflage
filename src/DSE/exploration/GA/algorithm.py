@@ -8,6 +8,7 @@ from copy import copy
 
 import numpy as np
 import scipy.stats as st
+from deap.benchmarks.tools import hypervolume
 from scipy.spatial import distance
 from deap import creator, base, tools
 from deap.tools import sortNondominated, Statistics
@@ -37,10 +38,10 @@ S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
 
 
 class GA:
-    def __init__(self, n_pop, n_gens, samples_per_dp, search_space, init_pop=None, eval_method='mcs', mutpb=0.3,
-                 ref_set=None):
+    def __init__(self, n_pop, n_gens, samples_per_dp, search_space, init_pop=None, eval_method='mcs', mutpb=0.3):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
+        :param init_pop: list of Individual objects
         :param log_info: boolean to indicate if GA should log info
         :param eval_method: choice of ['mcs', 'ssar', 'pucb']
         :param n: integer - population size
@@ -52,10 +53,7 @@ class GA:
         self.samples_per_dp = samples_per_dp
         self.mutpb = mutpb
 
-        if ref_set is not None:
-            self.ref_set = ref_set
-        else:
-            self.ref_set = None
+        self.ref_point = np.array([-1, 600.0, 37.0])
 
         self._nr_mutations = 0  # Used to log how many mutations occurred information
         self._death_penalty = 0  # Used to log how mutations resulted in death penalty
@@ -68,12 +66,17 @@ class GA:
         if init_pop is None:
             self.pop = self.tb.population(n_pop)
         else:
-            self.pop = [creator.Individual(*chromosome.genes, search_space) for chromosome in init_pop]
+            # self.pop = [creator.Individual(*chromosome.genes, search_space) for chromosome in init_pop]
+            self.pop = init_pop
 
         self.prev_pop = copy(self.pop)
 
         self.n_gens = n_gens
         self.generation = 0
+
+        self.evaluate()
+        self.log()
+
 
     def _init_toolbox(self):
         """ Initialization of the DEAP toolbox containing all GA functions.
@@ -113,9 +116,8 @@ class GA:
 
     def _calc_distance(self):
         aprox_front = sortNondominated(self.pop, 10, first_front_only=True)[0]
-        front_vals = np.array([a.fitness.values for a in aprox_front])
 
-        return np.mean(np.min(distance.cdist(self.ref_set, front_vals), axis=0))
+        return hypervolume(aprox_front, self.ref_point)
 
     def log(self):
         real_data = np.array(self._mcs())
@@ -124,18 +126,14 @@ class GA:
         own_record_stats = {'sampled_' + k: v for k, v in
                             self.stats.compile(np.array([k.fitness.values for k in self.pop])).items()}
 
-        operator_stats = {'mutations': self._nr_mutations,
-                          'death_penalty': self._death_penalty,
-                          'offspring': self._nr_offspring,
-                          'elitism': len((set(self.pop) & set(self.prev_pop)))}
+        operator_stats = {'mutations': self._nr_mutations, 'death_penalty': self._death_penalty,
+                          'offspring': self._nr_offspring, 'elitism': len((set(self.pop) & set(self.prev_pop))),
+                          'sampleddistance': self._calc_distance()}
 
-        if self.ref_set is not None:
-            operator_stats['sampleddistance'] = self._calc_distance()
-
-            sampled_fitness = [ind.fitness.values for ind in self.pop]
-            self._set_fitness_values(real_data)
-            operator_stats['distance'] = self._calc_distance()
-            self._set_fitness_values(sampled_fitness)
+        sampled_fitness = [ind.fitness.values for ind in self.pop]
+        self._set_fitness_values(real_data)
+        operator_stats['distance'] = self._calc_distance()
+        self._set_fitness_values(sampled_fitness)
 
         self.logbook.record(gen=self.generation, **actual_record_stats, **operator_stats, ** own_record_stats)
 
@@ -187,7 +185,7 @@ class GA:
 
         self._death_penalty += len(offspring)
 
-        assert (len(offspring) == self.n_pop)
+        # assert (len(offspring) == self.n_pop)
 
         # Checks if invalid individuals were created.
         offspring = [o for o in offspring if o.is_valid()]
@@ -235,7 +233,7 @@ class GA:
 
         :return: None
         """
-        self.prev_pop = self.pop[:]
+        self.prev_pop = self.pop
         self._nr_mutations = 0
         self._death_penalty = 0
         self._nr_offspring = 0

@@ -13,6 +13,7 @@ from DSE.evaluation.evaluation_tests import scalarized_lambda, get_all_weights
 from DSE.exploration.GA import Chromosome, AnalysisGA
 from DSE.exploration.GA.algorithm import initialize_sesp, GA
 from experiments import AnalysisMCS
+from experiments.analysis import create_dps_set
 
 weights = (1.0, -1.0, -1.0)
 
@@ -20,6 +21,7 @@ creator.create("FitnessDSE_col", base.Fitness, weights=weights)
 creator.create("Individual_col", Chromosome, fitness=creator.FitnessDSE_col)
 
 S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0][::2]
+S = [(1.0, 0, 0)]
 
 
 class CollectMCS:
@@ -49,20 +51,22 @@ class CollectGA:
     def __init__(self):
         print("STARTING")
 
-        analysis = AnalysisGA()
-        self.ref_set = np.array([ind.fitness.values for ind in analysis.pareto_front()])
+        analysis = AnalysisMCS(["dps2.p"], ["samples2.p"])
+
+        self.init_pops = list(analysis.data.keys())
 
         self.sesp = initialize_sesp()
-        logbooks, best_cands = self.run_gas(100, 100, 50, 50)
+        print("Running GA")
+        logbooks, best_cands = self.run_gas(100, 100, 50, 1)
 
         for book in logbooks.values():
             print(book)
 
-        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks_50.p", "wb"))
-        # pickle.dump(list(best_cands.values()), open("out/pickles/bestcands_ds1.p", "wb"))
+        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks/logbooks_100.p", "wb"))
+        pickle.dump(list(best_cands.values()), open("out/pickles/logbooks/bestcands_100.p", "wb"))
 
     def _run_ga(self, logbooks, best_cands, ga_i, pop_size, n_gens, samples_per_dp, eval_method='mcs'):
-        ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, ref_set=self.ref_set, eval_method=eval_method)
+        ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, init_pop=self.init_pops[ga_i:ga_i+pop_size], eval_method=eval_method)
         ga.run()
 
         final_pop = ga.pop

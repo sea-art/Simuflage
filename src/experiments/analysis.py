@@ -106,7 +106,7 @@ class AnalysisGA:
         for k, v in self.data.items():
             k.fitness.values = tuple(v * use_objectives)
 
-        front = selNSGA2(self.data.keys(), 100)
+        front = sortNondominated(self.data.keys(), 10, True)[0]
         self.pareto_front_data = front
 
         return front
@@ -123,6 +123,10 @@ class Individual:
         self.samples = samples
         np.random.shuffle(self.samples)
         self.mean = tuple(np.mean(samples, axis=0))
+
+    @property
+    def genes(self):
+        return self.individual.genes
 
     def __repr__(self):
         return str(self.individual)

@@ -23,7 +23,7 @@ __licence__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright 2020 Siard Keulen"
 
 from DSE.exploration.GA.ga_logger import LoggerGA
-from experiments import AnalysisGA
+from experiments.analysis.analysis_ga import AnalysisGA
 
 REF_POINTS = tools.uniform_reference_points(3)
 

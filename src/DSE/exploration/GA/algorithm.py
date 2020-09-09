@@ -160,7 +160,9 @@ class GA:
             _, results, N = sSAR(to_evaluate, len(to_evaluate) // 2, S, self.samples_per_dp * len(to_evaluate))
             N = sum(N) / len(to_evaluate)
         elif self.eval_method == 'pucb':
-            results, N = pareto_ucb1(to_evaluate, samples)
+            results, N = pareto_ucb1(to_evaluate, len(to_evaluate) // 2, samples)
+            print(N)
+            N = sum(N) / len(to_evaluate)
         else:
             results = monte_carlo(to_evaluate, iterations=samples, parallelized=False)
             N = samples

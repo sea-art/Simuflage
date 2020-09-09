@@ -56,13 +56,13 @@ class CollectGA:
 
         self.sesp = initialize_sesp()
         print("Running GA")
-        logbooks, best_cands = self.run_gas(100, 100, 50, 28, eval_method='ssar')
+        logbooks, best_cands = self.run_gas(50, 100, 50, 10, eval_method='pucb')
 
         for book in logbooks.values():
             print(book)
 
-        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks/logbooks_ssar28.p", "wb"))
-        pickle.dump(list(best_cands.values()), open("out/pickles/logbooks/bestcands_ssar28.p", "wb"))
+        pickle.dump(list(logbooks.values()), open("out/pickles/logbooks/logbooks_pucb30.p", "wb"))
+        pickle.dump(list(best_cands.values()), open("out/pickles/logbooks/bestcands_pucb30.p", "wb"))
 
     def _run_ga(self, logbooks, best_cands, ga_i, pop_size, n_gens, samples_per_dp, eval_method):
         ga = GA(pop_size, n_gens, samples_per_dp, self.sesp, init_pop=self.init_pops[ga_i:ga_i+pop_size], eval_method=eval_method)

@@ -34,7 +34,7 @@ weights = (1.0, -1.0, -1.0)
 creator.create("FitnessDSE", base.Fitness, weights=weights)
 creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
 
-S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != 1.0]
+S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != -1.0][::7]
 
 
 class GA:
@@ -58,6 +58,7 @@ class GA:
         self._nr_mutations = 0  # Used to log how many mutations occurred information
         self._death_penalty = 0  # Used to log how mutations resulted in death penalty
         self._nr_offspring = 0  # Used to log how many offspring was created
+        self._samples_spent_per_dp = 0  # Used to log how many samples were spent this generation (mainly for ssar)
 
         self.tb = self._init_toolbox()
         self.stats = self._init_statistics()
@@ -128,7 +129,7 @@ class GA:
 
         operator_stats = {'mutations': self._nr_mutations, 'death_penalty': self._death_penalty,
                           'offspring': self._nr_offspring, 'elitism': len((set(self.pop) & set(self.prev_pop))),
-                          'sampleddistance': self._calc_distance()}
+                          'sampleddistance': self._calc_distance(), "spent_samples": self._samples_spent_per_dp}
 
         sampled_fitness = [ind.fitness.values for ind in self.pop]
         self._set_fitness_values(real_data)
@@ -156,11 +157,16 @@ class GA:
         samples = self.samples_per_dp * len(to_evaluate)
 
         if self.eval_method == 'ssar':
-            _, results, _ = sSAR(to_evaluate, samples // 2, S, self.samples_per_dp)
+            _, results, N = sSAR(to_evaluate, len(to_evaluate) // 2, S, self.samples_per_dp * len(to_evaluate))
+            N = sum(N) / len(to_evaluate)
         elif self.eval_method == 'pucb':
-            results, _ = pareto_ucb1(to_evaluate, samples)
+            results, N = pareto_ucb1(to_evaluate, samples)
         else:
             results = monte_carlo(to_evaluate, iterations=samples, parallelized=False)
+            N = samples
+
+        self._samples_spent_per_dp = N
+        print("samples spent:", N)
 
         for i in range(len(results)):
             to_evaluate[i].fitness.values = tuple(results[i])

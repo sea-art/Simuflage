@@ -18,14 +18,14 @@ def normalize(values, invert=False):
     mttf, usage, size = tuple(values)
 
     if not invert:
-    # Normalization by dividing via the mean (of 50000 random design points)
-        mttf /= 429320.87498
-        usage /= 235.9094298110201
-        size /= 30.2112
+    # Normalization by dividing via the max (of 50000 random design points)
+        mttf /= 720000
+        usage /= 550
+        size /= 36
     else:
-        mttf *= 429320.87498
-        usage *= 235.9094298110201
-        size *= 30.2112
+        mttf *= 720000
+        usage *= 550
+        size *= 36
 
     return mttf, usage, size
 
@@ -176,7 +176,7 @@ def delta_pk_ij(ui, A, f_p, p):
     for i in sorted_indices[p:]:
         gaps[i] = t_ui[i_star_up][1] - t_ui[i][1]
 
-    assert np.any(np.array(gaps) > 0.0), (p, sorted_indices, gaps)
+    assert np.any(np.array(gaps) > 0.0), (p, sorted_indices, [t_ui[z] for z in sorted_indices], f_p([1, 3, 9]))
 
     # return the index of the maximum gap and if this arm should be accepted
     j = gaps.index(max(gaps))
@@ -194,11 +194,12 @@ def sSAR(individuals, p, S, n):
     :return: Set of selected candidates
     """
     accepted_arms = [set() for _ in range(len(S))]
+
     K = len(individuals)  # Number of rounds
-    sims = [Simulator(i) for i in individuals]  # Simulators per individual
     A_all = [[i for i in range(K)] for _ in range(len(S))]  # Contains bandits for each scalarization function
     A = [i for i in range(K)]  # Total active arms
     P_i = [p for _ in range(len(S))]
+    sims = [Simulator(i) for i in individuals]  # Simulators per individual
 
     N = [0 for _ in range(K)]  # Number of samples per individual
     ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector

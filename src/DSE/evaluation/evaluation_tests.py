@@ -24,7 +24,7 @@ def get_all_weights(steps=10):
     rng = list(range(values + 1)) * boxes
     ans = sorted(set(i for i in itertools.permutations(rng, boxes) if sum(i) == values))
 
-    return list(map(lambda tup: (tup[0]/steps, tup[1]/steps, tup[2]/steps), ans))
+    return list(map(lambda tup: (tup[0]/steps, -tup[1]/steps, -tup[2]/steps), ans))
 
 
 def get_best_arms(individuals, m, samples_per_dp):

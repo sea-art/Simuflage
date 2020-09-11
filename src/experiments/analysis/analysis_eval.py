@@ -78,25 +78,25 @@ def distance_of_selections(output, identifier, dps, samples_per_dp, eval_method=
         output[samples_per_dp] = np.mean(temp) / 10000000
 
 
-def start_incorrect_selections_experiment(eval_method='mcs', istance=False):
+def start_incorrect_selections_experiment(eval_method='mcs'):
     """ EXPERIMENT
 
     :param distance: True = uses distance, False = uses nr of incorrect selections
     :return:
     """
-    # dataset = create_dps_set()
-    dataset = pickle.load(open("out/pickles/working_dps.p", "rb"))[::8]
+    dataset = create_dps_set(sample_dataset=False)[::14]
+    # dataset = pickle.load(open("out/pickles/working_dps.p", "rb"))[::8]
 
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
 
+    if eval_method == 'ssar':
+        # to_samples = list(range(5, 156, 5))
+        to_samples = list(range(5, 156, 80))
 
-    if eval_method == 'mcs':
-        to_samples = list(range(5, 656, 50))
-    elif eval_method == 'ssar':
-        to_samples = list(range(5, 156, 40))
     else:
-        to_samples = list(range(5, 206, 50))
+        # to_samples = list(range(5, 656, 20))
+        to_samples = list(range(5, 656, 400))
 
     jobs = []
 
@@ -179,17 +179,19 @@ def verify_scalarization_detection():
         print("")
 
 
-
-
-def create_dps_set(fix_two_objectives=False):
+def create_dps_set(fix_two_objectives=False, sample_dataset=False):
     """
     Usefull to obtain dictionary of 700 sets of 100 individuals with each 10.000 samples.
     :return:
     """
-    dps_names = np.array(["dps2.p", "dps3.p", "dps4.p"])
-    samples_names = np.array(["samples2.p", "samples3.p", "samples4.p"])
+    if sample_dataset:
+        dps_names = np.array(['dps5.p'])
+        samples_names = np.array(['samples5.p'])
+    else:
+        dps_names = np.array(["dps2.p", "dps3.p", "dps4.p"])
+        samples_names = np.array(["samples2.p", "samples3.p", "samples4.p"])
 
-    analysis = AnalysisMCS(dps_names[:2], samples_names[:2])
+    analysis = AnalysisMCS(dps_names, samples_names)
 
     pop_size = 100
 
@@ -206,8 +208,8 @@ def create_dps_set(fix_two_objectives=False):
     dps = [Dps(keys[i:i + pop_size], values[i:i + pop_size]) for i in
            range(0, len(analysis.data.keys()) - pop_size + 1, pop_size)]
 
-    print("Pickling data")
-    pickle.dump(dps, open("out/pickles/working_dps.p", "wb"))
+    # print("Pickling data")
+    # pickle.dump(dps, open("out/pickles/working_dps.p", "wb"))
 
     return dps
 
@@ -216,7 +218,16 @@ if __name__ == "__main__":
     # verify_scalarization_detection()
 
     mcs_res = start_incorrect_selections_experiment(eval_method='mcs')
+    print(mcs_res)
+
+    print("Pickling data")
+    pickle.dump(mcs_res, open("out/pickles/mcs_nr_incorrect_sel.p", "wb"))
+
     ssar_res = start_incorrect_selections_experiment(eval_method='ssar')
 
-    print(mcs_res)
-    print(ssar_res)
+    print("Pickling data")
+    pickle.dump(ssar_res, open("out/pickles/ssar_nr_incorrect_sel.p", "wb"))
+
+    print("mcs:", mcs_res)
+    print("ssar:", ssar_res)
+

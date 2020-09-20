@@ -6,9 +6,6 @@
 import numpy as np
 import random
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 def one_point_crossover(parent1, parent2):
     """ One point crossover functionality between two parents.

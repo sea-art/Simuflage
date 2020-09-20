@@ -1,5 +1,5 @@
 
-from deap.tools import sortNondominated, selNSGA2
+from deap.tools import sortNondominated
 import math
 import numpy as np
 
@@ -45,7 +45,7 @@ def pareto_ucb1(individuals, k, nr_samples=500):
     N = {individuals[i]: 1 for i in range(n)}
 
     # Empirical mean vector per individual
-    ui = {individuals[i]: list(normalize(simulators[individuals[i]].run_optimized())) for i in range(n)}
+    ui = {individuals[i]: list(normalize(simulators[individuals[i]].run())) for i in range(n)}
 
     # individual fitness values are empirical means
     for i in individuals:
@@ -68,7 +68,7 @@ def pareto_ucb1(individuals, k, nr_samples=500):
         N[a] += 1
         samples += 1
 
-        ui[a] = update_empirical_mean(normalize(simulators[a].run_optimized()), ui[a], N[a])
+        ui[a] = update_empirical_mean(normalize(simulators[a].run()), ui[a], N[a])
         a.fitness.values = ui[a]
 
     return [normalize(ui[individuals[i]], invert=True) for i in range(n)], [N[individuals[i]] for i in range(n)]

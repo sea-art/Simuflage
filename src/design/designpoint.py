@@ -7,17 +7,12 @@ A design point for an adaptive embedded system consists of:
 - A mapping indicating which Application is being executed by which Component
 - An adaptive policy on the occurrence of a Component failure.
 """
-from copy import deepcopy, copy
 
-import numpy as np
 import random
 
 from design import Application
 from design import Component
 from design.mapping import *
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class DesignPoint:
@@ -43,7 +38,7 @@ class DesignPoint:
 
         :return: string - representation of this Component
         """
-        return "DesignPoint ({}): {} \npolicy: {}\n".format(len(self._components), self._application_map, self.policy)
+        return "DesignPoint ({}): {} policy: {}".format(len(self._components), self._application_map, self.policy)
 
     @staticmethod
     def create(caps, locs, apps, maps, policy='random'):
@@ -52,9 +47,9 @@ class DesignPoint:
         No other objects (e.g. Components or Applications) have to be created in order
         to initialize this design point.
 
-        :param caps: [integer] - List of integers representing the power capacity
+        :param caps: [integer] - List of integers representing the comp_need capacity
         :param locs: [(integer, integer)] - List of integer tuples representing the coordinates of components
-        :param apps: [integer] - List of integers representing the power requirement of applications
+        :param apps: [integer] - List of integers representing the comp_need requirement of applications
         :param maps: [(integer, integer)] - Indexwise mapping of component indices and application indices
         :param policy: ['random', 'most', 'least'] - adaptivity policy (see Simulator)
         :return: DesignPoint object
@@ -73,15 +68,18 @@ class DesignPoint:
         return DesignPoint(comps, apps, mapping, policy=policy)
 
     @staticmethod
-    def create_random(n):
+    def create_random(n=None):
         """ Simplified static function to quickly generate random design points.
 
-        Creates n components with a random capacity and random location. Creates n applications with a random power
+        Creates n components with a random capacity and random location. Creates n applications with a random comp_need
         requirement. Picks a random adaptivity policy.
 
         :param n: integer - representing amount of components and applications that will be randomly created.
         :return: DesignPoint object
         """
+        if n is None:
+            n = random.randint(1, 20)
+
         choices = list(map(tuple, all_possible_pos_mappings(n)))
         caps = list(np.random.randint(61, 200, n))
         locs = random.sample(choices, n)
@@ -115,7 +113,7 @@ class DesignPoint:
         The capacity of each component will be placed on the
         corresponding position. All other position (i.e. spots where the components are not placed) are 0.
 
-        :return: 2D numpy array of power capacities
+        :return: 2D numpy array of comp_need capabilities
         """
         grid = self._get_empty_grid()
 
@@ -134,7 +132,7 @@ class DesignPoint:
         The capacity of each component will be placed on the
         corresponding position. All other position (i.e. spots where the components are not placed) are 0.
 
-        :return: 2D numpy array of power capacities
+        :return: 2D numpy array of comp_need capabilities
         """
         grid = self._get_empty_grid()
 
@@ -146,9 +144,9 @@ class DesignPoint:
         return grid
 
     def _calc_power_usage_per_component(self):
-        """ Calculate the power usage per component based on the mapped applications to the corresponding components.
+        """ Calculate the comp_need usage per component based on the mapped applications to the corresponding components.
 
-        :return: numpy integer array indicating the mapped application power per component.
+        :return: numpy integer array indicating the mapped application comp_need per component.
         """
         grid = self._get_empty_grid()
 
@@ -175,7 +173,7 @@ class DesignPoint:
         With this data, components (and their corresponding values) are all based on index.
 
         :return: {
-                    numpy 2D float array - capacities
+                    numpy 2D float array - capabilities
                     numpy 2D float array - power_usage
                     numpy 2D float array - self_temps (max temperature each component can generate)
                     numpy 2D structured array [(component_index, x, y)] - comp_loc_map (component to pos mapping)
@@ -189,7 +187,7 @@ class DesignPoint:
 
         assert np.any(capacities >= power_usage), "Components have higher workload than capacity"
 
-        return {'capacities': capacities,
+        return {'capabilities': capacities,
                 'power_usage': power_usage,
                 'self_temps': self_temps,
                 'comp_loc_map': self._comp_loc_map,

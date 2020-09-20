@@ -10,33 +10,30 @@ import warnings
 
 from .element import SimulatorElement
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 IDLE_WATT_USE = 20
 
 
 class Components(SimulatorElement):
     """ Contains all logical operations that are required for the components in a simulation."""
 
-    def __init__(self, capacities, power_uses, comp_loc_map, app_mapping, policy='random'):
+    def __init__(self, capabilities, power_uses, comp_loc_map, app_mapping, policy='random'):
         """ Initializes the components for the simulator.
 
-        :param capacities: 2D float numpy array with capacities on component positions
-        :param power_uses: 2D float numpy array with power usage on component positions
+        :param capabilities: 2D float numpy array with capacities on component positions
+        :param power_uses: 2D float numpy array with comp_need usage on component positions
         :param comp_loc_map: Structured array mapping components to locations
         :param app_mapping: Structured array mapping components to applications
         """
-        self._capacities = capacities
+        self._capabilities = capabilities
         self._power_uses = power_uses
-        self._alive_components = capacities > 0
+        self._alive_components = capabilities > 0
         self.policy = policy
 
-        self._reset_values = (np.array(capacities, copy=True),
+        self._reset_values = (np.array(capabilities, copy=True),
                               np.array(power_uses, copy=True),
                               np.array(app_mapping, copy=True))
 
-        assert np.all(self._capacities >= self._power_uses), \
+        assert np.all(self._capabilities >= self._power_uses), \
             "One or more components have a workload that it can not handle."
 
         # Mappings
@@ -47,14 +44,14 @@ class Components(SimulatorElement):
 
         # Miscellaneous variables
         self._nr_applications = np.count_nonzero(self._app_mapping)
-        self._nr_components = np.count_nonzero(self._capacities)
+        self._nr_components = np.count_nonzero(self._capabilities)
 
     def __repr__(self):
         """ Representation of an Components object.
 
         :return: string - representation of this Components object
         """
-        return str(np.vstack(([self._capacities.T], [self._power_uses.T])).T)
+        return str(np.vstack(([self._capabilities.T], [self._power_uses.T])).T)
 
     @property
     def alive_components(self):
@@ -76,15 +73,15 @@ class Components(SimulatorElement):
     def capacities(self):
         """ Getter function for the comp_loc_map instance variable.
 
-        :return: 2D float numpy array with capacities on component positions
+        :return: 2D float numpy array with capabilities on component positions
         """
-        return self._capacities
+        return self._capabilities
 
     @property
     def power_uses(self):
         """ Getter function for the power_uses instance variable.
 
-        :return: 2D float numpy array with power usage on component positions
+        :return: 2D float numpy array with comp_need usage on component positions
         """
         return self._power_uses
 
@@ -103,7 +100,7 @@ class Components(SimulatorElement):
         :return: 2D numpy float array with values between [0.0, 1.0], indicating workload.
         """
         with np.errstate(divide='ignore', invalid='ignore'):
-            workload = self.power_uses / self._capacities
+            workload = self.power_uses / self._capabilities
             workload[np.isnan(workload)] = 0
 
         return workload
@@ -155,7 +152,7 @@ class Components(SimulatorElement):
 
         :return: None
         """
-        grid = np.zeros(self._capacities.shape)
+        grid = np.zeros(self._capabilities.shape)
 
         for comp, app in self._app_mapping:
             grid[self._index_to_pos(comp)] += app
@@ -169,7 +166,7 @@ class Components(SimulatorElement):
         :return: Numpy array of indices of failed components
         """
         self._alive_components[failed_components] = False
-        self._capacities[failed_components] = 0
+        self._capabilities[failed_components] = 0
         self._power_uses[failed_components] = 0
 
     def _adjust_app_mapping(self, failed_indices):
@@ -209,7 +206,7 @@ class Components(SimulatorElement):
         :return:
         """
         if policy not in ['random', 'most', 'least']:
-            warnings.warn("Policy: " + str(policy) + " is not known. Using random policy instead.")
+            warnings.warn("Policy: {} is not known. Using random policy instead.".format(policy))
             policy = 'random'
 
         if policy == 'random':
@@ -222,16 +219,16 @@ class Components(SimulatorElement):
     def _remap_application(self, app, policy='random'):
         """ Remaps a given application to any of the still working components with enough slack.
 
-        Also adjusts the power usage after application remapping.
+        Also adjusts the comp_need usage after application remapping.
 
-        :param app: integer representing the power required for an application that has to be remapped.
+        :param app: integer representing the comp_need required for an application that has to be remapped.
         :param policy - choice of
             'random' - randomly-mapped   --> will map applications randomly to components
             'most'   - most-slack-first  --> will try to map applications to components with most slack first
             'least'  - least-slack-first --> will try to map applications to components with least slack first
         :return: None
         """
-        components_slack = self._capacities - self._power_uses
+        components_slack = self._capabilities - self._power_uses
         map_order = self._get_mapping_order(components_slack, policy)
 
         for i in map_order:
@@ -269,7 +266,7 @@ class Components(SimulatorElement):
         return True
 
     def step_till_failure(self, n, cur_agings):
-        """ Run n iterations regarding the component process of the simulation.
+        """ Run n sample_budget regarding the component process of the simulation.
 
         :param n: int - amount of timesteps to take
         :param cur_agings: 2D numpy float array containing the current agings for components
@@ -283,8 +280,8 @@ class Components(SimulatorElement):
         :return: None
         """
         capacities, power_uses, app_map = self._reset_values
-        self._capacities = np.array(capacities, copy=True)
+        self._capabilities = np.array(capacities, copy=True)
         self._power_uses = np.array(power_uses, copy=True)
         self._app_mapping = np.array(app_map, copy=True)
-        self._alive_components = self._capacities > 0
+        self._alive_components = self._capabilities > 0
         self._adjust_power_uses()

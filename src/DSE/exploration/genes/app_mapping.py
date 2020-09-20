@@ -8,9 +8,6 @@ Consists of a application mapping function, which will be used to actually creat
 
 import random
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 from design.mapping import InvalidMappingError
 
 

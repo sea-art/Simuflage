@@ -2,28 +2,21 @@
 
 """ Contains all overarching functionality regarding the genetic algorithm of the DSE.
 """
-import logging
+import itertools
 import random
 from copy import copy
 
 import numpy as np
 import scipy.stats as st
 from deap.benchmarks.tools import hypervolume
-from scipy.spatial import distance
 from deap import creator, base, tools
-from deap.tools import sortNondominated, Statistics
+from deap.tools import sortNondominated
 
 from DSE.evaluation import monte_carlo
 from DSE.evaluation.Pareto_UCB1 import pareto_ucb1
 from DSE.evaluation.SAR import sSAR
-from DSE.evaluation.evaluation_tests import scalarized_lambda, get_all_weights
-from DSE.exploration.GA import Chromosome, SearchSpace
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
-from DSE.exploration.GA.ga_logger import LoggerGA
-from experiments.analysis.analysis_ga import AnalysisGA
+from DSE.exploration import Chromosome, SearchSpace
 
 REF_POINTS = tools.uniform_reference_points(3)
 
@@ -34,11 +27,45 @@ weights = (1.0, -1.0, -1.0)
 creator.create("FitnessDSE", base.Fitness, weights=weights)
 creator.create("Individual", Chromosome, fitness=creator.FitnessDSE)
 
+
+def scalarized_lambda(w):
+    """ Return function that will linearly scalarize a given vector based on weights w.
+    :param w: iterable
+    :return: lambda function vec: scalarized reward
+    """
+    return lambda vec: linear_scalarize(vec, w)
+
+
+def linear_scalarize(vector, weights):
+    """ Will linearly scalarize a given vector based on the given weights
+
+    :param vector: iterable of n elements containing the rewards
+    :param weights: iterable of n elements containing the weights of the rewards
+    :return: float - single scalarized reward
+    """
+    return sum([vector[i] * weights[i] for i in range(len(vector))])
+
+
+def get_all_weights(steps=10):
+    """ Will create a list of all possible weight values for the scalarization functions.
+
+    :type steps: int representing the stepsize (as 1 / steps)
+    :return:
+    """
+    boxes = 3
+    values = steps
+
+    rng = list(range(values + 1)) * boxes
+    ans = sorted(set(i for i in itertools.permutations(rng, boxes) if sum(i) == values))
+
+    return list(map(lambda tup: (tup[0] / steps, -tup[1] / steps, -tup[2] / steps), ans))
+
+
 S = [scalarized_lambda(w) for w in get_all_weights() if w[2] != -1.0][::7]
 
 
 class GA:
-    def __init__(self, n_pop, n_gens, samples_per_dp, search_space, init_pop=None, eval_method='mcs', mutpb=0.3):
+    def __init__(self, n_pop, n_gens, samples_per_dp, search_space, init_pop=None, eval_method='mcs', mutpb=0.3, log=False):
         """ Initialize a GA (Genetic Algorithm) object to run the GA.
 
         :param init_pop: list of Individual objects
@@ -52,6 +79,7 @@ class GA:
         self.eval_method = eval_method
         self.samples_per_dp = samples_per_dp
         self.mutpb = mutpb
+        self.islogging = log
 
         self.ref_point = np.array([-1, 600.0, 37.0])
 
@@ -75,9 +103,10 @@ class GA:
         self.n_gens = n_gens
         self.generation = 0
 
+        print("Generation:", self.generation)
         self.evaluate()
-        self.log()
-
+        if self.islogging:
+            self.log()
 
     def _init_toolbox(self):
         """ Initialization of the DEAP toolbox containing all GA functions.
@@ -138,7 +167,6 @@ class GA:
 
         self.logbook.record(gen=self.generation, **actual_record_stats, **operator_stats, ** own_record_stats)
 
-
     def evaluate(self):
         """ Evaluate the current generation (self._generation) via monte carlo simulation.
 
@@ -161,10 +189,9 @@ class GA:
             N = sum(N) / len(to_evaluate)
         elif self.eval_method == 'pucb':
             results, N = pareto_ucb1(to_evaluate, len(to_evaluate) // 2, samples)
-            print(N)
             N = sum(N) / len(to_evaluate)
         else:
-            results = monte_carlo(to_evaluate, iterations=samples, parallelized=False)
+            results = monte_carlo(to_evaluate, sample_budget=samples, parallelized=False)
             N = samples
 
         self._samples_spent_per_dp = N
@@ -176,7 +203,7 @@ class GA:
     def _mcs(self):
         self._ref_nr_samples = 100
 
-        results = list(monte_carlo(self.pop, iterations=self._ref_nr_samples * len(self.pop),
+        results = list(monte_carlo(self.pop, sample_budget=self._ref_nr_samples * len(self.pop),
                                    parallelized=False).values())
 
         return results
@@ -192,8 +219,6 @@ class GA:
             offspring += list(Chromosome.mate(parent1, parent2, self.sesp))
 
         self._death_penalty += len(offspring)
-
-        # assert (len(offspring) == self.n_pop)
 
         # Checks if invalid individuals were created.
         offspring = [o for o in offspring if o.is_valid()]
@@ -219,6 +244,7 @@ class GA:
                 c.genes[1].repair(c.genes[0], self.sesp)
 
         self._death_penalty += len(offspring)
+
         # Checks if mutated individuals are still valid.
         offspring = [o for o in offspring if o.is_valid()]
         self._death_penalty -= len(offspring)
@@ -231,7 +257,9 @@ class GA:
         :return: population
         """
         self.pop = self.tb.select(self.pop, self.n_pop)
-        self.log()
+
+        if self.islogging:
+            self.log()
 
     def next_generation(self):
         """ Main loop per generation.
@@ -279,8 +307,6 @@ def main():
 
     ga = GA(100, 5, 1, sesp)
     ga.run()
-
-    print(ga.logbook)
 
 
 if __name__ == "__main__":

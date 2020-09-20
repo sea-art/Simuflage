@@ -12,9 +12,6 @@ such as
 
 import numpy as np
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 class Policy:
     def __init__(self, policy):

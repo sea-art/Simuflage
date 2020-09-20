@@ -1,8 +1,6 @@
 import math
 import numpy as np
-from deap.tools import sortNondominated
 
-from design import DesignPoint
 from simulation import Simulator
 
 NR_OBJECTIVES = 3
@@ -17,8 +15,8 @@ def normalize(values, invert=False):
     """
     mttf, usage, size = tuple(values)
 
-    if not invert:
     # Normalization by dividing via the max (of 50000 random design points)
+    if not invert:
         mttf /= 720000
         usage /= 550
         size /= 36
@@ -61,7 +59,7 @@ def SAR(individuals, m, nr_samples=1000):
         samples = int(f_n_k(k, nr_samples, D) - f_n_k(k - 1, nr_samples, D))
         for i in A:
             for _ in range(samples):
-                new_sample = l_scale(list(simulators[i].run_optimized()) + [individuals[i].evaluate_size()],
+                new_sample = l_scale(list(simulators[i].run()) + [individuals[i].evaluate_size()],
                                      weights=(1, -1, -1))
                 N[i] += 1
                 ui[i] = (i, ui[i][1] + (new_sample - ui[i][1]) / N[i])
@@ -124,7 +122,7 @@ def esSR(individuals, S, n):
     sims = [Simulator(i) for i in individuals]
 
     n_k = 0
-    LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
+    LOG_K = 1 / 2 + sum([1 / i for i in range(2, K + 1)])
 
     for k in range(1, K):
         n_k_prev = n_k
@@ -135,7 +133,7 @@ def esSR(individuals, S, n):
         for i in A:  # for all active bandits
             for _ in range(samples):  # Sample each bandit and update empirical vector
                 N[i] += 1
-                ui[i] = update_empirical_mean(sims[i].run_optimized(), ui[i], N[i])
+                ui[i] = update_empirical_mean(sims[i].run(), ui[i], N[i])
 
         for i in range(len(S)):  # for each scalarization function dismiss a bandit
             A_j = A_all[i]
@@ -205,7 +203,7 @@ def sSAR(individuals, p, S, n):
     ui = [[0 for _ in range(NR_OBJECTIVES)] for _ in range(K)]  # empirical reward vector
 
     n_k = 0
-    LOG_K = 1/2 + sum([1 / i for i in range(2, K + 1)])
+    LOG_K = 1 / 2 + sum([1 / i for i in range(2, K + 1)])
 
     for k in range(1, K):
         n_k_prev = n_k
@@ -215,7 +213,7 @@ def sSAR(individuals, p, S, n):
         for i in A:  # for all active bandits
             for _ in range(samples):  # Sample each bandit and update empirical vector
                 N[i] += 1
-                reward_vector = sims[i].run_optimized()
+                reward_vector = sims[i].run()
                 ui[i] = update_empirical_mean(normalize(reward_vector), ui[i], N[i])
 
         for i in range(len(S)):

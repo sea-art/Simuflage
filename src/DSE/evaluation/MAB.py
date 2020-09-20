@@ -7,14 +7,7 @@ import random
 import math
 import numpy as np
 
-from deap.tools import sortNondominated
-
-from DSE.evaluation import monte_carlo
 from simulation import Simulator
-
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 TOP_CANDIDATES = 5
@@ -59,7 +52,7 @@ def mab_so_epsilon_greedy(designpoints, e, nr_samples=10000, idx=0, func=max):
     """
     simulators = [Simulator(dp) for dp in designpoints]
     samples = [1 for _ in simulators]
-    qt = [sim.run_optimized()[idx] for sim in simulators]  # Q_t = est value of action a at timestep t
+    qt = [sim.run()[idx] for sim in simulators]  # Q_t = est value of action a at timestep t
 
     for _ in range(len(simulators), nr_samples):
         if random.random() < e:  # epsilon exploration
@@ -67,7 +60,7 @@ def mab_so_epsilon_greedy(designpoints, e, nr_samples=10000, idx=0, func=max):
         else:  # greedy exploitation
             a = random.choice([i for i, val in enumerate(qt) if val == func(qt)])
 
-        new_sample = simulators[a].run_optimized()[idx]
+        new_sample = simulators[a].run()[idx]
         samples[a] += 1
         # Incremental implementation of MAB [Sutton & Barto(2011)].
         qt[a] += (new_sample - qt[a]) / samples[a]
@@ -94,13 +87,13 @@ def mab_so_ucb(designpoints, c, nr_samples=10000, idx=0, func=max):
     """
     simulators = [Simulator(dp) for dp in designpoints]
     samples = [1 for _ in simulators]
-    qt = [sim.run_optimized()[idx] for sim in simulators]  # Q_t = est value of action a at timestep t
+    qt = [sim.run()[idx] for sim in simulators]  # Q_t = est value of action a at timestep t
 
     for t in range(len(simulators), nr_samples):
         actions = [qt[i] + c * math.sqrt(math.log(t) / samples[i]) for i in range(len(simulators))]
         a = random.choice([i for i, val in enumerate(actions) if val == func(actions)])
         samples[a] += 1
-        new_sample = simulators[a].run_optimized()[idx]
+        new_sample = simulators[a].run()[idx]
         qt[a] += (new_sample - qt[a]) / samples[a]
 
     print("Best UCB candidates:", sorted(set([i for (i, val) in sorted(zip(np.arange(len(qt)), qt), key=lambda x: x[1], reverse=True)][:TOP_CANDIDATES])))
@@ -116,7 +109,7 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
     variable can be used to specify which value should be used by the MAB (default=TTF).
 
     :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
-    :param step_size: step size of the algorithm TODO
+    :param step_size: step size of the algorithm
     :param nr_samples: number of samples
     :param idx: index of simulator return value to use as objective
     :param func: function to select the best DesignPoint (should be max or min).
@@ -136,7 +129,7 @@ def mab_so_gradient(designpoints, step_size, nr_samples=10000, idx=0, func=max):
     for t in range(1, nr_samples + 1):
         A = np.random.choice(k, 1, p=P)[0]
         N[A] += 1
-        R = simulators[A].run_optimized()[idx]
+        R = simulators[A].run()[idx]
         qt[A] += (R - qt[A]) / N[A]
         R /= 100000
 
@@ -161,7 +154,7 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
     """ Single-objective MAB Gap-based Exploration with Variance (GapE-V).
 
     :param designpoints: [DesignPoint object] - List of DesignPoint objects (the candidates).
-    :param a: degree of exploration (TODO: ?)
+    :param a: degree of exploration
     :param b: float - maximum expected value from samples
     :param m: amount of designs to select
     :param nr_samples: number of samples
@@ -170,7 +163,7 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
                                                and the amount of samples taken for this dp.
     """
     simulators = [Simulator(dp) for dp in designpoints]
-    ui = [(i, simulators[i].run_optimized()[idx]) for i in range(len(simulators))]  # empirical means
+    ui = [(i, simulators[i].run()[idx]) for i in range(len(simulators))]  # empirical means
     oi = [0 for _ in range(len(simulators))]
     T = [1 for _ in range(len(designpoints))]
 
@@ -193,7 +186,7 @@ def mab_so_gape_v(designpoints, a, b, m, nr_samples=1000, idx=0):
             indices[i] = -gap_d[i] + math.sqrt((2 * a * oi[i]) / T[i]) + (7 * a * b) / (3 * T[i])
 
         j = indices.index(max(indices))
-        new_sample = simulators[j].run_optimized()[idx]
+        new_sample = simulators[j].run()[idx]
         prev_ui = ui[j][1]  # stores the current empiric mean
         ui[j] = (j, ui[j][1] + (new_sample - ui[j][1]) / T[j])
         # iterative variance calculation for o_i

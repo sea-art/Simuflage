@@ -6,16 +6,13 @@ context of what to explore.
 
 from design.mapping import all_possible_pos_mappings, first_fit, next_fit, best_fit, worst_fit
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 class SearchSpace:
     def __init__(self, capacities, applications, max_components, policies):
         """ Defines the search space by describing all possible dimensions of freedom within the search space.
         The given values will be stored in this object to be easily utilize the degrees of freedom.
 
-        :param capacities: list of floats - possible capacities for components
+        :param capacities: list of floats - possible capabilities for components
         :param applications: list of floats - the applications that have to be executed
         :param max_components: integer indicating the upper bound of component selection
         :param policies - list of strings defining the possible policies

@@ -49,4 +49,4 @@ class TestDesignpoint:
         """ Since all individual components are already tested, only tests the correct number of elements"""
         dp = self.example_designpoint()
 
-        assert len(dp.to_numpy()) == 5
+        assert len(dp.to_numpy()) == 6

@@ -9,9 +9,6 @@ import sys
 import numpy as np
 import math
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 def all_possible_pos_mappings(n):
     """ Cartesian product of all possible position values.
@@ -69,7 +66,7 @@ def application_mapping(components, tuple_mapping):
 class InvalidMappingError(Exception):
     def __init__(self, func_name):
         """ Error/exception to be thrown when the algorithms can not fit
-        the given applications towards the given capacities.
+        the given applications towards the given capabilities.
 
         :param func_name: str - function name to display within error
         """
@@ -83,8 +80,8 @@ def next_fit(capacities, applications):
     yntill an application does not fit, which changes the active bin to the one next
     in order.
 
-    :param capacities: [float] - list of capacities of components.
-    :param applications: [float] - list of power requirements for applications.
+    :param capacities: [float] - list of capabilities of components.
+    :param applications: [float] - list of comp_need requirements for applications.
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
     bins = np.copy(capacities)
@@ -112,8 +109,8 @@ def first_fit(capacities, applications):
 
     Each application is mapped to the first component that the application fits in.
 
-    :param capacities: [float] - list of capacities of components.
-    :param applications: [float] - list of power requirements for applications.
+    :param capacities: [float] - list of capabilities of components.
+    :param applications: [float] - list of comp_need requirements for applications.
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
     bins = np.copy(capacities)
@@ -135,7 +132,7 @@ def first_fit(capacities, applications):
 def _get_highest_idx(bins, min_val, invert=False):
     """ Find the index of the bin with the highest available capacity.
 
-    :param bins: [float] - list of float capacities
+    :param bins: [float] - list of float capabilities
     :param min_val: float - minimum required value for bin
     :param invert: Will change function to finding the lowest idx.
     :return: int - index
@@ -162,8 +159,8 @@ def best_fit(capacities, applications, invert=False):
 
     Maps applications to the component with the highest remaining capacity (that still fits).
 
-    :param capacities: [float] - list of capacities of components.
-    :param applications: [float] - list of power requirements for applications.
+    :param capacities: [float] - list of capabilities of components.
+    :param applications: [float] - list of comp_need requirements for applications.
     :param invert: Changes best_fit algorithm to worst_fit
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
@@ -179,6 +176,7 @@ def best_fit(capacities, applications, invert=False):
                 bins[idx] -= app
         except IndexError:
             break
+
     if len(tup_mapping) != len(applications):
         raise InvalidMappingError("best_fit")
 
@@ -190,8 +188,8 @@ def worst_fit(capacities, applications):
 
     Maps applications to the component with the least remaining capacity (that still fits).
 
-    :param capacities: [float] - list of capacities of components.
-    :param applications: [float] - list of power requirements for applications.
+    :param capacities: [float] - list of capabilities of components.
+    :param applications: [float] - list of comp_need requirements for applications.
     :return: [(comp_idx, app_idx)] maps index of component to index of application.
     """
     try:

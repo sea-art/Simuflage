@@ -10,9 +10,6 @@ import numpy as np
 from .element import SimulatorElement
 from simulation.faultmodels import electro_migration
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 class Agings(SimulatorElement):
     """ Contains all logical operators based on the aging of components."""
@@ -22,6 +19,9 @@ class Agings(SimulatorElement):
         distribution.
 
         :param alive_components: 2D numpy boolean array (True indicates a living component on that position)
+        :param temperatures: 2D numpy float array with the current local thermals at this iteration.
+        :param workload: 2D numpy float array with values between [0.0, 1.0], indicating workload.
+        :param model: function that takes as input a temperature and outputs a TTF
         """
         samples = np.zeros(alive_components.shape)
         samples[alive_components] = model(temperatures[alive_components]) * np.random.weibull(5.0,
@@ -38,7 +38,7 @@ class Agings(SimulatorElement):
 
         :return: string - representation of this Agings object
         """
-        return "Agings: " + str(self._wear)
+        return "Agings: {}".format(self._wear)
 
     @property
     def cur_agings(self):
@@ -103,12 +103,12 @@ class Agings(SimulatorElement):
         :param thermals: 2D numpy float array with the current local thermals at this iteration.
         :return: Boolean - indicating if any new failures have occurred (which should be handled).
         """
-        assert n > 0, "Incrementing with 0 timesteps\n" + str(self._wear)
+        assert n > 0, "Incrementing with 0 timesteps\n{}".format(self._wear)
 
         self._wear[alive_components] += n * self._lambdas[alive_components]
 
         assert np.any(self._wear[alive_components] > 0.9999), \
-            "n steps did not result in aging > 1.0\n" + str(self._wear[alive_components])
+            "n steps did not result in aging > 1.0\n{}".format(self._wear[alive_components])
 
         return np.any(self._wear[alive_components] > 0.9999)
 

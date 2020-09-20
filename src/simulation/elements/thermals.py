@@ -10,11 +10,8 @@ from scipy import signal
 
 from .element import SimulatorElement
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
-ENV_TEMP = 20
-IDLE_TEMP = 15
+ENV_TEMP = 15
+IDLE_TEMP = 5
 
 
 class Thermals(SimulatorElement):
@@ -95,7 +92,7 @@ class Thermals(SimulatorElement):
         self._temps[self._alive_components] = self._adjusted_thermals(workload, fluctuate)[self._alive_components]
 
     def step_till_failure(self, n, workload, fluctuate=0.0):
-        """ Run n iterations regarding the thermals of the simulation.
+        """ Run n sample_budget regarding the thermals of the simulation.
 
         :param n: (int) amount of timesteps
         :param workload: 2D numpy float array with values between [0., 1.], indicating workload.

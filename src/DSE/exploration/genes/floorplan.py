@@ -12,11 +12,8 @@ such as
 
 import numpy as np
 
-from DSE.exploration.GA.operators import one_point_swapover
+from DSE.exploration.operators import one_point_swapover
 from design.mapping import all_possible_pos_mappings
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class FloorPlan:

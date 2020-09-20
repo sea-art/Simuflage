@@ -15,9 +15,6 @@ from simulation.elements import Thermals
 from simulation.elements import Agings
 from simulation.elements import Components
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 class AbsSimulator(ABC):
     """ Abstract class for the simulator and integrator."""
@@ -51,7 +48,7 @@ class Integrator(AbsSimulator):
         self._total_watt_used = 0
 
         # Simulation variables
-        self._components = Components(data['capacities'], data['power_usage'], data['comp_loc_map'], data['app_map'],
+        self._components = Components(data['capabilities'], data['power_usage'], data['comp_loc_map'], data['app_map'],
                                       data['policy'])
         self._thermals = Thermals(self._components.workload, data['self_temps'], data['comp_loc_map'],
                                   self._components.alive_components)
@@ -93,10 +90,6 @@ class Integrator(AbsSimulator):
         remap_required = self._agings.step(self._components.alive_components, self._thermals.temps)
         system_ok = self._components.step(self._agings.cur_agings)
         self._thermals.step(self._components.workload)
-
-        # self._thermals.update_thermals(self._components.power_uses)
-
-        print(self._components.workload)
 
         self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
 

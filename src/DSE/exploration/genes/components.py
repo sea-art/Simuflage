@@ -13,17 +13,14 @@ such as
 import random
 import numpy as np
 
-from DSE.exploration.GA.operators import one_point_crossover
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
+from DSE.exploration.operators import one_point_crossover
 
 
 class Components:
     def __init__(self, capacities):
         """ Initialization of a genetic component capacity object.
 
-        :param capacities: int numpy array representing the capacities of components
+        :param capacities: int numpy array representing the capabilities of components
         """
         self.values = capacities
 
@@ -43,7 +40,7 @@ class Components:
         Will do either one of two things:
         1) remove or add a random component
         2) Will randomly replace the capacity of a single component with a different capacity
-        out of all possible capacities from the search space.
+        out of all possible capabilities from the search space.
 
         :param search_space: SearchSpace object
         :return: None

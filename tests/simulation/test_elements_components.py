@@ -22,7 +22,7 @@ class TestComponents:
         dp = DesignPoint([c1, c2], [a1, a2], [(c1, a1), (c2, a2)])
         dp_data = dp.to_numpy()
 
-        return Components(dp_data[0], dp_data[2], dp_data[3], dp_data[4])
+        return Components(dp_data['capabilities'], dp_data['power_usage'], dp_data['comp_loc_map'], dp_data['app_map'])
 
     @staticmethod
     def slack_order_verification(policy, out):

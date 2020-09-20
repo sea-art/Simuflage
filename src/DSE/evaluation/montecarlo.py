@@ -1,27 +1,23 @@
 #!/usr/bin/env python
 
-""" Contains methods to evaluate n designpoints via a Monte Carlo simulation approach."""
+""" Contains methods to evaluate n design points via a Monte Carlo simulation approach."""
 
 import collections
-import random
 import math
 import multiprocessing
 import warnings
 
 from simulation import Simulator
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 def run_n_simulations(designpoint, dp_name, iterations, outputs, all_samples=False):
-    """ Evaluate the given design point by calculating the MTTF for a given amount of iterations.
+    """ Evaluate the given design point by calculating the MTTF for a given amount of sample_budget.
 
     This function is used for parallelising the Monte Carlo Simulation evaluation.
 
     :param designpoint: DesignPoint object - this DesignPoint is evauluated.
     :param dp_name: any - unique inidcator of this designpoint (e.g. integer)
-    :param iterations: number of iterations to run the MCS.
+    :param iterations: number of sample_budget to run the MCS.
     :param outputs: dictionary to write the MTTF output.
     :return: None
     """
@@ -31,7 +27,7 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs, all_samples=Fal
     sim = Simulator(designpoint)
 
     for i in range(iterations):
-        ttf, consum, size = sim.run_optimized()
+        ttf, consum, size = sim.run()
         TTFs.append(ttf)
         consumptions.append(consum)
 
@@ -41,11 +37,11 @@ def run_n_simulations(designpoint, dp_name, iterations, outputs, all_samples=Fal
         outputs[dp_name] = list(zip(TTFs, consumptions, [size for _ in range(len(TTFs))]))
 
 
-def monte_carlo_iterative(designpoints, iterations, all_samples=False):
+def monte_carlo_iterative(designpoints, sample_budget, all_samples=False):
     """ Iterative implementation of the MCS to rank the given design points.
 
     :param designpoints: [DesignPoint object] - List of designpoint objects (the candidates).
-    :param iterations: number of MC iterations to run
+    :param sample_budget: number of MC sample_budget to run
     :return: [float] - List of MTTF corresponding indexwise to the design points.
     """
     TTFs = {i: [] for i in range(len(designpoints))}
@@ -53,11 +49,11 @@ def monte_carlo_iterative(designpoints, iterations, all_samples=False):
 
     sims = [Simulator(d) for d in designpoints]
 
-    i_per_dp = iterations // len(designpoints)
+    i_per_dp = sample_budget // len(designpoints)
 
     for i in range(len(designpoints)):
         for _ in range(i_per_dp):
-            ttf, consum, size = sims[i].run_optimized()
+            ttf, consum, size = sims[i].run()
             TTFs[i].append(ttf)
             consumptions[i].append(consum)
 
@@ -73,17 +69,17 @@ def monte_carlo_iterative(designpoints, iterations, all_samples=False):
     return output
 
 
-def monte_carlo_parallelized(designpoints, iterations, all_samples=False):
+def monte_carlo_parallelized(designpoints, sample_budget, all_samples=False):
     """ Parallelised implementation of the MCS.
 
     This function should be used over the monte_carlo_iterative due to significant decrease
     in execution time.
 
     :param designpoints: [DesignPoint object] - List of designpoint objects (the candidates).
-    :param iterations: number of MC iterations to run
+    :param sample_budget: number of MC sample_budget to run
     :return: {dp_indicator: MTTF} - Dictionary of the results
     """
-    i_per_dp = int(math.ceil(iterations / len(designpoints)))
+    i_per_dp = int(math.ceil(sample_budget / len(designpoints)))
     jobs = []
 
     manager = multiprocessing.Manager()
@@ -102,19 +98,20 @@ def monte_carlo_parallelized(designpoints, iterations, all_samples=False):
     return return_dict
 
 
-def monte_carlo(designpoints, iterations=1000, parallelized=True, all_samples=False):
+def monte_carlo(designpoints, sample_budget=1000, parallelized=True, all_samples=False):
     """ Evaluation of the given design points via a Monte Carlo Simulation
 
     :param designpoints: [DesignPoint object] - List of designpoint objects (the candidates).
-    :param iterations: number of MC iterations to run
+    :param sample_budget: number of MC sample_budget to run
     :param parallelized: Boolean - indicating if the results so be calculated in parallel
     :param all_samples: Boolean - indicating of all individuaL samples should be returned instead of mean.
     :return: Dict mapping index of designpoint with corresponding evaluated values (as tuple)
     """
     if parallelized:
-        return collections.OrderedDict(sorted(monte_carlo_parallelized(designpoints, iterations, all_samples).items()))
+        return collections.OrderedDict(sorted(monte_carlo_parallelized(designpoints, sample_budget, all_samples).items()))
     else:
-        return collections.OrderedDict(monte_carlo_iterative(designpoints, iterations))
+        warnings.warn("Using the non-parallelized MCS. The use of parallelization is advised.")
+        return collections.OrderedDict(monte_carlo_iterative(designpoints, sample_budget))
 
 
 def print_results(results, dps):

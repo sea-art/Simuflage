@@ -2,7 +2,7 @@
 
 """ Complete chromosome representation of a design point.
 Contains all aspects of a designpoint, i.e.:
-- Component capacities
+- Component capabilities
 - Component locations
 - Application mapping
 - Policy
@@ -16,9 +16,6 @@ from .genes import Components, FloorPlan, AppMapping, Policy
 
 import numpy as np
 import random
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Chromosome:
@@ -39,7 +36,7 @@ class Chromosome:
 
         :return: string - representation of this object.
         """
-        return "gene1: {}\ngene2: {}\ngene3: {}\ngene4: '{}'\n"\
+        return "gene1: {}, gene2: {}, gene3: {}, gene4: '{}'"\
             .format(self.genes[0], self.genes[1], self.genes[2], self.genes[3])
 
     def is_valid(self):
@@ -57,7 +54,7 @@ class Chromosome:
     def create_random(container, search_space):
         """ Randomly creates a Chromosome (and thus design point).
 
-        Randomly selects n components with random capacities and locations.
+        Randomly selects n components with random capabilities and locations.
         Selects a random policy and randomly maps applications to the components.
 
         :param container: Chromosome object or wrapper object (required for DEAP)

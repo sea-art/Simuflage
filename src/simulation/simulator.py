@@ -5,20 +5,14 @@
 Functionalities of the simulator should be defined in the integrator.py file.
 """
 
-import sys
-
 from .integrator import Integrator, AbsSimulator
-
-
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
 
 
 class Simulator(AbsSimulator):
     """ This file contains all the functions that the Simulator is ought to perform."""
 
     def __init__(self, design_point):
-        """Creates a simulator to calculate the TTF, temperatures and power output given a designpoint.
+        """Creates a simulator to calculate the TTF, temperatures and comp_need output given a designpoint.
 
         :param design_point: DesignPoint object representing a system to evaluate.
         """
@@ -60,7 +54,7 @@ class Simulator(AbsSimulator):
         return system_ok
 
     def step_till_failure(self):
-        """ Run n iterations of the simulator.
+        """ Run n sample_budget of the simulator.
 
         :return: Boolean - indicating if the system is still running.
         """
@@ -77,24 +71,7 @@ class Simulator(AbsSimulator):
         self._integrator.reset()
         self._timesteps = 0
 
-    def run(self, iteration_amount=5000, until_failure=False, debug=False):
-        """ Runs the simulation an iteration_amount of time or until a failure occurs.
-
-        :param iteration_amount:
-        :param until_failure: boolean to infinitely simulate until failure
-        :return: amount of iterations when the system has failed
-        """
-        if until_failure:
-            iteration_amount = sys.maxsize
-
-        for _ in range(iteration_amount):
-            if debug:
-                self.print_status()
-
-            if not self.step():
-                return self._timesteps
-
-    def run_optimized(self):
+    def run(self):
         """ Run the simulation in an optimized form, where timesteps will be skipped to
         the point where a failure occurs.
 

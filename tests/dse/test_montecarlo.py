@@ -13,7 +13,7 @@ class TestMonteCarlo:
         dps = [DesignPoint.create_random(2) for _ in range(10)]
 
         start = time.time()
-        monte_carlo(dps, iterations=5000, parallelized=True)
+        monte_carlo(dps, sample_budget=5000, parallelized=True)
         end = time.time()
 
         assert end - start < 10.0
@@ -26,4 +26,4 @@ class TestMonteCarlo:
         dps = [DesignPoint.create_random(2) for _ in range(3)]
 
         with pytest.warns(UserWarning):
-            monte_carlo(dps, iterations=500, parallelized=False)
+            monte_carlo(dps, sample_budget=500, parallelized=False)

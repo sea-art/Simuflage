@@ -4,6 +4,7 @@ import numpy as np
 from scipy.constants import convert_temperature
 
 # Electro-Migration related parameters
+# (Bolchini et al. 2014)
 BETA = 2
 ACTIVATION_ENERGY = 0.48
 BOLTZMAN_CONSTANT = 8.6173324 * 0.00001

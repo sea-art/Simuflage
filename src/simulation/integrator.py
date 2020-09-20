@@ -15,9 +15,6 @@ from simulation.elements import Thermals
 from simulation.elements import Agings
 from simulation.elements import Components
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
 
 class AbsSimulator(ABC):
     """ Abstract class for the simulator and integrator."""
@@ -37,7 +34,7 @@ class AbsSimulator(ABC):
 class Integrator(AbsSimulator):
     """ This class should be edited when adding new elements or changing simulation functionality."""
 
-    def __init__(self, design_point, policy):
+    def __init__(self, design_point):
         """ Integrator is used to change/add functionality to the simulator.
 
         All elements of the simulator are required to work together, this class achieves this collaboration between
@@ -45,11 +42,17 @@ class Integrator(AbsSimulator):
 
         :param design_point: DesignPoint object representing a system to evaluate.
         """
-        capacities, power_uses, max_temps, comp_loc_map, app_map = design_point.to_numpy()
+        data = design_point.to_numpy()
+
+        self.grid_size = design_point.evaluate_size()
+        self._total_watt_used = 0
 
         # Simulation variables
-        self._components = Components(capacities, power_uses, comp_loc_map, app_map, policy)
-        self._thermals = Thermals(self._components.workload, max_temps, comp_loc_map, self._components.alive_components)
+        self._components = Components(data['capabilities'], data['power_usage'], data['comp_loc_map'], data['app_map'],
+                                      data['policy'])
+        self._thermals = Thermals(self._components.workload, data['self_temps'], data['comp_loc_map'],
+                                  self._components.alive_components)
+
         self._agings = Agings(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
 
@@ -61,6 +64,10 @@ class Integrator(AbsSimulator):
         """
         return self._timesteps
 
+    @property
+    def total_watt_used(self):
+        return self._total_watt_used
+
     def reset(self):
         """ Resets the simulator back to default. Resamples all random variables.
 
@@ -70,6 +77,7 @@ class Integrator(AbsSimulator):
         self._thermals.reset(self._components.workload, self._components.alive_components)
         self._agings.reset(self._components.alive_components, self._thermals.temps, self._components.workload)
         self._timesteps = 0
+        self._total_watt_used = 0
 
     def step(self):
         """ Evaluate the simulator by one timestep.
@@ -82,10 +90,6 @@ class Integrator(AbsSimulator):
         remap_required = self._agings.step(self._components.alive_components, self._thermals.temps)
         system_ok = self._components.step(self._agings.cur_agings)
         self._thermals.step(self._components.workload)
-
-        # self._thermals.update_thermals(self._components.power_uses)
-
-        print(self._components.workload)
 
         self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
 
@@ -100,13 +104,13 @@ class Integrator(AbsSimulator):
                                                  self._thermals.temps,
                                                  self._timesteps)
 
+        self._total_watt_used += n * self._components.watt_usage
+        self._timesteps += n
+
         self._agings.step_till_failure(n, self._components.alive_components, self._thermals.temps)
         system_ok = self._components.step_till_failure(n, self._agings.cur_agings)
         self._thermals.step_till_failure(n, self._components.workload)
-
         self._agings.resample_workload_changes(self._components.workload, self._thermals.temps)
-
-        self._timesteps += n
 
         return system_ok
 

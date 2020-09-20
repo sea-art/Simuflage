@@ -93,10 +93,10 @@ The default policy (when no policy is specified) is set to random, but it can al
 #### Manually
 Instead of doing all previous steps manually, it is possible to create designpoints in a direct way, for example:
 ```python
-DesignPoint.create(capacities=[100, 120], 
+DesignPoint.create(caps=[100, 120],
                    locs=[(1, 1), (0, 1)],
-                   apps=[50, 40], 
-                   mapping=[(0, 0), (1,1)],
+                   apps=[50, 40],
+                   maps=[(0, 0), (1, 1)],
                    policy='random')
 ```
 will do all previous steps in a single statement. All the arguments of this functions are corresponding index-wise. 
@@ -104,6 +104,7 @@ will do all previous steps in a single statement. All the arguments of this func
 #### Randomly
 It is also possibly to quickly generate a random DesignPoint
 ```python
-dp = DesignPoint.create_random(n)
+dp = DesignPoint.create_random(n=4)
 ```
-where ```n``` indicates the amount of components and applications that will reandomly be created and mapped.
+where ```n``` indicates the amount of components and applications that will randomly be created and mapped.
+When n is not specified, it will be a random integer.

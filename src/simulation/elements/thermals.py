@@ -10,10 +10,8 @@ from scipy import signal
 
 from .element import SimulatorElement
 
-__licence__ = "GPL-3.0-or-later"
-__copyright__ = "Copyright 2020 Siard Keulen"
-
-ENV_TEMP = 20
+ENV_TEMP = 15
+IDLE_TEMP = 5
 
 
 class Thermals(SimulatorElement):
@@ -55,7 +53,13 @@ class Thermals(SimulatorElement):
         :param fluc: float representing the max uniformly fluctuation of temperature.
         :return: None
         """
+        # Assign temperatures to components based on workload, max_temps and environmental temperature.
         temperatures = ENV_TEMP + workload * self._max_temps
+
+        # Assigns the idle temperature to alive_components that have no workload.
+        temperatures[self._alive_components] = np.where(workload == 0., IDLE_TEMP, temperatures)[self._alive_components]
+
+        # Increases the heat of components based on other adjacent component thermals.
         neighbour_thermals = self._neighbour_thermal_influences(temperatures)
 
         return neighbour_thermals
@@ -68,7 +72,7 @@ class Thermals(SimulatorElement):
         :param kernel: 2D kernel which will be used for convolution
         :return: 2D numpy float array - grid thermals after neighbouring contributions
         """
-        ni = 0.01
+        ni = 0.1
 
         if not kernel:
             kernel = np.asarray([[ni, ni, ni],
@@ -88,13 +92,14 @@ class Thermals(SimulatorElement):
         self._temps[self._alive_components] = self._adjusted_thermals(workload, fluctuate)[self._alive_components]
 
     def step_till_failure(self, n, workload, fluctuate=0.0):
-        """ Run n iterations regarding the thermals of the simulation.
+        """ Run n sample_budget regarding the thermals of the simulation.
 
         :param n: (int) amount of timesteps
         :param workload: 2D numpy float array with values between [0., 1.], indicating workload.
         :param fluctuate: (float) representing the max uniformly fluctuation of temperature each iteration.
         :return: None
         """
+
         self.step(workload, fluctuate=fluctuate)
 
     def reset(self, workload, alive_components):
@@ -103,5 +108,5 @@ class Thermals(SimulatorElement):
         :return: None
         """
         self._temps = np.zeros(workload.shape)
-        self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]
         self._alive_components = alive_components
+        self._temps[alive_components] = self._adjusted_thermals(workload, 0.0)[alive_components]

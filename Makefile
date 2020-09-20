@@ -16,5 +16,8 @@ test:
 check-pep8:
 	bash -c 'source ./venv/bin/activate && pycodestyle --ignore E501 ./src/ && deactivate'
 
+experiment:
+	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/experiments/collecting.py && deactivate'
+
 run:
 	bash -c 'source ./venv/bin/activate && PYTHONPATH="./src/" python3 ./src/main.py && deactivate'
